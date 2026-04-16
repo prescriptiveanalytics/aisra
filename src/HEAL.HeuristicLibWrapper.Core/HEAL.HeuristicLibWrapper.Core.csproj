@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="HEAL.HeuristicLib.Core" Version="0.1.7-alpha" />
+      <PackageReference Include="Microsoft.ML.FastTree" Version="5.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\HEAL.HeuristicLibWrapper.Common\HEAL.HeuristicLibWrapper.Common.csproj" />
+    </ItemGroup>
+
+</Project>
