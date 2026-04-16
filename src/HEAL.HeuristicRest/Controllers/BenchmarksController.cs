@@ -10,10 +10,15 @@ namespace HEAL.HeuristicRest.Controllers;
 
 [Controller]
 [Route("benchmarks")]
-public sealed class BenchmarkController(SolutionStore store) : ControllerBase
+public sealed class BenchmarksController(SolutionStore store) : ControllerBase
 {
     private readonly TypedSolutionStore<double[]> _store = store.ToTyped<double[]>();
 
+    /// <summary>
+    /// Starts a new benchmark based on the provided parameters.
+    /// The server responds right away, while the benchmark runs in the background.
+    /// The client can GET the status of the benchmark at the location provided by the location header.
+    /// </summary>
     [HttpPost("problems")]
     public ActionResult PostProblem([FromBody] FuncProblemDto dto)
     {
@@ -44,6 +49,10 @@ public sealed class BenchmarkController(SolutionStore store) : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Gets the status of a given benchmark, previously started by POST /benchmarks/problems.
+    /// If the benchmark is successful, the location header is set to the URL where the solution can be retrieved.
+    /// </summary>
     [HttpGet("status/{id:guid}")]
     public ActionResult<TrainingStatusDto> GetStatus(Guid id)
     {
@@ -61,6 +70,9 @@ public sealed class BenchmarkController(SolutionStore store) : ControllerBase
         return Ok(new TrainingStatusDto(status.Value));
     }
 
+    /// <summary>
+    /// Gets the solution of a successful benchmark, previously started by POST /benchmarks/problems.
+    /// </summary>
     [HttpGet("solutions/{id:guid}")]
     public ActionResult<double[]> GetSolution(Guid id)
     {
