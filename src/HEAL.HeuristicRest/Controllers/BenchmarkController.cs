@@ -54,7 +54,8 @@ public sealed class BenchmarkController(SolutionStore store) : ControllerBase
 
         if (status == TrainingStatus.Successful)
         {
-            HttpContext.Response.Headers.Location = Url.Action(nameof(GetStatus), new { id });
+            HttpContext.Response.Headers.Location =
+                Request.Scheme + "://" + Request.Host + Url.Action(nameof(GetSolution), new { id });
         }
 
         return Ok(new TrainingStatusDto(status.Value));
