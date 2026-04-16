@@ -9,11 +9,11 @@ using HEAL.HeuristicLib.Optimization;
 using HEAL.HeuristicLib.Problems;
 using HEAL.HeuristicLib.Random;
 using HEAL.HeuristicLib.SearchSpaces.Vectors;
-using HEAL.HeuristicLibWrapper.Common.Dtos;
-using HEAL.HeuristicLibWrapper.Core.Exceptions;
-using HEAL.HeuristicLibWrapper.Core.Heuristic;
+using HEAL.HeuristicLibWrapper.Dtos;
+using HEAL.HeuristicLibWrapper.Exceptions;
+using HEAL.HeuristicLibWrapper.Heuristic;
 
-namespace HEAL.HeuristicLibWrapper.Core.Runners;
+namespace HEAL.HeuristicLibWrapper.Runners;
 
 public static class BenchmarkRunner
 {

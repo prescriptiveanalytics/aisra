@@ -1,6 +1,6 @@
-﻿using HEAL.HeuristicLibWrapper.Core.Heuristic;
+﻿using HEAL.HeuristicLibWrapper.Heuristic;
 
-namespace HEAL.HeuristicLibWrapper.Core.Exceptions;
+namespace HEAL.HeuristicLibWrapper.Exceptions;
 
 public sealed class InvalidFunctionException(string functionName) : Exception(
     $"Function name '{functionName}' is invalid. Supported functions are: {

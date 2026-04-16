@@ -1,3 +1,3 @@
-﻿namespace HEAL.HeuristicLibWrapper.Core.Exceptions;
+﻿namespace HEAL.HeuristicLibWrapper.Exceptions;
 
 public sealed class HeuristicAlgorithmException(string message) : Exception(message);

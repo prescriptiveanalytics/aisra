@@ -1,4 +1,4 @@
-﻿namespace HEAL.HeuristicLibWrapper.Common.Dtos;
+﻿namespace HEAL.HeuristicLibWrapper.Dtos;
 
 public record FuncProblemDto
 {

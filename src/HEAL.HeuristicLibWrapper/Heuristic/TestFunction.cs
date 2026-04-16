@@ -3,7 +3,7 @@ using HEAL.HeuristicLib.Optimization;
 using HEAL.HeuristicLib.Problems.TestFunctions;
 using HEAL.HeuristicLib.Problems.TestFunctions.SingleObjectives;
 
-namespace HEAL.HeuristicLibWrapper.Core.Heuristic;
+namespace HEAL.HeuristicLibWrapper.Heuristic;
 
 public sealed class TestFunction : IGradientTestFunction
 {

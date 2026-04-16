@@ -2,8 +2,7 @@
     <Project Path="src/HEAL.HeuristicGrpc.Client/HEAL.HeuristicGrpc.Client.csproj" />
     <Project Path="src/HEAL.HeuristicGrpc.Core/HEAL.HeuristicGrpc.Core.csproj" />
     <Project Path="src/HEAL.HeuristicGrpc.Server/HEAL.HeuristicGrpc.Server.csproj" />
-    <Project Path="src/HEAL.HeuristicLibWrapper.Common/HEAL.HeuristicLibWrapper.Common.csproj" />
-    <Project Path="src/HEAL.HeuristicLibWrapper.Core/HEAL.HeuristicLibWrapper.Core.csproj" />
+    <Project Path="src/HEAL.HeuristicLibWrapper/HEAL.HeuristicLibWrapper.csproj" />
     <Project Path="src/HEAL.HeuristicRest/HEAL.HeuristicRest.csproj" />
     <Project Path="src/HEAL.HeuristicWeb/HEAL.HeuristicWeb.csproj" />
 </Solution>

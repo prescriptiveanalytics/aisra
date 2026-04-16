@@ -1,7 +1,7 @@
 using System.Net;
-using HEAL.HeuristicLibWrapper.Common.Dtos;
-using HEAL.HeuristicLibWrapper.Core.Exceptions;
-using HEAL.HeuristicLibWrapper.Core.Runners;
+using HEAL.HeuristicLibWrapper.Dtos;
+using HEAL.HeuristicLibWrapper.Exceptions;
+using HEAL.HeuristicLibWrapper.Runners;
 using HEAL.HeuristicRest.Dtos;
 using HEAL.HeuristicRest.Services.Storage;
 using Microsoft.AspNetCore.Mvc;

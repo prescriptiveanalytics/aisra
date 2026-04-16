@@ -21,7 +21,7 @@
     </ItemGroup>
     
     <ItemGroup>
-      <ProjectReference Include="..\HEAL.HeuristicLibWrapper.Core\HEAL.HeuristicLibWrapper.Core.csproj" />
+      <ProjectReference Include="..\HEAL.HeuristicLibWrapper\HEAL.HeuristicLibWrapper.csproj" />
     </ItemGroup>
 
 </Project>

@@ -6,4 +6,9 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <PackageReference Include="HEAL.HeuristicLib.Core" Version="0.1.7-alpha" />
+      <PackageReference Include="Microsoft.ML.FastTree" Version="5.0.0" />
+    </ItemGroup>
+
 </Project>

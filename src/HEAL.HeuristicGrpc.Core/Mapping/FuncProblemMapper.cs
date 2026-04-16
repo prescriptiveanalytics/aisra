@@ -1,5 +1,5 @@
 ﻿using HEAL.HeuristicGrpc.Core.Proto;
-using HEAL.HeuristicLibWrapper.Common.Dtos;
+using HEAL.HeuristicLibWrapper.Dtos;
 using Riok.Mapperly.Abstractions;
 
 namespace HEAL.HeuristicGrpc.Core.Mapping;

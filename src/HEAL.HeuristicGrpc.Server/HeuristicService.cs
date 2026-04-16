@@ -1,7 +1,7 @@
 ﻿using Grpc.Core;
 using HEAL.HeuristicGrpc.Core.Mapping;
 using HEAL.HeuristicGrpc.Core.Proto;
-using HEAL.HeuristicLibWrapper.Core.Runners;
+using HEAL.HeuristicLibWrapper.Runners;
 
 namespace HEAL.HeuristicGrpc.Server;
 
