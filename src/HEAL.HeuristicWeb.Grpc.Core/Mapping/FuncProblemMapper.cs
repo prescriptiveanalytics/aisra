@@ -1,4 +1,4 @@
-﻿using HEAL.HeuristicAgent.Shared.Dtos;
+﻿using HeuristicLibContract.Dtos;
 using HEAL.HeuristicGrpc.Core.Proto;
 using Riok.Mapperly.Abstractions;
 

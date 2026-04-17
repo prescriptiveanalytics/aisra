@@ -28,6 +28,25 @@ namespace HEAL.HeuristicWeb.Rest.Client
     public partial interface IClient : IHeuristicRestClient
     {
         /// <summary>
+        /// Starts a new benchmark based on the provided parameters.
+        /// <br/>The server responds right away, while the benchmark runs in the background.
+        /// <br/>The client can GET the status of the benchmark at the location provided by the location header.
+        /// </summary>
+        /// <returns>OK</returns>
+        /// <exception cref="SwaggerException">A server side error occurred.</exception>
+        System.Threading.Tasks.Task PostBenchmarkProblemAsync(FuncProblemDto body);
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Starts a new benchmark based on the provided parameters.
+        /// <br/>The server responds right away, while the benchmark runs in the background.
+        /// <br/>The client can GET the status of the benchmark at the location provided by the location header.
+        /// </summary>
+        /// <returns>OK</returns>
+        /// <exception cref="SwaggerException">A server side error occurred.</exception>
+        System.Threading.Tasks.Task PostBenchmarkProblemAsync(FuncProblemDto body, System.Threading.CancellationToken cancellationToken);
+
+        /// <summary>
         /// Gets the status of a given benchmark, previously started by POST /benchmarks/problems.
         /// <br/>If the benchmark is successful, the location header is set to the URL where the solution can be retrieved.
         /// </summary>
@@ -106,6 +125,92 @@ namespace HEAL.HeuristicWeb.Rest.Client
         partial void PrepareRequest(System.Net.Http.HttpClient client, System.Net.Http.HttpRequestMessage request, string url);
         partial void PrepareRequest(System.Net.Http.HttpClient client, System.Net.Http.HttpRequestMessage request, System.Text.StringBuilder urlBuilder);
         partial void ProcessResponse(System.Net.Http.HttpClient client, System.Net.Http.HttpResponseMessage response);
+
+        /// <summary>
+        /// Starts a new benchmark based on the provided parameters.
+        /// <br/>The server responds right away, while the benchmark runs in the background.
+        /// <br/>The client can GET the status of the benchmark at the location provided by the location header.
+        /// </summary>
+        /// <returns>OK</returns>
+        /// <exception cref="SwaggerException">A server side error occurred.</exception>
+        public virtual System.Threading.Tasks.Task PostBenchmarkProblemAsync(FuncProblemDto body)
+        {
+            return PostBenchmarkProblemAsync(body, System.Threading.CancellationToken.None);
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Starts a new benchmark based on the provided parameters.
+        /// <br/>The server responds right away, while the benchmark runs in the background.
+        /// <br/>The client can GET the status of the benchmark at the location provided by the location header.
+        /// </summary>
+        /// <returns>OK</returns>
+        /// <exception cref="SwaggerException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task PostBenchmarkProblemAsync(FuncProblemDto body, System.Threading.CancellationToken cancellationToken)
+        {
+            var client_ = new System.Net.Http.HttpClient();
+            var disposeClient_ = true;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    var json_ = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(body, JsonSerializerSettings);
+                    var content_ = new System.Net.Http.ByteArrayContent(json_);
+                    content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
+                    request_.Content = content_;
+                    request_.Method = new System.Net.Http.HttpMethod("POST");
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "benchmarks/problems"
+                    urlBuilder_.Append("benchmarks/problems");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            return;
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new SwaggerException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
 
         /// <summary>
         /// Gets the status of a given benchmark, previously started by POST /benchmarks/problems.
@@ -411,6 +516,120 @@ namespace HEAL.HeuristicWeb.Rest.Client
 
             var result = System.Convert.ToString(value, cultureInfo);
             return result == null ? "" : result;
+        }
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.7.0.0 (NJsonSchema v11.6.0.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class FuncProblemDto : System.ComponentModel.INotifyPropertyChanged
+    {
+        private string _function;
+        private int _dimensions;
+        private int _population;
+        private double _mutationRate;
+        private double _mutationStrength;
+        private int _maxIterations;
+
+        [System.Text.Json.Serialization.JsonPropertyName("function")]
+        public string Function    {
+            get { return _function; }
+            set
+            {
+                if (_function != value)
+                {
+                    _function = value;
+                    RaisePropertyChanged();
+                }
+            }
+        }
+
+        [System.Text.Json.Serialization.JsonPropertyName("dimensions")]
+        public int Dimensions    {
+            get { return _dimensions; }
+            set
+            {
+                if (_dimensions != value)
+                {
+                    _dimensions = value;
+                    RaisePropertyChanged();
+                }
+            }
+        }
+
+        [System.Text.Json.Serialization.JsonPropertyName("population")]
+        public int Population    {
+            get { return _population; }
+            set
+            {
+                if (_population != value)
+                {
+                    _population = value;
+                    RaisePropertyChanged();
+                }
+            }
+        }
+
+        [System.Text.Json.Serialization.JsonPropertyName("mutationRate")]
+        public double MutationRate    {
+            get { return _mutationRate; }
+            set
+            {
+                if (_mutationRate != value)
+                {
+                    _mutationRate = value;
+                    RaisePropertyChanged();
+                }
+            }
+        }
+
+        [System.Text.Json.Serialization.JsonPropertyName("mutationStrength")]
+        public double MutationStrength    {
+            get { return _mutationStrength; }
+            set
+            {
+                if (_mutationStrength != value)
+                {
+                    _mutationStrength = value;
+                    RaisePropertyChanged();
+                }
+            }
+        }
+
+        [System.Text.Json.Serialization.JsonPropertyName("maxIterations")]
+        public int MaxIterations    {
+            get { return _maxIterations; }
+            set
+            {
+                if (_maxIterations != value)
+                {
+                    _maxIterations = value;
+                    RaisePropertyChanged();
+                }
+            }
+        }
+
+        public string ToJson()
+        {
+
+            var options = new System.Text.Json.JsonSerializerOptions();
+
+            return System.Text.Json.JsonSerializer.Serialize(this, options);
+
+        }
+        public static FuncProblemDto FromJson(string data)
+        {
+
+            var options = new System.Text.Json.JsonSerializerOptions();
+
+            return System.Text.Json.JsonSerializer.Deserialize<FuncProblemDto>(data, options);
+
+        }
+        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
+
+        protected virtual void RaisePropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
+        {
+            var handler = PropertyChanged;
+            if (handler != null)
+                handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
         }
     }
 

@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using HEAL.HeuristicAgent.Shared.Dtos;
+using HeuristicLibContract.Dtos;
 using HEAL.HeuristicLib.Algorithms;
 using HEAL.HeuristicLib.Algorithms.Evolutionary;
 using HEAL.HeuristicLib.Genotypes.Vectors;
