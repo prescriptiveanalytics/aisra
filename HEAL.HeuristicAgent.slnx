@@ -1,4 +1,5 @@
 <Solution>
+    <Project Path="src/HEAL.HeuristicLibContracts/HEAL.HeuristicLibContracts.csproj" />
     <Project Path="src/HEAL.HeuristicLibWrapper/HEAL.HeuristicLibWrapper.csproj" />
     <Project Path="src/HEAL.HeuristicWeb.Grpc.Client/HEAL.HeuristicWeb.Grpc.Client.csproj" />
     <Project Path="src/HEAL.HeuristicWeb.Grpc.Core/HEAL.HeuristicWeb.Grpc.Core.csproj" />
@@ -6,6 +7,5 @@
     <Project Path="src/HEAL.HeuristicWeb.Rest.Client/HEAL.HeuristicWeb.Rest.Client.csproj" />
     <Project Path="src/HEAL.HeuristicWeb.Rest.Server/HEAL.HeuristicWeb.Rest.Server.csproj" />
     <Project Path="src/HEAL.HeuristicWeb.Server/HEAL.HeuristicWeb.Server.csproj" />
-    <Project Path="src/HeuristicLibContract/HeuristicLibContract.csproj" />
 </Solution>
 

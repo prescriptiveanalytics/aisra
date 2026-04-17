@@ -1,4 +1,4 @@
-﻿namespace HeuristicLibContract.Dtos;
+﻿namespace HEAL.HeuristicLibContracts.Dtos;
 
 public record FuncProblemDto
 {

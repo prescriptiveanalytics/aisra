@@ -1,4 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
+using HEAL.HeuristicLibContracts.Enums;
 
 namespace HEAL.HeuristicWeb.Rest.Server.Services.Storage;
 

@@ -1,7 +1,7 @@
 ﻿using Grpc.Net.Client;
 using HEAL.HeuristicGrpc.Core.Proto;
 using HEAL.HeuristicWeb.Grpc.Core.Mapping;
-using HeuristicLibContract.Dtos;
+using HEAL.HeuristicLibContracts.Dtos;
 
 using var channel = GrpcChannel.ForAddress("https://localhost:7017");
 var client = new GrpcHeuristicService.GrpcHeuristicServiceClient(channel);

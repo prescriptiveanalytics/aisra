@@ -4,6 +4,8 @@
 // </auto-generated>
 //----------------------
 
+using HEAL.HeuristicLibContracts.Dtos;
+
 #pragma warning disable 108 // Disable "CS0108 '{derivedDto}.ToJson()' hides inherited member '{dtoBase}.ToJson()'. Use the new keyword if hiding was intended."
 #pragma warning disable 114 // Disable "CS0114 '{derivedDto}.RaisePropertyChanged(String)' hides inherited member 'dtoBase.RaisePropertyChanged(String)'. To make the current member override that implementation, add the override keyword. Otherwise add the new keyword."
 #pragma warning disable 472 // Disable "CS0472 The result of the expression is always 'false' since a value of type 'Int32' is never equal to 'null' of type 'Int32?'
@@ -25,7 +27,7 @@ namespace HEAL.HeuristicWeb.Rest.Client
     using System = global::System;
 
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "14.7.0.0 (NJsonSchema v11.6.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial interface IClient : IHeuristicRestClient
+    public partial interface IHeuristicWebClient : IHeuristicRestClient
     {
         /// <summary>
         /// Starts a new benchmark based on the provided parameters.
@@ -34,7 +36,7 @@ namespace HEAL.HeuristicWeb.Rest.Client
         /// </summary>
         /// <returns>OK</returns>
         /// <exception cref="SwaggerException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task PostBenchmarkProblemAsync(FuncProblemDto body);
+        System.Threading.Tasks.Task PostBenchmarkProblemTestX5Async(FuncProblemDto body);
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <summary>
@@ -44,7 +46,7 @@ namespace HEAL.HeuristicWeb.Rest.Client
         /// </summary>
         /// <returns>OK</returns>
         /// <exception cref="SwaggerException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task PostBenchmarkProblemAsync(FuncProblemDto body, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task PostBenchmarkProblemTestX5Async(FuncProblemDto body, System.Threading.CancellationToken cancellationToken);
 
         /// <summary>
         /// Gets the status of a given benchmark, previously started by POST /benchmarks/problems.
@@ -81,7 +83,7 @@ namespace HEAL.HeuristicWeb.Rest.Client
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "14.7.0.0 (NJsonSchema v11.6.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class Client : IClient
+    public partial class HeuristicWebClient : IHeuristicWebClient
     {
         #pragma warning disable 8618
         private string _baseUrl;
@@ -91,7 +93,7 @@ namespace HEAL.HeuristicWeb.Rest.Client
         private System.Text.Json.JsonSerializerOptions _instanceSettings;
 
     #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        public Client(string baseUrl)
+        public HeuristicWebClient(string baseUrl)
     #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
             BaseUrl = baseUrl;
@@ -133,9 +135,9 @@ namespace HEAL.HeuristicWeb.Rest.Client
         /// </summary>
         /// <returns>OK</returns>
         /// <exception cref="SwaggerException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task PostBenchmarkProblemAsync(FuncProblemDto body)
+        public virtual System.Threading.Tasks.Task PostBenchmarkProblemTestX5Async(FuncProblemDto body)
         {
-            return PostBenchmarkProblemAsync(body, System.Threading.CancellationToken.None);
+            return PostBenchmarkProblemTestX5Async(body, System.Threading.CancellationToken.None);
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
@@ -146,7 +148,7 @@ namespace HEAL.HeuristicWeb.Rest.Client
         /// </summary>
         /// <returns>OK</returns>
         /// <exception cref="SwaggerException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task PostBenchmarkProblemAsync(FuncProblemDto body, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task PostBenchmarkProblemTestX5Async(FuncProblemDto body, System.Threading.CancellationToken cancellationToken)
         {
             var client_ = new System.Net.Http.HttpClient();
             var disposeClient_ = true;
@@ -519,179 +521,7 @@ namespace HEAL.HeuristicWeb.Rest.Client
         }
     }
 
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.7.0.0 (NJsonSchema v11.6.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class FuncProblemDto : System.ComponentModel.INotifyPropertyChanged
-    {
-        private string _function;
-        private int _dimensions;
-        private int _population;
-        private double _mutationRate;
-        private double _mutationStrength;
-        private int _maxIterations;
-
-        [System.Text.Json.Serialization.JsonPropertyName("function")]
-        public string Function    {
-            get { return _function; }
-            set
-            {
-                if (_function != value)
-                {
-                    _function = value;
-                    RaisePropertyChanged();
-                }
-            }
-        }
-
-        [System.Text.Json.Serialization.JsonPropertyName("dimensions")]
-        public int Dimensions    {
-            get { return _dimensions; }
-            set
-            {
-                if (_dimensions != value)
-                {
-                    _dimensions = value;
-                    RaisePropertyChanged();
-                }
-            }
-        }
-
-        [System.Text.Json.Serialization.JsonPropertyName("population")]
-        public int Population    {
-            get { return _population; }
-            set
-            {
-                if (_population != value)
-                {
-                    _population = value;
-                    RaisePropertyChanged();
-                }
-            }
-        }
-
-        [System.Text.Json.Serialization.JsonPropertyName("mutationRate")]
-        public double MutationRate    {
-            get { return _mutationRate; }
-            set
-            {
-                if (_mutationRate != value)
-                {
-                    _mutationRate = value;
-                    RaisePropertyChanged();
-                }
-            }
-        }
-
-        [System.Text.Json.Serialization.JsonPropertyName("mutationStrength")]
-        public double MutationStrength    {
-            get { return _mutationStrength; }
-            set
-            {
-                if (_mutationStrength != value)
-                {
-                    _mutationStrength = value;
-                    RaisePropertyChanged();
-                }
-            }
-        }
-
-        [System.Text.Json.Serialization.JsonPropertyName("maxIterations")]
-        public int MaxIterations    {
-            get { return _maxIterations; }
-            set
-            {
-                if (_maxIterations != value)
-                {
-                    _maxIterations = value;
-                    RaisePropertyChanged();
-                }
-            }
-        }
-
-        public string ToJson()
-        {
-
-            var options = new System.Text.Json.JsonSerializerOptions();
-
-            return System.Text.Json.JsonSerializer.Serialize(this, options);
-
-        }
-        public static FuncProblemDto FromJson(string data)
-        {
-
-            var options = new System.Text.Json.JsonSerializerOptions();
-
-            return System.Text.Json.JsonSerializer.Deserialize<FuncProblemDto>(data, options);
-
-        }
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void RaisePropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
-        {
-            var handler = PropertyChanged;
-            if (handler != null)
-                handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-        }
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.7.0.0 (NJsonSchema v11.6.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    public enum TrainingStatus
-    {
-
-        [System.Runtime.Serialization.EnumMember(Value = @"Running")]
-        Running = 0,
-
-        [System.Runtime.Serialization.EnumMember(Value = @"Successful")]
-        Successful = 1,
-
-        [System.Runtime.Serialization.EnumMember(Value = @"Failed")]
-        Failed = 2,
-
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.7.0.0 (NJsonSchema v11.6.0.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class TrainingStatusDto : System.ComponentModel.INotifyPropertyChanged
-    {
-        private TrainingStatus _status;
-
-        [System.Text.Json.Serialization.JsonPropertyName("status")]
-        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<TrainingStatus>))]
-        public TrainingStatus Status    {
-            get { return _status; }
-            set
-            {
-                if (_status != value)
-                {
-                    _status = value;
-                    RaisePropertyChanged();
-                }
-            }
-        }
-
-        public string ToJson()
-        {
-
-            var options = new System.Text.Json.JsonSerializerOptions();
-
-            return System.Text.Json.JsonSerializer.Serialize(this, options);
-
-        }
-        public static TrainingStatusDto FromJson(string data)
-        {
-
-            var options = new System.Text.Json.JsonSerializerOptions();
-
-            return System.Text.Json.JsonSerializer.Deserialize<TrainingStatusDto>(data, options);
-
-        }
-        public event System.ComponentModel.PropertyChangedEventHandler PropertyChanged;
-
-        protected virtual void RaisePropertyChanged([System.Runtime.CompilerServices.CallerMemberName] string propertyName = null)
-        {
-            var handler = PropertyChanged;
-            if (handler != null)
-                handler(this, new System.ComponentModel.PropertyChangedEventArgs(propertyName));
-        }
-    }
+    
 
 
 

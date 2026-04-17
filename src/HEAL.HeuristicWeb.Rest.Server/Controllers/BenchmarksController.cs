@@ -1,9 +1,9 @@
 using System.Net;
+using HEAL.HeuristicLibContracts.Dtos;
+using HEAL.HeuristicLibContracts.Enums;
 using HEAL.HeuristicLibWrapper.Exceptions;
 using HEAL.HeuristicLibWrapper.Runners;
-using HEAL.HeuristicWeb.Rest.Server.Dtos;
 using HEAL.HeuristicWeb.Rest.Server.Services.Storage;
-using HeuristicLibContract.Dtos;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HEAL.HeuristicWeb.Rest.Server.Controllers;

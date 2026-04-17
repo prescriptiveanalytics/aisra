@@ -21,7 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\HeuristicLibContract\HeuristicLibContract.csproj" />
+        <ProjectReference Include="..\HEAL.HeuristicLibContracts\HEAL.HeuristicLibContracts.csproj" />
     </ItemGroup>
 
 </Project>
