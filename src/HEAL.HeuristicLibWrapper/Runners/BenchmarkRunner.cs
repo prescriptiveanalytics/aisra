@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using HEAL.HeuristicAgent.Shared.Dtos;
 using HEAL.HeuristicLib.Algorithms;
 using HEAL.HeuristicLib.Algorithms.Evolutionary;
 using HEAL.HeuristicLib.Genotypes.Vectors;
@@ -9,7 +10,6 @@ using HEAL.HeuristicLib.Optimization;
 using HEAL.HeuristicLib.Problems;
 using HEAL.HeuristicLib.Random;
 using HEAL.HeuristicLib.SearchSpaces.Vectors;
-using HEAL.HeuristicLibWrapper.Dtos;
 using HEAL.HeuristicLibWrapper.Exceptions;
 using HEAL.HeuristicLibWrapper.Heuristic;
 
