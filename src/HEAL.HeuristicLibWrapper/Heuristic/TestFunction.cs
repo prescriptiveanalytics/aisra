@@ -34,7 +34,7 @@ public sealed class TestFunction : IGradientTestFunction
     }
 
     private static TestFunctionType? GetTypeFromString(string typeName)
-        => Enum.TryParse<TestFunctionType>(typeName, out var type) ? type : null;
+        => Enum.TryParse<TestFunctionType>(typeName, true, out var type) ? type : null;
 
     public double Evaluate(RealVector solution) => _function.Evaluate(solution);
 
