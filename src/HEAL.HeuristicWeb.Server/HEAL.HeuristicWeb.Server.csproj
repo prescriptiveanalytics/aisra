@@ -5,16 +5,23 @@
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
         <WarningsAsErrors>nullable</WarningsAsErrors>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <NoWarn>$(NoWarn);1591</NoWarn>
     </PropertyGroup>
 
     <ItemGroup>
+        <PackageReference Include="Grpc.AspNetCore.Server" Version="2.76.0" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.6" />
         <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.7"/>
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\HEAL.HeuristicWeb.Grpc.Server\HEAL.HeuristicWeb.Grpc.Server.csproj"/>
-        <ProjectReference Include="..\HEAL.HeuristicWeb.Rest.Server\HEAL.HeuristicWeb.Rest.Server.csproj"/>
+      <Folder Include="Rest\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\HEAL.HeuristicLibWrapper\HEAL.HeuristicLibWrapper.csproj" />
+      <ProjectReference Include="..\HEAL.HeuristicWeb.Grpc.Core\HEAL.HeuristicWeb.Grpc.Core.csproj" />
     </ItemGroup>
 
     <PropertyGroup>

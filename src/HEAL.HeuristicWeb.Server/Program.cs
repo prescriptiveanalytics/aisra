@@ -1,6 +1,6 @@
-using HEAL.HeuristicGrpc.Server;
-using HEAL.HeuristicWeb.Rest.Server.Services.Storage;
-using HEAL.HeuristicWeb.Rest.Server.Util;
+using HEAL.HeuristicWeb.Server.GRpc;
+using HEAL.HeuristicWeb.Server.Rest.Services.Storage;
+using HEAL.HeuristicWeb.Server.Rest.Util;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,7 +13,7 @@ builder.Services.AddGrpc();
 
 var app = builder.Build();
 
-app.AddHeuristicGrpc();
+app.MapGrpcService<HeuristicService>();
 
 if (app.Environment.IsDevelopment())
 {

@@ -1,4 +1,4 @@
-﻿namespace HEAL.HeuristicWeb.Rest.Server.Util;
+﻿namespace HEAL.HeuristicWeb.Server.Rest.Util;
 
 public static class AssemblyUtil
 {

@@ -6,10 +6,10 @@ using HEAL.HeuristicLibContracts.Dtos;
 using HEAL.HeuristicLibContracts.Enums;
 using HEAL.HeuristicLibWrapper.Exceptions;
 using HEAL.HeuristicLibWrapper.Runners;
-using HEAL.HeuristicWeb.Rest.Server.Services.Storage;
+using HEAL.HeuristicWeb.Server.Rest.Services.Storage;
 using Microsoft.AspNetCore.Mvc;
 
-namespace HEAL.HeuristicWeb.Rest.Server.Controllers;
+namespace HEAL.HeuristicWeb.Server.Rest.Controllers;
 
 [Controller]
 [Route("symreg")]

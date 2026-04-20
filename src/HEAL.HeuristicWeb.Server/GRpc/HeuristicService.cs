@@ -2,10 +2,10 @@
 using Grpc.Core;
 using HEAL.HeuristicGrpc.Core.Proto;
 using HEAL.HeuristicLib.Problems.DataAnalysis.Formatter;
-using HEAL.HeuristicWeb.Grpc.Core.Mapping;
 using HEAL.HeuristicLibWrapper.Runners;
+using HEAL.HeuristicWeb.Grpc.Core.Mapping;
 
-namespace HEAL.HeuristicGrpc.Server;
+namespace HEAL.HeuristicWeb.Server.GRpc;
 
 public sealed class HeuristicService : GrpcHeuristicService.GrpcHeuristicServiceBase
 {
