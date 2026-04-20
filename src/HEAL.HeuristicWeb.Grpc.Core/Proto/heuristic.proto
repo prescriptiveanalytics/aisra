@@ -2,19 +2,41 @@
 
 option csharp_namespace = "HEAL.HeuristicGrpc.Core.Proto";
 
-message GrpcFuncProblem {
-    string function = 1;
-    int32 dimensions = 2;
-    int32 population = 3;
-    double mutation_rate = 4;
-    double mutation_strength = 5;
-    int32 max_iterations = 6;
-}
-
-message GrpcSolution {
+message DoubleArray {
     repeated double values = 1;
 }
 
+message GrpcProblem {
+    int32 population_size = 1;
+    int32 max_iterations = 2;
+}
+
+message GrpcFuncProblem {
+    GrpcProblem problem = 1;
+
+    string function = 2;
+    int32 dimensions = 3;
+    double mutation_rate = 4;
+    double mutation_strength = 5;
+}
+
+message GrpcSymRegProblem {
+    GrpcProblem problem = 1;
+
+    repeated string variableNames = 2;
+    repeated DoubleArray data = 3;
+    repeated string mutators = 4;
+}
+
+message GrpcBenchmarkSolution {
+    repeated double values = 1;
+}
+
+message GrpcSymRegSolution {
+    string expression = 1;
+}
+
 service GrpcHeuristicService {
-    rpc RunBenchmark (GrpcFuncProblem) returns (GrpcSolution);
+    rpc RunBenchmark (GrpcFuncProblem) returns (GrpcBenchmarkSolution);
+    rpc Fit (GrpcSymRegProblem) returns (GrpcSymRegSolution);
 }

@@ -36,9 +36,9 @@ public static class BenchmarkRunner
                 Creator = new UniformDistributedCreator(func.Min, func.Max),
                 Crossover = new AlphaBetaBlendCrossover(),
                 Mutator = new GaussianMutator(dto.MutationRate, dto.MutationStrength),
-                PopulationSize = dto.Population,
+                PopulationSize = dto.Problem.PopulationSize,
             }.Build(),
-            Terminator = new AfterIterationsTerminator<RealVector>(dto.MaxIterations),
+            Terminator = new AfterIterationsTerminator<RealVector>(dto.Problem.MaxIterations),
         };
 
     public static async Task<double[]> RunAsync(FuncProblemDto dto)
