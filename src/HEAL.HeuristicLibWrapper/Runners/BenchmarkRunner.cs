@@ -41,7 +41,7 @@ public static class BenchmarkRunner
             Terminator = new AfterIterationsTerminator<RealVector>(dto.Problem.MaxIterations),
         };
 
-    public static async Task<double[]> RunAsync(FuncProblemDto dto)
+    public static async Task<double[]> RunAsync(FuncProblemDto dto, CancellationToken ct = default)
     {
         var func = TestFunction.FromString(dto.Function, dto.Dimensions);
 
@@ -52,7 +52,7 @@ public static class BenchmarkRunner
 
         var alg = BuildAlgorithm(func, dto);
         var problem = GetProblem(func);
-        var result = await alg.RunToCompletionAsync(problem, RandomNumberGenerator.Create(Random.Shared.Next()));
+        var result = await alg.RunToCompletionAsync(problem, RandomNumberGenerator.Create(Random.Shared.Next()), ct: ct);
 
         return result.Population.Solutions
                    .MinBy(s => s.ObjectiveVector, problem.Objective.TotalOrderComparer)?.Genotype.ToArray()

@@ -1,4 +1,6 @@
 <Solution>
+    <Project Path="src/HEAL.HeuristicLibAdapter.Grpc/HEAL.HeuristicLibAdapter.Grpc.csproj" />
+    <Project Path="src/HEAL.HeuristicLibAdapter/HEAL.HeuristicLibAdapter.csproj" />
     <Project Path="src/HEAL.HeuristicLibContracts/HEAL.HeuristicLibContracts.csproj" />
     <Project Path="src/HEAL.HeuristicLibWrapper/HEAL.HeuristicLibWrapper.csproj" />
     <Project Path="src/HEAL.HeuristicWeb.Grpc.Client/HEAL.HeuristicWeb.Grpc.Client.csproj" />

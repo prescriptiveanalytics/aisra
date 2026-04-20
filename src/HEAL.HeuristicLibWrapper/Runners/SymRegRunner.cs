@@ -23,7 +23,7 @@ namespace HEAL.HeuristicLibWrapper.Runners;
 
 public static class SymRegRunner
 {
-    public static async Task<SymbolicExpressionTree> RunAsync(SymRegProblemDto dto)
+    public static async Task<SymbolicExpressionTree> RunAsync(SymRegProblemDto dto, CancellationToken ct = default)
     {
         var alg =
             new TerminatableAlgorithm<SymbolicExpressionTree, SymbolicExpressionTreeSearchSpace,
@@ -84,7 +84,7 @@ public static class SymRegRunner
 
         var i = 0;
         ISolution<SymbolicExpressionTree>? best = null;
-        await foreach (var state in alg.RunStreamingAsync(problem, RandomNumberGenerator.Create(Random.Shared.Next())))
+        await foreach (var state in alg.RunStreamingAsync(problem, RandomNumberGenerator.Create(Random.Shared.Next()), ct: ct))
         {
             best = state.Population.Solutions
                 .MinBy(s => s.ObjectiveVector, problem.Objective.TotalOrderComparer);

@@ -12,6 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\HEAL.HeuristicLibAdapter\HEAL.HeuristicLibAdapter.csproj" />
         <ProjectReference Include="..\HEAL.HeuristicLibContracts\HEAL.HeuristicLibContracts.csproj" />
     </ItemGroup>
 

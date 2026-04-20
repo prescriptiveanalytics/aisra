@@ -1,4 +1,4 @@
-using HEAL.HeuristicWeb.Server.GRpc;
+using HEAL.HeuristicWeb.Server.Grpc;
 using HEAL.HeuristicWeb.Server.Rest.Services.Storage;
 using HEAL.HeuristicWeb.Server.Rest.Util;
 

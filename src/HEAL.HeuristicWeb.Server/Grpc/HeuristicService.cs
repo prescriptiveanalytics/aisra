@@ -5,7 +5,7 @@ using HEAL.HeuristicLib.Problems.DataAnalysis.Formatter;
 using HEAL.HeuristicLibWrapper.Runners;
 using HEAL.HeuristicWeb.Grpc.Core.Mapping;
 
-namespace HEAL.HeuristicWeb.Server.GRpc;
+namespace HEAL.HeuristicWeb.Server.Grpc;
 
 public sealed class HeuristicService : GrpcHeuristicService.GrpcHeuristicServiceBase
 {
