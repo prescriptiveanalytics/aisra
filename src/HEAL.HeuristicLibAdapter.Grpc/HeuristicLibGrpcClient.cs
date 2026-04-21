@@ -18,10 +18,10 @@ public class HeuristicLibGrpcClient : IHeuristicLibClient
 
     ~HeuristicLibGrpcClient() => Dispose();
 
-    public async Task<double[]> RunBenchmarkAsync(FuncProblemDto dto, CancellationToken ct = default)
+    public async Task<double[]> RunBenchmarkAsync(BenchmarkHyperparametersDto dto, CancellationToken ct = default)
         => (await _client.RunBenchmarkAsync(dto.ToGrpc(), cancellationToken: ct)).Values.ToArray();
 
-    public async Task<string> RunSymRegAsync(SymRegProblemDto dto, CancellationToken ct = default)
+    public async Task<string> RunSymRegAsync(SymbolicRegressionHyperparametersDto dto, CancellationToken ct = default)
         => (await _client.FitAsync(dto.ToGrpc(), cancellationToken: ct)).Expression;
 
     public void Dispose()

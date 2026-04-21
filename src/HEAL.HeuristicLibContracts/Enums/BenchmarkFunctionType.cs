@@ -2,8 +2,8 @@
 
 namespace HEAL.HeuristicLibContracts.Enums;
 
-[JsonConverter(typeof(JsonStringEnumConverter<TrainingStatus>))]
-public enum TestFunctionType
+[JsonConverter(typeof(JsonStringEnumConverter<BenchmarkFunctionType>))]
+public enum BenchmarkFunctionType
 {
     Ackley,
     Griewank,

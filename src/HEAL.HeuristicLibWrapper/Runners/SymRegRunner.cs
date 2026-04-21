@@ -1,13 +1,14 @@
-﻿using HEAL.HeuristicLib.Algorithms;
+﻿using System.Collections.Immutable;
+using HEAL.HeuristicLib.Algorithms;
 using HEAL.HeuristicLib.Algorithms.Evolutionary;
 using HEAL.HeuristicLib.Algorithms.MetaAlgorithms;
 using HEAL.HeuristicLib.Genotypes.Trees;
+using HEAL.HeuristicLib.Operators;
 using HEAL.HeuristicLib.Operators.Creators.SymbolicExpressionTreeCreators;
 using HEAL.HeuristicLib.Operators.Crossovers.SymbolicExpressionTreeCrossovers;
 using HEAL.HeuristicLib.Operators.Mutators;
 using HEAL.HeuristicLib.Operators.Mutators.SymbolicExpressionTreeMutators;
 using HEAL.HeuristicLib.Operators.Terminators;
-using HEAL.HeuristicLib.Optimization;
 using HEAL.HeuristicLib.Problems.DataAnalysis;
 using HEAL.HeuristicLib.Problems.DataAnalysis.Regression;
 using HEAL.HeuristicLib.Problems.DataAnalysis.Regression.Evaluators;
@@ -18,13 +19,32 @@ using HEAL.HeuristicLib.SearchSpaces.Trees.SymbolicExpressionTree.Symbols;
 using HEAL.HeuristicLib.SearchSpaces.Trees.SymbolicExpressionTree.Symbols.Math;
 using HEAL.HeuristicLib.States;
 using HEAL.HeuristicLibContracts.Dtos;
+using HEAL.HeuristicLibContracts.Enums;
+using HEAL.HeuristicLibWrapper.Exceptions;
 
 namespace HEAL.HeuristicLibWrapper.Runners;
 
 public static class SymRegRunner
 {
-    public static async Task<SymbolicExpressionTree> RunAsync(SymRegProblemDto dto, CancellationToken ct = default)
+    public static async Task<SymbolicExpressionTree> RunAsync(SymbolicRegressionHyperparametersDto dto,
+        CancellationToken ct = default)
     {
+        ImmutableArray<IMutator<SymbolicExpressionTree, SymbolicExpressionTreeSearchSpace, SymbolicRegressionProblem>>
+            mutators =
+            [
+                ..dto.Mutators.Select(m =>
+                    (IMutator<SymbolicExpressionTree, SymbolicExpressionTreeSearchSpace, SymbolicRegressionProblem>)(m
+                        switch
+                        {
+                            Mutator.ChangeNodeTypeManipulation => new ChangeNodeTypeManipulation(),
+                            Mutator.FullTreeShaker => new FullTreeShaker(),
+                            Mutator.OnePointShaker => new OnePointShaker(),
+                            Mutator.RemoveBranchManipulation => new RemoveBranchManipulation(),
+                            Mutator.ReplaceBranchManipulation => new ReplaceBranchManipulation(),
+                            _ => throw new ArgumentOutOfRangeException(nameof(m), m, null)
+                        }))
+            ];
+
         var alg =
             new TerminatableAlgorithm<SymbolicExpressionTree, SymbolicExpressionTreeSearchSpace,
                 SymbolicRegressionProblem, PopulationState<SymbolicExpressionTree>>
@@ -35,63 +55,57 @@ public static class SymRegRunner
                     Creator = new ProbabilisticTreeCreator(),
                     Crossover = new SubtreeCrossover(),
                     Mutator = new MultiMutator<SymbolicExpressionTree, SymbolicExpressionTreeSearchSpace,
-                        SymbolicRegressionProblem>(
-                        [
-                            new ChangeNodeTypeManipulation(),
-                            new FullTreeShaker(),
-                            new OnePointShaker(),
-                            new RemoveBranchManipulation(),
-                            new ReplaceBranchManipulation()
-                        ]
-                    ),
-                    PopulationSize = dto.Problem.PopulationSize,
+                        SymbolicRegressionProblem>(mutators),
+                    PopulationSize = dto.Base.PopulationSize,
                 }.Build(),
-                Terminator = new AfterIterationsTerminator<SymbolicExpressionTree>(dto.Problem.MaxIterations),
+                Terminator = new AfterIterationsTerminator<SymbolicExpressionTree>(dto.Base.MaxIterations),
             };
 
         var dataset = Dataset.FromRowData(
-            dto.VariableNames,
-            dto.Data
+            dto.Dataset.VariableNames,
+            dto.Dataset.Data
         );
-        var data = new RegressionProblemData(dataset);
-        var problem = new SymbolicRegressionProblem(data, new PearsonR2Evaluator())
+        var problem = new SymbolicRegressionProblem(
+            new RegressionProblemData(dataset, dto.Dataset.TargetVariableName),
+            new PearsonR2Evaluator()
+        )
         {
             LowerPredictionBound = double.MinValue,
             UpperPredictionBound = double.MaxValue,
             SearchSpace =
             {
-                TreeDepth = 20,
-                TreeLength = 50
+                TreeDepth = dto.SearchSpace.TreeDepth,
+                TreeLength = dto.SearchSpace.TreeLength,
             },
-            ParameterOptimizationIterations = 5
+            ParameterOptimizationIterations = dto.ParameterOptimizationIterations,
         };
 
         var linearScalingRoot = problem.SearchSpace.Grammar.AddLinearScaling();
-        var symbols = new Symbol[]
+
+        var symbols = dto.AllowedSymbols.Symbols.Select(s => (Symbol)(s switch
         {
-            new Addition(),
-            new Subtraction(),
-            new Multiplication(),
-            new Division(),
-            new Number(),
-            new SquareRoot(),
-            new Logarithm(),
-            new Exponential(),
-            new Variable { VariableNames = data.InputVariables }
-        };
+            SymbolType.Addition => new Addition(),
+            SymbolType.Subtraction => new Subtraction(),
+            SymbolType.Multiplication => new Multiplication(),
+            SymbolType.Division => new Division(),
+            SymbolType.Number => new Number(),
+            SymbolType.SquareRoot => new SquareRoot(),
+            SymbolType.Logarithm => new Logarithm(),
+            SymbolType.Exponential => new Exponential(),
+            _ => throw new ArgumentOutOfRangeException(nameof(s), s, null)
+        })).Append(new Variable
+        {
+            VariableNames = dto.AllowedSymbols.Variables.Any(s => s.Trim() == "*")
+                ? dto.Dataset.VariableNames.Except([dto.Dataset.TargetVariableName]).ToArray()
+                : dto.AllowedSymbols.Variables
+        }).ToArray();
 
         problem.SearchSpace.Grammar.AddFullyConnectedSymbols(linearScalingRoot, symbols);
 
-        var i = 0;
-        ISolution<SymbolicExpressionTree>? best = null;
-        await foreach (var state in alg.RunStreamingAsync(problem, RandomNumberGenerator.Create(Random.Shared.Next()), ct: ct))
-        {
-            best = state.Population.Solutions
-                .MinBy(s => s.ObjectiveVector, problem.Objective.TotalOrderComparer);
+        var state = await alg.RunToCompletionAsync(problem, RandomNumberGenerator.Create(Random.Shared.Next()), ct: ct);
 
-            if (++i > 1000) break;
-        }
-
-        return best?.Genotype!;
+        return state.Population.Solutions
+                   .MinBy(s => s.ObjectiveVector, problem.Objective.TotalOrderComparer)?.Genotype
+               ?? throw new HeuristicAlgorithmException("Algorithm did not produce any solutions.");
     }
 }

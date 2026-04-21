@@ -27,7 +27,7 @@ public static class BenchmarkRunner
 
     private static TerminatableAlgorithm<RealVector, RealVectorSearchSpace,
             FuncProblem<RealVector, RealVectorSearchSpace>, PopulationState<RealVector>>
-        BuildAlgorithm(TestFunction func, FuncProblemDto dto)
+        BuildAlgorithm(TestFunction func, BenchmarkHyperparametersDto dto)
         => new()
         {
             Algorithm = new GeneticAlgorithmBuilder<RealVector, RealVectorSearchSpace,
@@ -41,13 +41,13 @@ public static class BenchmarkRunner
             Terminator = new AfterIterationsTerminator<RealVector>(dto.Problem.MaxIterations),
         };
 
-    public static async Task<double[]> RunAsync(FuncProblemDto dto, CancellationToken ct = default)
+    public static async Task<double[]> RunAsync(BenchmarkHyperparametersDto dto, CancellationToken ct = default)
     {
-        var func = TestFunction.FromString(dto.Function, dto.Dimensions);
+        var func = TestFunction.FromType(dto.Function, dto.Dimensions);
 
         if (func is null)
         {
-            throw new InvalidFunctionException(dto.Function);
+            throw new InvalidFunctionException();
         }
 
         var alg = BuildAlgorithm(func, dto);

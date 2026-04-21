@@ -11,18 +11,39 @@ public sealed class HeuristicService : GrpcHeuristicService.GrpcHeuristicService
 {
     public override async Task<GrpcBenchmarkSolution> RunBenchmark(GrpcFuncProblem request, ServerCallContext context)
     {
-        var solution = new GrpcBenchmarkSolution();
-        solution.Values.AddRange(await BenchmarkRunner.RunAsync(request.ToDto()));
+        try
+        {
+            var solution = new GrpcBenchmarkSolution();
+            solution.Values.AddRange(await BenchmarkRunner.RunAsync(request.ToDto()));
 
-        return solution;
+            return solution;
+        }
+        catch (Exception ex)
+        {
+            throw new RpcException(new Status(StatusCode.Internal,
+                $"An error occurred while running the benchmark: {ex.Message}"));
+        }
     }
 
-    public override async Task<GrpcSymRegSolution> Fit(GrpcSymRegProblem request, ServerCallContext context)
-        => new()
+    public override async Task<GrpcSymbolicRegressionSolution> Fit(
+        GrpcSymbolicRegressionHyperparameters request,
+        ServerCallContext context
+    )
+    {
+        try
         {
-            Expression = InfixExpressionFormatter.Format(
-                await SymRegRunner.RunAsync(request.ToDto()),
-                NumberFormatInfo.InvariantInfo
-            )
-        };
+            return new GrpcSymbolicRegressionSolution
+            {
+                Expression = InfixExpressionFormatter.Format(
+                    await SymRegRunner.RunAsync(request.ToDto()),
+                    NumberFormatInfo.InvariantInfo
+                )
+            };
+        }
+        catch (Exception ex)
+        {
+            throw new RpcException(new Status(StatusCode.Internal,
+                $"An error occurred while running symbolic regression: {ex.Message}"));
+        }
+    }
 }

@@ -36,7 +36,7 @@ namespace HEAL.HeuristicWeb.Rest.Client
         /// </summary>
         /// <returns>OK</returns>
         /// <exception cref="SwaggerException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task PostBenchmarkProblemAsync(FuncProblemDto body);
+        System.Threading.Tasks.Task PostBenchmarkProblemAsync(BenchmarkHyperparametersDto body);
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <summary>
@@ -46,7 +46,7 @@ namespace HEAL.HeuristicWeb.Rest.Client
         /// </summary>
         /// <returns>OK</returns>
         /// <exception cref="SwaggerException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task PostBenchmarkProblemAsync(FuncProblemDto body, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task PostBenchmarkProblemAsync(BenchmarkHyperparametersDto body, System.Threading.CancellationToken cancellationToken);
 
         /// <summary>
         /// Gets the status of a given benchmark, previously started by POST /benchmarks/problems.
@@ -87,7 +87,7 @@ namespace HEAL.HeuristicWeb.Rest.Client
         /// </summary>
         /// <returns>OK</returns>
         /// <exception cref="SwaggerException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task PostSymRegProblemAsync(SymRegProblemDto body);
+        System.Threading.Tasks.Task PostSymRegProblemAsync(SymbolicRegressionHyperparametersDto body);
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <summary>
@@ -97,7 +97,7 @@ namespace HEAL.HeuristicWeb.Rest.Client
         /// </summary>
         /// <returns>OK</returns>
         /// <exception cref="SwaggerException">A server side error occurred.</exception>
-        System.Threading.Tasks.Task PostSymRegProblemAsync(SymRegProblemDto body, System.Threading.CancellationToken cancellationToken);
+        System.Threading.Tasks.Task PostSymRegProblemAsync(SymbolicRegressionHyperparametersDto body, System.Threading.CancellationToken cancellationToken);
 
         /// <summary>
         /// Gets the status of a given symbolic regression problem, previously started by POST /symreg/problems.
@@ -186,7 +186,7 @@ namespace HEAL.HeuristicWeb.Rest.Client
         /// </summary>
         /// <returns>OK</returns>
         /// <exception cref="SwaggerException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task PostBenchmarkProblemAsync(FuncProblemDto body)
+        public virtual System.Threading.Tasks.Task PostBenchmarkProblemAsync(BenchmarkHyperparametersDto body)
         {
             return PostBenchmarkProblemAsync(body, System.Threading.CancellationToken.None);
         }
@@ -199,7 +199,7 @@ namespace HEAL.HeuristicWeb.Rest.Client
         /// </summary>
         /// <returns>OK</returns>
         /// <exception cref="SwaggerException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task PostBenchmarkProblemAsync(FuncProblemDto body, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task PostBenchmarkProblemAsync(BenchmarkHyperparametersDto body, System.Threading.CancellationToken cancellationToken)
         {
             var client_ = new System.Net.Http.HttpClient();
             var disposeClient_ = true;
@@ -450,7 +450,7 @@ namespace HEAL.HeuristicWeb.Rest.Client
         /// </summary>
         /// <returns>OK</returns>
         /// <exception cref="SwaggerException">A server side error occurred.</exception>
-        public virtual System.Threading.Tasks.Task PostSymRegProblemAsync(SymRegProblemDto body)
+        public virtual System.Threading.Tasks.Task PostSymRegProblemAsync(SymbolicRegressionHyperparametersDto body)
         {
             return PostSymRegProblemAsync(body, System.Threading.CancellationToken.None);
         }
@@ -463,7 +463,7 @@ namespace HEAL.HeuristicWeb.Rest.Client
         /// </summary>
         /// <returns>OK</returns>
         /// <exception cref="SwaggerException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task PostSymRegProblemAsync(SymRegProblemDto body, System.Threading.CancellationToken cancellationToken)
+        public virtual async System.Threading.Tasks.Task PostSymRegProblemAsync(SymbolicRegressionHyperparametersDto body, System.Threading.CancellationToken cancellationToken)
         {
             var client_ = new System.Net.Http.HttpClient();
             var disposeClient_ = true;

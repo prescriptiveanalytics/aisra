@@ -2,17 +2,17 @@
 
 option csharp_namespace = "HEAL.HeuristicGrpc.Core.Proto";
 
-message DoubleArray {
+message GrpcDoubleArray {
     repeated double values = 1;
 }
 
-message GrpcProblem {
+message GrpcHyperparameters {
     int32 population_size = 1;
     int32 max_iterations = 2;
 }
 
 message GrpcFuncProblem {
-    GrpcProblem problem = 1;
+    GrpcHyperparameters problem = 1;
 
     string function = 2;
     int32 dimensions = 3;
@@ -20,23 +20,40 @@ message GrpcFuncProblem {
     double mutation_strength = 5;
 }
 
-message GrpcSymRegProblem {
-    GrpcProblem problem = 1;
+message GrpcSymbolicRegressionDataset {
+    repeated string variableNames = 1;
+    repeated GrpcDoubleArray data = 2;
+    string targetVariableName = 3;
+}
 
-    repeated string variableNames = 2;
-    repeated DoubleArray data = 3;
+message GrpcSymbolicRegressionSearchSpace {
+    int32 treeDepth = 1;
+    int32 treeLength = 2;
+}
+
+message GrpcAllowedSymbols {
+    repeated string symbols = 1;
+    repeated string variables = 2;
+}
+
+message GrpcSymbolicRegressionHyperparameters {
+    GrpcHyperparameters base = 1;
+    GrpcSymbolicRegressionDataset dataset = 2;
+    GrpcSymbolicRegressionSearchSpace searchSpace = 3;
     repeated string mutators = 4;
+    GrpcAllowedSymbols allowedSymbols = 5;
+    int32 ParameterOptimizationIterations = 6;
 }
 
 message GrpcBenchmarkSolution {
     repeated double values = 1;
 }
 
-message GrpcSymRegSolution {
+message GrpcSymbolicRegressionSolution {
     string expression = 1;
 }
 
 service GrpcHeuristicService {
     rpc RunBenchmark (GrpcFuncProblem) returns (GrpcBenchmarkSolution);
-    rpc Fit (GrpcSymRegProblem) returns (GrpcSymRegSolution);
+    rpc Fit (GrpcSymbolicRegressionHyperparameters) returns (GrpcSymbolicRegressionSolution);
 }

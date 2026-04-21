@@ -15,26 +15,20 @@ public sealed class TestFunction : IGradientTestFunction
         _function = function;
     }
 
-    public static TestFunction? FromString(string funcName, int dimensions)
-        => FromType(GetTypeFromString(funcName), dimensions);
-
-    private static TestFunction? FromType(TestFunctionType? type, int dimensions)
+    public static TestFunction? FromType(BenchmarkFunctionType? type, int dimensions)
     {
         IGradientTestFunction? func = type switch
         {
-            TestFunctionType.Ackley => new AckleyFunction(dimensions),
-            TestFunctionType.Griewank => new GriewankFunction(dimensions),
-            TestFunctionType.Rastrigin => new RastriginFunction(dimensions),
-            TestFunctionType.Rosenbrock => new RosenbrockFunction(dimensions),
-            TestFunctionType.Sphere => new SphereFunction(dimensions),
+            BenchmarkFunctionType.Ackley => new AckleyFunction(dimensions),
+            BenchmarkFunctionType.Griewank => new GriewankFunction(dimensions),
+            BenchmarkFunctionType.Rastrigin => new RastriginFunction(dimensions),
+            BenchmarkFunctionType.Rosenbrock => new RosenbrockFunction(dimensions),
+            BenchmarkFunctionType.Sphere => new SphereFunction(dimensions),
             _ => null,
         };
 
         return func is null ? null : new(func);
     }
-
-    private static TestFunctionType? GetTypeFromString(string typeName)
-        => Enum.TryParse<TestFunctionType>(typeName, true, out var type) ? type : null;
 
     public double Evaluate(RealVector solution) => _function.Evaluate(solution);
 

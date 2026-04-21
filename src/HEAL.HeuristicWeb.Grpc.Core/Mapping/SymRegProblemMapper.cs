@@ -6,33 +6,65 @@ namespace HEAL.HeuristicWeb.Grpc.Core.Mapping;
 
 public static class SymRegProblemMapper
 {
-    public static SymRegProblemDto ToDto(this GrpcSymRegProblem problem)
+    public static SymbolicRegressionHyperparametersDto ToDto(this GrpcSymbolicRegressionHyperparameters parameters)
         => new()
         {
-            Problem = new()
+            Base = new()
             {
-                PopulationSize = problem.Problem.PopulationSize,
-                MaxIterations = problem.Problem.MaxIterations,
+                PopulationSize = parameters.Base.PopulationSize,
+                MaxIterations = parameters.Base.MaxIterations,
             },
-            VariableNames = problem.VariableNames.ToArray(),
-            Data = problem.Data.Select(row => row.Values.ToArray()).ToArray(),
-            Mutators = problem.Mutators.Select(m => Enum.Parse<Mutator>(m, true)).ToArray(),
+            Dataset = new()
+            {
+                Data = parameters.Dataset.Data.Select(row => row.Values.ToArray()).ToArray(),
+                VariableNames = parameters.Dataset.VariableNames.ToArray(),
+                TargetVariableName = parameters.Dataset.TargetVariableName,
+            },
+            AllowedSymbols = new()
+            {
+                Variables = parameters.AllowedSymbols.Variables.ToArray(),
+                Symbols = parameters.AllowedSymbols.Symbols.Select(Enum.Parse<SymbolType>).ToArray(),
+            },
+            Mutators = parameters.Mutators.Select(Enum.Parse<Mutator>).ToArray(),
+            SearchSpace = new()
+            {
+                TreeDepth = parameters.SearchSpace.TreeDepth,
+                TreeLength = parameters.SearchSpace.TreeLength,
+            },
+            ParameterOptimizationIterations = parameters.ParameterOptimizationIterations,
         };
 
-    public static GrpcSymRegProblem ToGrpc(this SymRegProblemDto dto)
+    public static GrpcSymbolicRegressionHyperparameters ToGrpc(this SymbolicRegressionHyperparametersDto dto)
     {
-        var grpc = new GrpcSymRegProblem
+        var grpc = new GrpcSymbolicRegressionHyperparameters
         {
-            Problem = new()
+            Base = new()
             {
-                PopulationSize = dto.Problem.PopulationSize,
-                MaxIterations = dto.Problem.MaxIterations,
+                PopulationSize = dto.Base.PopulationSize,
+                MaxIterations = dto.Base.MaxIterations,
             },
+            Dataset = new()
+            {
+                Data =
+                {
+                    dto.Dataset.Data.Select(row => new GrpcDoubleArray { Values = { row } })
+                },
+                VariableNames = { dto.Dataset.VariableNames },
+                TargetVariableName = dto.Dataset.TargetVariableName,
+            },
+            AllowedSymbols = new()
+            {
+                Variables = { dto.AllowedSymbols.Variables },
+                Symbols = { dto.AllowedSymbols.Symbols.Select(s => s.ToString()) }
+            },
+            Mutators = { dto.Mutators.Select(m => m.ToString()) },
+            SearchSpace = new()
+            {
+                TreeDepth = dto.SearchSpace.TreeDepth,
+                TreeLength = dto.SearchSpace.TreeLength,
+            },
+            ParameterOptimizationIterations = dto.ParameterOptimizationIterations,
         };
-
-        grpc.VariableNames.AddRange(dto.VariableNames);
-        grpc.Data.AddRange(dto.Data.Select(row => new DoubleArray { Values = { row } }));
-        grpc.Mutators.AddRange(dto.Mutators.Select(m => m.ToString()));
 
         return grpc;
     }

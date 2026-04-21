@@ -20,7 +20,7 @@ public sealed class BenchmarksController(SolutionStore store) : ControllerBase
     /// The client can GET the status of the benchmark at the location provided by the location header.
     /// </summary>
     [HttpPost("problems", Name = "PostBenchmarkProblem")]
-    public ActionResult PostProblem([FromBody] FuncProblemDto dto)
+    public ActionResult PostProblem([FromBody] BenchmarkHyperparametersDto dto)
     {
         try
         {

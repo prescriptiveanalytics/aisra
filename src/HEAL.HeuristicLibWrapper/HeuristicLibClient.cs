@@ -8,10 +8,10 @@ namespace HEAL.HeuristicLibWrapper;
 
 public sealed class HeuristicLibClient : IHeuristicLibClient
 {
-    public Task<double[]> RunBenchmarkAsync(FuncProblemDto dto, CancellationToken ct = default)
+    public Task<double[]> RunBenchmarkAsync(BenchmarkHyperparametersDto dto, CancellationToken ct = default)
         => BenchmarkRunner.RunAsync(dto, ct);
 
-    public async Task<string> RunSymRegAsync(SymRegProblemDto dto, CancellationToken ct = default)
+    public async Task<string> RunSymRegAsync(SymbolicRegressionHyperparametersDto dto, CancellationToken ct = default)
         => InfixExpressionFormatter.Format(await SymRegRunner.RunAsync(dto, ct), NumberFormatInfo.InvariantInfo);
 
     public void Dispose()

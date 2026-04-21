@@ -23,14 +23,14 @@ public sealed class SymRegController(SolutionStore store) : ControllerBase
     /// The client can GET the status of the algorithm at the location provided by the location header.
     /// </summary>
     [HttpPost("problems", Name = "PostSymRegProblem")]
-    public ActionResult PostProblem([FromBody] SymRegProblemDto dto)
+    public ActionResult PostProblem([FromBody] SymbolicRegressionHyperparametersDto dto)
     {
         try
         {
             var id = Guid.NewGuid();
             _store.Store(id);
 
-            if (dto.Data.Any(x => x.Length != dto.VariableNames.Length))
+            if (dto.Dataset.Data.Any(x => x.Length != dto.Dataset.VariableNames.Length))
             {
                 return BadRequest("All data rows must have the same length as the variable names array.");
             }
@@ -91,7 +91,7 @@ public sealed class SymRegController(SolutionStore store) : ControllerBase
 
         return status switch
         {
-            TrainingStatus.Successful => Ok(InfixExpressionFormatter.Format(solution!, NumberFormatInfo.InvariantInfo)),
+            TrainingStatus.Successful => Ok(InfixExpressionFormatter.Format(solution, NumberFormatInfo.InvariantInfo)),
             TrainingStatus.Running => BadRequest("Algorithm is still running."),
             _ => StatusCode((int)HttpStatusCode.InternalServerError, "Algorithm failed."),
         };
