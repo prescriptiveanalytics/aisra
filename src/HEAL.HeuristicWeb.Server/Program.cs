@@ -1,9 +1,23 @@
 using HEAL.HeuristicWeb.Server.Grpc;
 using HEAL.HeuristicWeb.Server.Rest.Services.Storage;
 using HEAL.HeuristicWeb.Server.Rest.Util;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.WebHost.ConfigureKestrel(opt =>
+{
+    opt.ListenAnyIP(5000, listenOptions =>
+    {
+        listenOptions.Protocols = HttpProtocols.Http1; // HTTP only
+    });
+
+    opt.ListenAnyIP(5001, listenOptions =>
+    {
+        listenOptions.UseHttps(); // TLS required for HTTP/2
+        listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
+    });
+});
 builder.Services.AddOpenApi()
     .AddControllers();
 builder.Services
