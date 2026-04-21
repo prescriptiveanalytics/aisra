@@ -7,8 +7,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\HEAL.HeuristicLibAdapter\HEAL.HeuristicLibAdapter.csproj" />
-      <ProjectReference Include="..\HEAL.HeuristicWeb.Server\HEAL.HeuristicWeb.Server.csproj" />
+        <ProjectReference Include="..\HEAL.HeuristicLibAdapter\HEAL.HeuristicLibAdapter.csproj" />
+        <ProjectReference Include="..\HEAL.HeuristicWeb.Grpc.Core\HEAL.HeuristicWeb.Grpc.Core.csproj" />
     </ItemGroup>
 
 </Project>

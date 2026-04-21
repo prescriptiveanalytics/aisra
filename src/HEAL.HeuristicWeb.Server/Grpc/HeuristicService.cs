@@ -18,11 +18,11 @@ public sealed class HeuristicService : GrpcHeuristicService.GrpcHeuristicService
     }
 
     public override async Task<GrpcSymRegSolution> Fit(GrpcSymRegProblem request, ServerCallContext context)
-    {
-        return new()
+        => new()
         {
-            Expression = InfixExpressionFormatter.Format(await SymRegRunner.RunAsync(request.ToDto()),
-                NumberFormatInfo.InvariantInfo)
+            Expression = InfixExpressionFormatter.Format(
+                await SymRegRunner.RunAsync(request.ToDto()),
+                NumberFormatInfo.InvariantInfo
+            )
         };
-    }
 }

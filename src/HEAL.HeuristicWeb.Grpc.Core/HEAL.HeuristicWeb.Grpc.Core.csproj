@@ -16,11 +16,11 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Protobuf Include="Proto\*.proto"/>
+        <ProjectReference Include="..\HEAL.HeuristicLibContracts\HEAL.HeuristicLibContracts.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\HEAL.HeuristicLibContracts\HEAL.HeuristicLibContracts.csproj" />
+        <Protobuf Include="Proto\*.proto"/>
     </ItemGroup>
 
 </Project>

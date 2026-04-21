@@ -9,7 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\HEAL.HeuristicWeb.Grpc.Core\HEAL.HeuristicWeb.Grpc.Core.csproj"/>
+        <ProjectReference Include="..\HEAL.HeuristicLibAdapter.Grpc\HEAL.HeuristicLibAdapter.Grpc.csproj" />
     </ItemGroup>
 
 </Project>

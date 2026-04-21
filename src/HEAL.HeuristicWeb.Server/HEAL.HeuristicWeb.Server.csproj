@@ -12,16 +12,16 @@
     <ItemGroup>
         <PackageReference Include="Grpc.AspNetCore.Server" Version="2.76.0" />
         <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.6" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.7"/>
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="10.1.7" />
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Rest\" />
+        <Folder Include="Rest\" />
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\HEAL.HeuristicLibWrapper\HEAL.HeuristicLibWrapper.csproj" />
-      <ProjectReference Include="..\HEAL.HeuristicWeb.Grpc.Core\HEAL.HeuristicWeb.Grpc.Core.csproj" />
+        <ProjectReference Include="..\HEAL.HeuristicLibWrapper\HEAL.HeuristicLibWrapper.csproj" />
+        <ProjectReference Include="..\HEAL.HeuristicWeb.Grpc.Core\HEAL.HeuristicWeb.Grpc.Core.csproj" />
     </ItemGroup>
 
     <PropertyGroup>
@@ -30,8 +30,9 @@
     </PropertyGroup>
 
     <Target Name="BuildSwaggerFile" AfterTargets="Build">
-        <Exec EnvironmentVariables="ASPNETCORE_ENVIRONMENT=Development" Command="dotnet tool restore"/>
-        <Exec EnvironmentVariables="ASPNETCORE_ENVIRONMENT=Development" Command="dotnet tool run swagger tofile --output $(ProjectDir)openapi.json $(ApiAssembly) v1"/>
+        <Exec EnvironmentVariables="ASPNETCORE_ENVIRONMENT=Development" Command="dotnet tool restore" />
+        <Exec EnvironmentVariables="ASPNETCORE_ENVIRONMENT=Development"
+              Command="dotnet tool run swagger tofile --output $(ProjectDir)openapi.json $(ApiAssembly) v1" />
     </Target>
 
 </Project>
