@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="JetBrains.Annotations" Version="2025.2.4"/>
+        <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.6"/>
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.6"/>
+        <PackageReference Include="ModelContextProtocol" Version="1.2.0"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\HEAL.HeuristicLibAdapter.Grpc\HEAL.HeuristicLibAdapter.Grpc.csproj"/>
+        <ProjectReference Include="..\HEAL.HeuristicLibWrapper\HEAL.HeuristicLibWrapper.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Update="appsettings.json">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+
+</Project>
