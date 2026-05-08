@@ -1,0 +1,29 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+      <UserSecretsId>b4383ebe-f9af-43af-b3a6-5905f73f71bd</UserSecretsId>
+  </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="JetBrains.Annotations" Version="2025.2.4" />
+      <PackageReference Include="Microsoft.Extensions.AI" Version="10.5.0" />
+      <PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="10.5.0" />
+      <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.6" />
+      <PackageReference Include="ModelContextProtocol" Version="1.2.0" />
+      <PackageReference Include="MQTTnet" Version="5.1.0.1559" />
+      <PackageReference Include="OpenAI" Version="2.10.0" />
+      <PackageReference Include="StackExchange.Redis" Version="2.12.14" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\HEAL.HeuristicLibAdapter.Grpc\HEAL.HeuristicLibAdapter.Grpc.csproj" />
+      <ProjectReference Include="..\HEAL.HeuristicLibAdapter\HEAL.HeuristicLibAdapter.csproj" />
+      <ProjectReference Include="..\HEAL.HeuristicLibCommon\HEAL.HeuristicLibCommon.csproj" />
+      <ProjectReference Include="..\HEAL.HeuristicLibWrapper\HEAL.HeuristicLibWrapper.csproj" />
+    </ItemGroup>
+
+</Project>

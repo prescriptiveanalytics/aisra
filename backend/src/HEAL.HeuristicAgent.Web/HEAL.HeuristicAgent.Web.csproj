@@ -1,0 +1,40 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <UserSecretsId>6b9274d7-052a-4073-87da-2f20d885b823</UserSecretsId>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.7"/>
+        <PackageReference Include="Microsoft.Extensions.AI" Version="10.5.1"/>
+        <PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="10.5.1"/>
+        <PackageReference Include="ModelContextProtocol" Version="1.2.0"/>
+        <PackageReference Include="MQTTnet" Version="5.1.0.1559"/>
+        <PackageReference Include="StackExchange.Redis" Version="2.12.14"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\..\HeuristicLib\src\HeuristicLib.Core\HeuristicLib.Core.csproj"/>
+        <ProjectReference Include="..\..\..\..\HeuristicLib\src\HeuristicLib.Core\HeuristicLib.Core.csproj"/>
+        <ProjectReference Include="..\HEAL.HeuristicLibAdapter.Grpc\HEAL.HeuristicLibAdapter.Grpc.csproj"/>
+        <ProjectReference Include="..\HEAL.HeuristicLibAdapter\HEAL.HeuristicLibAdapter.csproj"/>
+        <ProjectReference Include="..\HEAL.HeuristicLibCommon\HEAL.HeuristicLibCommon.csproj"/>
+        <ProjectReference Include="..\HEAL.HeuristicLibWrapper\HEAL.HeuristicLibWrapper.csproj"/>
+        <ProjectReference Include="..\HEAL.HeuristicLibAdapter.Grpc\HEAL.HeuristicLibAdapter.Grpc.csproj"/>
+        <ProjectReference Include="..\HEAL.HeuristicLibAdapter\HEAL.HeuristicLibAdapter.csproj"/>
+        <ProjectReference Include="..\HEAL.HeuristicLibWrapper\HEAL.HeuristicLibWrapper.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Update="appsettings.jsonc">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+        <None Update="Resources\SKILL.md">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+
+</Project>

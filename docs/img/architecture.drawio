@@ -1,6 +1,6 @@
 <mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/29.6.6 Chrome/144.0.7559.236 Electron/40.8.4 Safari/537.36">
   <diagram name="Page-1" id="JLSE3i9ljjVaqQMjvNYt">
-    <mxGraphModel dx="1623" dy="962" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="2804" dy="1662" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="0" />
         <mxCell id="1" parent="0" />
@@ -16,9 +16,9 @@
         <mxCell id="oGgYLiFTZUMsgBvUWQYo-2" edge="1" parent="1" source="nvZTl8ImIJQlS8uFXL_u-32" style="edgeStyle=orthogonalEdgeStyle;shape=connector;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;dashed=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=block;endFill=0;" target="U6VQVOgnXjNktFXU_cLZ-27">
           <mxGeometry relative="1" as="geometry">
             <Array as="points">
-              <mxPoint x="220" y="660" />
-              <mxPoint x="220" y="360" />
-              <mxPoint x="320" y="360" />
+              <mxPoint x="210" y="660" />
+              <mxPoint x="210" y="340" />
+              <mxPoint x="520" y="340" />
             </Array>
           </mxGeometry>
         </mxCell>
@@ -108,10 +108,10 @@
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="U6VQVOgnXjNktFXU_cLZ-24" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;" value="HeuristicAgent.Mcp.Server" vertex="1">
-          <mxGeometry height="40" width="160" x="240" y="160" as="geometry" />
+          <mxGeometry height="40" width="160" x="440" y="160" as="geometry" />
         </mxCell>
         <mxCell id="U6VQVOgnXjNktFXU_cLZ-27" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fillColor=default;" value="&lt;i&gt;HeuristicLibAdapter&lt;/i&gt;" vertex="1">
-          <mxGeometry height="40" width="160" x="240" y="280" as="geometry" />
+          <mxGeometry height="40" width="160" x="440" y="280" as="geometry" />
         </mxCell>
         <mxCell id="U6VQVOgnXjNktFXU_cLZ-36" edge="1" parent="1" source="U6VQVOgnXjNktFXU_cLZ-28" style="edgeStyle=orthogonalEdgeStyle;shape=connector;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=0.5;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=block;endFill=0;dashed=1;" target="U6VQVOgnXjNktFXU_cLZ-27">
           <mxGeometry relative="1" as="geometry" />
@@ -147,8 +147,25 @@
             <mxPoint as="offset" />
           </mxGeometry>
         </mxCell>
-        <mxCell id="U6VQVOgnXjNktFXU_cLZ-47" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;dashed=1;" value="Claude Desktop" vertex="1">
-          <mxGeometry height="40" width="120" x="260" y="40" as="geometry" />
+        <mxCell id="R34z1xXHKA-PwHW2F09A-3" edge="1" parent="1" source="U6VQVOgnXjNktFXU_cLZ-47" style="edgeStyle=orthogonalEdgeStyle;shape=connector;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;endFill=1;" target="R34z1xXHKA-PwHW2F09A-1">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="U6VQVOgnXjNktFXU_cLZ-47" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;" value="HeuristicAgent.Client" vertex="1">
+          <mxGeometry height="40" width="120" x="460" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="R34z1xXHKA-PwHW2F09A-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;dashed=1;" value="LLM" vertex="1">
+          <mxGeometry height="40" width="120" x="700" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="R34z1xXHKA-PwHW2F09A-5" edge="1" parent="1" source="R34z1xXHKA-PwHW2F09A-4" style="edgeStyle=orthogonalEdgeStyle;shape=connector;curved=1;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;dashed=1;strokeColor=default;align=center;verticalAlign=middle;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;endArrow=classic;endFill=1;" target="U6VQVOgnXjNktFXU_cLZ-47">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="R34z1xXHKA-PwHW2F09A-6" connectable="0" parent="R34z1xXHKA-PwHW2F09A-5" style="edgeLabel;html=1;align=center;verticalAlign=middle;resizable=0;points=[];fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;" value="MQTT" vertex="1">
+          <mxGeometry relative="1" x="-0.0133" as="geometry">
+            <mxPoint as="offset" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="R34z1xXHKA-PwHW2F09A-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;fontFamily=Helvetica;fontSize=11;fontColor=default;labelBackgroundColor=default;dashed=1;" value="Data Source" vertex="1">
+          <mxGeometry height="40" width="120" x="220" y="40" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
