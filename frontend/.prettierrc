@@ -15,14 +15,14 @@
     "htmlWhitespaceSensitivity": "css",
     "endOfLine": "lf",
     "embeddedLanguageFormatting": "auto",
-	"plugins": ["prettier-plugin-svelte", "prettier-plugin-tailwindcss"],
-	"overrides": [
-		{
-			"files": "*.svelte",
-			"options": {
-				"parser": "svelte"
-			}
-		}
-	],
-	"tailwindStylesheet": "./src/routes/layout.css"
+    "plugins": ["prettier-plugin-svelte", "prettier-plugin-tailwindcss"],
+    "overrides": [
+        {
+            "files": "*.svelte",
+            "options": {
+                "parser": "svelte"
+            }
+        }
+    ],
+    "tailwindStylesheet": "./src/routes/layout.css"
 }

@@ -16,6 +16,7 @@
     import ServerEventNotification from "$lib/components/ServerEventNotification.svelte";
     import type { ServerEvent } from "$lib/types/serverEvents";
     import ReconnectingEventSource from "reconnecting-eventsource";
+    import { themeState } from "$lib/theme.svelte";
 
     ChartJS.register(Title, Tooltip, Legend, LineElement, LinearScale, PointElement, CategoryScale);
 
@@ -40,7 +41,7 @@
         ],
     });
 
-    const chartOptions: ChartOptions<"line"> = {
+    let chartOptions = $derived<ChartOptions<"line">>({
         responsive: true,
         maintainAspectRatio: false,
         scales: {
@@ -50,19 +51,40 @@
                 title: {
                     display: true,
                     text: "Quality %",
+                    color: themeState.current === "dark" ? "#e5e7eb" : "#374151",
+                },
+                grid: {
+                    color: themeState.current === "dark" ? "#374151" : "#e5e7eb",
+                },
+                ticks: {
+                    color: themeState.current === "dark" ? "#9ca3af" : "#6b7280",
                 },
             },
             x: {
                 title: {
                     display: true,
                     text: "Time",
+                    color: themeState.current === "dark" ? "#e5e7eb" : "#374151",
+                },
+                grid: {
+                    color: themeState.current === "dark" ? "#374151" : "#e5e7eb",
+                },
+                ticks: {
+                    color: themeState.current === "dark" ? "#9ca3af" : "#6b7280",
+                },
+            },
+        },
+        plugins: {
+            legend: {
+                labels: {
+                    color: themeState.current === "dark" ? "#e5e7eb" : "#374151",
                 },
             },
         },
         animation: {
             duration: 0,
         },
-    };
+    });
 
     function getMessage(data: string): string {
         return (JSON.parse(data) as ServerEventData).message as string;
@@ -127,19 +149,21 @@
 </script>
 
 <div class="mx-auto max-w-6xl p-8 font-sans">
-    <h1 class="mb-6 text-3xl font-bold text-gray-800">HeuristicAgent Dashboard</h1>
+    <h1 class="mb-6 text-3xl font-bold text-gray-800 dark:text-gray-100">
+        HeuristicAgent Dashboard
+    </h1>
 
     <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
         <div class="flex flex-col">
-            <h2 class="mb-4 text-xl font-semibold text-gray-700">Agent</h2>
+            <h2 class="mb-4 text-xl font-semibold text-gray-700 dark:text-gray-200">Agent</h2>
 
             <div
                 class={"flex max-h-100 flex-1 flex-col-reverse gap-4 overflow-y-scroll rounded-xl" +
-                    " border-gray-200 bg-gray-50 p-6 text-sm leading-relaxed text-gray-800 shadow-sm"}
+                    " border-gray-200 bg-gray-50 p-6 text-sm leading-relaxed text-gray-800 shadow-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300"}
             >
                 {#each serverEvents as event, idx (idx)}
                     {#if event.type === "fragment"}
-                        <div class="**:whitespace-normal">
+                        <div class="prose **:whitespace-normal dark:prose-invert">
                             <SvelteMarkdown source={event.message ?? ""} />
                         </div>
                     {:else}
@@ -150,9 +174,13 @@
         </div>
 
         <div>
-            <h2 class="mb-4 text-xl font-semibold text-gray-700">Model Quality</h2>
+            <h2 class="mb-4 text-xl font-semibold text-gray-700 dark:text-gray-200">
+                Model Quality
+            </h2>
 
-            <div class="h-100 flex-1 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+            <div
+                class="h-100 flex-1 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900"
+            >
                 <Line data={chartData} options={chartOptions} />
             </div>
         </div>
