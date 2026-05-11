@@ -56,13 +56,14 @@ public sealed class HeuristicTools(IHeuristicLibClient client, IDataClient dataR
         "Runs a symbolic regression algorithm with the given hyperparameters and data and updates the current model."
     )]
     public Task<CallToolResult> RunSymbolicRegressionAsync(
+        DateTimeOffset startTimeIncl,
         CancellationToken ct = default
     ) => DoAsync(async () =>
     {
         responseStream.Broadcast(EventType.Tool, "Running symbolic regression");
         var instructions = new SymbolicRegressionInstructionsDto
         {
-            StartTimeIncl = DateTimeOffset.UtcNow - TimeSpan.FromMinutes(1),
+            StartTimeIncl = startTimeIncl,
         };
 
         var data = dataRouter.Data
@@ -94,13 +95,13 @@ public sealed class HeuristicTools(IHeuristicLibClient client, IDataClient dataR
             BaseModel,
             new SymbolicDataAnalysisExpressionTreeInterpreter()
         );
-        var hlDataset = Dataset.FromRowData(variableNames, datasetRows);
-        var basePredictions = baseModelEvaluator.Predict(hlDataset, Enumerable.Range(0, hlDataset.Rows)).ToArray();
+        var dataset = Dataset.FromRowData(variableNames, datasetRows);
+        var basePredictions = baseModelEvaluator.Predict(dataset, Enumerable.Range(0, dataset.Rows)).ToArray();
 
         // Modify the dataset to contain residuals
         for (var i = 0; i < datasetRows.Length; i++)
         {
-            var trueY = datasetRows[i].Last();
+            var trueY = datasetRows[i][^1];
             var predictedY = basePredictions[i];
             var residual = trueY - predictedY;
 
@@ -212,6 +213,64 @@ public sealed class HeuristicTools(IHeuristicLibClient client, IDataClient dataR
                 new TextContentBlock
                 {
                     Text = $"{quality:F4}"
+                },
+            ],
+        };
+    });
+
+    [UsedImplicitly]
+    [McpServerTool]
+    [Description("Gets the quality of the current model over time.")]
+    public CallToolResult GetModelQualityOverTime(DateTimeOffset startTimeIncl, int windowSize) => Do(() =>
+    {
+        responseStream.Broadcast(EventType.Tool, "Evaluating model quality over time");
+
+        var data = dataRouter.Data
+            .Where(d => d.Item1 >= startTimeIncl)
+            .Select(d => (Timestamp: d.Item1, Values: d.Item2))
+            .ToArray();
+
+        if (data.Length == 0)
+        {
+            throw new ArgumentException("No data available in the specified range.");
+        }
+
+        var variableNames = Enumerable.Range(0, data.First().Values.Length - 1)
+            .Select(i => $"x{i}")
+            .Append("y")
+            .ToArray();
+        var dataset = Dataset.FromRowData(variableNames, data.Select(d => d.Values).ToArray());
+        var model = new SymbolicRegressionModel(
+            CombinedModel,
+            new SymbolicDataAnalysisExpressionTreeInterpreter()
+        );
+        var predictions = model.Predict(dataset, Enumerable.Range(0, dataset.Rows)).ToArray();
+        var trueValues = data.Select(d => d.Values.Last()).ToArray();
+
+        var qualityOverTime = new List<(DateTimeOffset Timestamp, double Quality)>();
+        for (var i = 0; i < data.Length; i++)
+        {
+            var windowStart = Math.Max(0, i - windowSize + 1);
+            var windowPredictions = predictions.Skip(windowStart).Take(i - windowStart + 1).ToArray();
+            var windowTrueValues = trueValues.Skip(windowStart).Take(i - windowStart + 1).ToArray();
+
+            var quality = new PearsonR2Evaluator().Evaluate(windowPredictions, windowTrueValues);
+            qualityOverTime.Add((data[i].Timestamp, quality));
+        }
+
+        return new CallToolResult
+        {
+            Content =
+            [
+                new TextContentBlock
+                {
+                    Text = JsonSerializer.Serialize(
+                        qualityOverTime.Select(q => new
+                        {
+                            q.Timestamp, q.Quality,
+                        }),
+                        JsonOptions
+                    ),
                 },
             ],
         };
