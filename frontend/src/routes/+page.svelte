@@ -15,16 +15,9 @@
     import SvelteMarkdown from "@humanspeak/svelte-markdown";
     import ServerEventNotification from "$lib/components/ServerEventNotification.svelte";
     import type { ServerEvent } from "$lib/types/serverEvents";
+    import ReconnectingEventSource from "reconnecting-eventsource";
 
-    ChartJS.register(
-        Title,
-        Tooltip,
-        Legend,
-        LineElement,
-        LinearScale,
-        PointElement,
-        CategoryScale,
-    );
+    ChartJS.register(Title, Tooltip, Legend, LineElement, LinearScale, PointElement, CategoryScale);
 
     type ServerEventData = { message: string };
 
@@ -76,7 +69,7 @@
     }
 
     $effect(() => {
-        let eventSource = new EventSource("https://localhost:5297/ai-stream");
+        let eventSource = new ReconnectingEventSource("https://localhost:5297/ai-stream");
 
         eventSource.addEventListener("tool", (event) => {
             serverEvents = [
@@ -88,16 +81,10 @@
         eventSource.addEventListener("fragment", (event: MessageEvent) => {
             const fragment = getMessage(event.data as string);
 
-            if (
-                serverEvents.length > 0 &&
-                serverEvents[0].type === "fragment"
-            ) {
+            if (serverEvents.length > 0 && serverEvents[0].type === "fragment") {
                 serverEvents[0].message += fragment;
             } else {
-                serverEvents = [
-                    { type: "fragment", message: fragment },
-                    ...serverEvents,
-                ];
+                serverEvents = [{ type: "fragment", message: fragment }, ...serverEvents];
             }
         });
 
@@ -111,9 +98,7 @@
     });
 
     $effect(() => {
-        let eventSource = new EventSource(
-            "https://localhost:5297/quality-stream",
-        );
+        let eventSource = new ReconnectingEventSource("https://localhost:5297/quality-stream");
 
         eventSource.onmessage = (event) => {
             const num = parseFloat(event.data as string);
@@ -142,9 +127,7 @@
 </script>
 
 <div class="mx-auto max-w-6xl p-8 font-sans">
-    <h1 class="mb-6 text-3xl font-bold text-gray-800">
-        HeuristicAgent Dashboard
-    </h1>
+    <h1 class="mb-6 text-3xl font-bold text-gray-800">HeuristicAgent Dashboard</h1>
 
     <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
         <div class="flex flex-col">
@@ -156,7 +139,7 @@
             >
                 {#each serverEvents as event, idx (idx)}
                     {#if event.type === "fragment"}
-                        <div class="*:whitespace-normal">
+                        <div class="**:whitespace-normal">
                             <SvelteMarkdown source={event.message ?? ""} />
                         </div>
                     {:else}
@@ -167,13 +150,9 @@
         </div>
 
         <div>
-            <h2 class="mb-4 text-xl font-semibold text-gray-700">
-                Model Quality
-            </h2>
+            <h2 class="mb-4 text-xl font-semibold text-gray-700">Model Quality</h2>
 
-            <div
-                class="h-100 flex-1 rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
-            >
+            <div class="h-100 flex-1 rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
                 <Line data={chartData} options={chartOptions} />
             </div>
         </div>
