@@ -1,4 +1,4 @@
 {
     "ClientType": "Lib",
-    "Model": "tencent/hy3-preview:free"
+    "Model": "openai/gpt-oss-120b:free"
 }

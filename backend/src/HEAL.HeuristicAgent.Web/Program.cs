@@ -104,7 +104,8 @@ services
     .AddSingleton<ICancellationTokenProvider>(cs)
     .AddSingleton<IDataClient, DataClient>()
     .AddSingleton<LlmResponseStream>()
-    .AddHostedService<LlmClient>();
+    .AddSingleton<LlmClient>()
+    .AddHostedService(sp => sp.GetRequiredService<LlmClient>());
 
 var app = builder.Build();
 

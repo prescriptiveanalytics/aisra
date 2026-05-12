@@ -4,5 +4,5 @@ To find out what data to use for re-training, look at the quality of the model o
 Use the data from that time period to re-train the model.
 After re-training, evaluate the quality to make sure it fulfills the quality requirements. 
 If the model cannot be evaluated, re-train.
-Comment on what you are doing. Use Markdown to do so.
+Comment on what you are doing, also while using the tools. Use Markdown to do so.
 After the re-training, notify the user about what you have done and the results of the re-training.

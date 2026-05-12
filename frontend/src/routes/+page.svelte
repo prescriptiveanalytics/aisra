@@ -23,6 +23,8 @@
     type ServerEventData = { message: string };
 
     let serverEvents = $state([] as ServerEvent[]);
+    let chatInput = $state("");
+    let isDone = $state(true);
 
     let chartLabels = $state<string[]>([]);
     let chartValues = $state<number[]>([]);
@@ -94,6 +96,7 @@
         let eventSource = new ReconnectingEventSource("https://localhost:5297/ai-stream");
 
         eventSource.addEventListener("tool", (event) => {
+            isDone = false;
             serverEvents = [
                 { type: "tool", message: getMessage(event.data as string) },
                 ...serverEvents,
@@ -101,6 +104,7 @@
         });
 
         eventSource.addEventListener("fragment", (event: MessageEvent) => {
+            isDone = false;
             const fragment = getMessage(event.data as string);
 
             if (serverEvents.length > 0 && serverEvents[0].type === "fragment") {
@@ -111,7 +115,12 @@
         });
 
         eventSource.addEventListener("qualitydrop", () => {
+            isDone = false;
             serverEvents = [{ type: "qualitydrop" }, ...serverEvents];
+        });
+
+        eventSource.addEventListener("done", () => {
+            isDone = true;
         });
 
         return () => {
@@ -146,6 +155,30 @@
             eventSource.close();
         };
     });
+
+    async function handleChatSubmit(): Promise<void> {
+        if (!chatInput.trim() || !isDone) {
+            return;
+        }
+
+        const message = chatInput.trim();
+        chatInput = "";
+        isDone = false;
+
+        serverEvents = [{ type: "user_message", message }, ...serverEvents];
+
+        try {
+            await fetch("https://localhost:5297/chat", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ message }),
+            });
+        } catch {
+            isDone = true;
+        }
+    }
 </script>
 
 <div class="mx-auto max-w-6xl p-8 font-sans">
@@ -166,11 +199,40 @@
                         <div class="prose **:whitespace-normal dark:prose-invert">
                             <SvelteMarkdown source={event.message ?? ""} />
                         </div>
+                    {:else if event.type === "user_message"}
+                        <div
+                            class="max-w-[80%] self-end rounded-lg bg-blue-100 p-3 text-blue-900 dark:bg-blue-900 dark:text-blue-100"
+                        >
+                            {event.message}
+                        </div>
                     {:else}
                         <ServerEventNotification {event} />
                     {/if}
                 {/each}
             </div>
+
+            <form
+                onsubmit={(e) => {
+                    e.preventDefault();
+                    handleChatSubmit();
+                }}
+                class="mt-4 flex gap-2"
+            >
+                <input
+                    type="text"
+                    bind:value={chatInput}
+                    disabled={!isDone}
+                    placeholder={isDone ? "Type your message..." : "Waiting for agent..."}
+                    class="flex-1 rounded-lg border border-gray-300 p-2 text-sm disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+                />
+                <button
+                    type="submit"
+                    disabled={!isDone || !chatInput.trim()}
+                    class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                >
+                    Send
+                </button>
+            </form>
         </div>
 
         <div>

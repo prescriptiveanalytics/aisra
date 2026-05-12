@@ -16,6 +16,8 @@ public sealed class LlmClient(
 
     private readonly SemaphoreSlim _agentGate = new(1, 1);
 
+    public bool AgentIsBusy => _agentGate.CurrentCount == 0;
+
     public Task StartAsync(CancellationToken ct)
     {
         dataClient.DataReceived += async (_, e) =>
@@ -49,6 +51,8 @@ public sealed class LlmClient(
                 {
                     responseStream.Broadcast(EventType.Fragment, s);
                 }
+
+                responseStream.Broadcast(EventType.Done);
             }
             finally
             {
@@ -57,6 +61,30 @@ public sealed class LlmClient(
         };
 
         return Task.CompletedTask;
+    }
+
+    public async Task ChatAsync(string message, CancellationToken ct = default)
+    {
+        if (!await _agentGate.WaitAsync(0, ct))
+        {
+            return;
+        }
+
+        try
+        {
+            await foreach (
+                var s in chatClient.GetStreamingResponseAsync([
+                    new ChatMessage(ChatRole.User, message)
+                ]).WithCancellation(ct)
+            )
+            {
+                responseStream.Broadcast(EventType.Fragment, s);
+            }
+        }
+        finally
+        {
+            _agentGate.Release();
+        }
     }
 
     public Task StopAsync(CancellationToken ct)
