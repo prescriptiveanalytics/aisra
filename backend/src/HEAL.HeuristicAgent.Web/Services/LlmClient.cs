@@ -80,6 +80,8 @@ public sealed class LlmClient(
             {
                 responseStream.Broadcast(EventType.Fragment, s);
             }
+
+            responseStream.Broadcast(EventType.Done);
         }
         finally
         {
