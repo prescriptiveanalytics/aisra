@@ -2,6 +2,7 @@
     import "./layout.css";
     import favicon from "$lib/assets/favicon.svg";
     import { themeState } from "$lib/theme.svelte";
+    import { Modals } from "svelte-modals";
 
     let { children } = $props();
 
@@ -44,6 +45,16 @@
 </script>
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
+
+<Modals>
+    {#snippet backdrop({ close })}
+        <div
+            class="fixed inset-0 z-40 bg-black/50"
+            onclick={() => close()}
+            aria-hidden="true"
+        ></div>
+    {/snippet}
+</Modals>
 
 <div class="absolute top-4 right-4">
     <select

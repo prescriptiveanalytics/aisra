@@ -20,6 +20,9 @@ importers:
       svelte-chartjs:
         specifier: ^4.0.1
         version: 4.0.1(chart.js@4.5.1)(svelte@5.55.5(@typescript-eslint/types@8.59.2))
+      svelte-modals:
+        specifier: ^2.0.1
+        version: 2.0.1(svelte@5.55.5(@typescript-eslint/types@8.59.2))
     devDependencies:
       '@eslint/compat':
         specifier: ^2.0.4
@@ -1143,6 +1146,11 @@ packages:
       svelte:
         optional: true
 
+  svelte-modals@2.0.1:
+    resolution: {integrity: sha512-4nGWxveM0eILQnkjmlA7nComRSsCW5QssY9d1qNklZaNlnwnziW5xYqLN3ufjyA0/Cn9oMO4i9+8s8zmlw4IiQ==}
+    peerDependencies:
+      svelte: '>=5'
+
   svelte@5.55.5:
     resolution: {integrity: sha512-2uCs/LZ9us+AktdzYJM8OcxQ8qnPS1kpaO7syGT/MgO+6Qr1Ybl+TqPq+97u7PHqmmMlye5ZkoyXONy5mjjAbw==}
     engines: {node: '>=18'}
@@ -2160,6 +2168,10 @@ snapshots:
       postcss-selector-parser: 7.1.1
       semver: 7.7.4
     optionalDependencies:
+      svelte: 5.55.5(@typescript-eslint/types@8.59.2)
+
+  svelte-modals@2.0.1(svelte@5.55.5(@typescript-eslint/types@8.59.2)):
+    dependencies:
       svelte: 5.55.5(@typescript-eslint/types@8.59.2)
 
   svelte@5.55.5(@typescript-eslint/types@8.59.2):

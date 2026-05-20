@@ -29,7 +29,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Update="appsettings.jsonc">
+        <None Update="appsettings.json">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
         <None Update="Resources\SKILL.md">

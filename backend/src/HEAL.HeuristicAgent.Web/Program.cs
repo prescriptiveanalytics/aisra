@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO.Pipelines;
 using HEAL.HeuristicAgent.Web.Chat;
 using HEAL.HeuristicAgent.Web.Mcp.Client;
+using HEAL.HeuristicAgent.Web.Persistence;
 using HEAL.HeuristicAgent.Web.Services;
 using HEAL.HeuristicLibAdapter;
 using HEAL.HeuristicLibAdapter.Grpc;
@@ -62,6 +63,9 @@ var apiKey = cfg["OpenRouterApiKey"].NotBlankOrThrow(
     )
 );
 
+cfg["Model"] ??= "openrouter/free";
+Console.WriteLine("Model: " + cfg["Model"]);
+
 var openAiChatClient = new OpenAIClient(
     new ApiKeyCredential(apiKey),
     new OpenAIClientOptions
@@ -69,7 +73,7 @@ var openAiChatClient = new OpenAIClient(
         Endpoint = new Uri("https://openrouter.ai/api/v1/"),
         NetworkTimeout = 60.Minutes,
     }
-).GetChatClient(cfg["Model"] ?? "openrouter/free").AsIChatClient();
+).GetChatClient(cfg["Model"]).AsIChatClient();
 
 var chatClient = new ChatClientBuilder(openAiChatClient)
     .UseFunctionInvocation()
@@ -105,7 +109,10 @@ services
     .AddSingleton<IDataClient, DataClient>()
     .AddSingleton<LlmResponseStream>()
     .AddSingleton<LlmClient>()
-    .AddHostedService(sp => sp.GetRequiredService<LlmClient>());
+    .AddHostedService(sp => sp.GetRequiredService<LlmClient>())
+    .AddSingleton<IModelStore, InMemoryModelStore>()
+    .AddSingleton<IModelService, ModelService>()
+    .AddSingleton<IModelQualityService, ModelQualityService>();
 
 var app = builder.Build();
 

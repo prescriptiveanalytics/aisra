@@ -1,44 +1,31 @@
-﻿using HEAL.HeuristicLib.Problems.DataAnalysis;
-using HEAL.HeuristicLib.Problems.DataAnalysis.Regression;
-using HEAL.HeuristicLib.Problems.DataAnalysis.Regression.Evaluators;
-using HEAL.HeuristicLib.Problems.DataAnalysis.Symbolic;
-using HEAL.HeuristicAgent.Web.Mcp.Server.Tools;
-
-namespace HEAL.HeuristicAgent.Web.Services;
-
-public class DataReceivedEventArgs : EventArgs
-{
-    public double[] Data { get; init; } = [];
-    public double? ModelQuality { get; init; }
-}
+﻿namespace HEAL.HeuristicAgent.Web.Services;
 
 public interface IDataClient
 {
     IReadOnlyCollection<(DateTimeOffset, double[])> Data { get; }
 
-    event EventHandler<DataReceivedEventArgs> DataReceived;
+    event EventHandler<double[]> DataReceived;
 }
 
 public sealed class DataClient : IDataClient
 {
     private const int MinValue = -100;
     private const int MaxValue = 100;
-    private const int NumValuesToUse = 20;
 
     private readonly Queue<(DateTimeOffset, double[])> _data = new();
-    private static readonly PearsonR2Evaluator Evaluator = new();
 
-    public event EventHandler<DataReceivedEventArgs>? DataReceived;
+    public event EventHandler<double[]>? DataReceived;
 
     private static readonly Func<double, double, double> F1 = (x1, x2) => x1 * x1 * (1 + x1 / 2000) + x2 / 1.99 + 7.01;
     private static readonly Func<double, double, double> F2 = (x1, x2) => x1 * x1 * (1 + x1 / 300) + x2 / 1.88 + 7.11;
 
     private bool _useF2;
+    private int _i;
+    private int _interval = 40;
 
     public DataClient(ICancellationTokenProvider ctp)
     {
         var ct = ctp.Token;
-        var startTime = DateTimeOffset.UtcNow;
 
         Task.Run(async () =>
         {
@@ -55,36 +42,17 @@ public sealed class DataClient : IDataClient
 
                 _data.Enqueue((DateTimeOffset.UtcNow, data));
 
-                double? quality = null;
-
-                if (_data.Count >= NumValuesToUse)
-                {
-                    var model = new SymbolicRegressionModel(
-                        HeuristicTools.CombinedModel,
-                        new SymbolicDataAnalysisExpressionTreeInterpreter()
-                    );
-
-                    var dataset = Dataset.FromRowData(
-                        Enumerable.Range(0, data.Length - 1).Select(i => $"x{i}").Append("y").ToArray(),
-                        _data.TakeLast(NumValuesToUse).Select(x => x.Item2)
-                    );
-                    var predictedValues = model.Predict(dataset, Enumerable.Range(0, dataset.Rows));
-                    var trueValues = _data.Select(d => d.Item2.Last()).TakeLast(NumValuesToUse);
-                    quality = Evaluator.Evaluate(predictedValues, trueValues);
-                }
-
-                DataReceived?.Invoke(this, new DataReceivedEventArgs
-                {
-                    Data = data,
-                    ModelQuality = quality,
-                });
+                DataReceived?.Invoke(this, data);
 
                 await 0.5.Seconds.WithCancellationToken(ct);
 
-                if (startTime + 20.Seconds < DateTimeOffset.UtcNow)
+                if (++_i % _interval != 0)
                 {
-                    _useF2 = true;
+                    continue;
                 }
+
+                _useF2 = !_useF2;
+                _interval *= 12;
             }
         }, ct);
     }

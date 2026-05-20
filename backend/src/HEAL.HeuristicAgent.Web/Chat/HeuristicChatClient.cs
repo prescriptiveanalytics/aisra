@@ -43,7 +43,6 @@ public sealed class HeuristicChatClient(
                 _messageHistory,
                 new ChatOptions
                 {
-                    ModelId = config["Model"] ?? "openrouter/free",
                     Tools = await GetToolsAsync(),
                 },
                 cancellationToken: ctp.Token

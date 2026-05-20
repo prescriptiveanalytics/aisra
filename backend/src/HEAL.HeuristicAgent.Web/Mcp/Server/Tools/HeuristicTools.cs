@@ -2,12 +2,11 @@
 using System.Globalization;
 using System.Text.Json;
 using HEAL.HeuristicAgent.Web.Dtos;
+using HEAL.HeuristicAgent.Web.Persistence;
 using HEAL.HeuristicAgent.Web.Services;
-using HEAL.HeuristicLib.Genotypes.Trees;
 using HEAL.HeuristicLib.Problems.DataAnalysis;
 using HEAL.HeuristicLib.Problems.DataAnalysis.Formatter;
 using HEAL.HeuristicLib.Problems.DataAnalysis.Regression;
-using HEAL.HeuristicLib.Problems.DataAnalysis.Regression.Evaluators;
 using HEAL.HeuristicLib.Problems.DataAnalysis.Symbolic;
 using HEAL.HeuristicLibAdapter;
 using HEAL.HeuristicLibContracts.Dtos;
@@ -18,33 +17,15 @@ using ModelContextProtocol.Server;
 namespace HEAL.HeuristicAgent.Web.Mcp.Server.Tools;
 
 [McpServerToolType]
-public sealed class HeuristicTools(IHeuristicLibClient client, IDataClient dataRouter, LlmResponseStream responseStream)
+public sealed class HeuristicTools(
+    IHeuristicLibClient client,
+    IDataClient dataClient,
+    LlmResponseStream responseStream,
+    IModelStore modelStore,
+    IModelService modelService,
+    IModelQualityService modelQualityService
+)
 {
-    private static readonly InfixExpressionParser Parser = new();
-
-    private static readonly SymbolicExpressionTree BaseModel =
-        Parser.Parse("'x0' * 'x0' + 'x1' / 2 + 7");
-
-    private static SymbolicExpressionTree ResidualModel
-    {
-        get;
-        set
-        {
-            field = value;
-            CombinedModel =
-                Parser.Parse(
-                    $"({InfixExpressionFormatter.Format(BaseModel, NumberFormatInfo.InvariantInfo)})"
-                    + $" + ({InfixExpressionFormatter.Format(field, NumberFormatInfo.InvariantInfo)})"
-                );
-        }
-    } = Parser.Parse("0");
-
-    public static SymbolicExpressionTree CombinedModel { get; private set; } =
-        Parser.Parse(
-            $"({InfixExpressionFormatter.Format(BaseModel, NumberFormatInfo.InvariantInfo)})"
-            + $" + ({InfixExpressionFormatter.Format(ResidualModel, NumberFormatInfo.InvariantInfo)})"
-        );
-
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
     {
         WriteIndented = true,
@@ -53,20 +34,24 @@ public sealed class HeuristicTools(IHeuristicLibClient client, IDataClient dataR
     [UsedImplicitly]
     [McpServerTool]
     [Description(
-        "Runs a symbolic regression algorithm with the given hyperparameters and data and updates the current model."
+        "Runs a symbolic regression algorithm with the given data to create and store a new model. " +
+        "Does not activate the generated model automatically. " +
+        "Returns the generated expression and the ID of the stored model."
     )]
     public Task<CallToolResult> RunSymbolicRegressionAsync(
+        [Description("The start time (inclusive) for the data to use in symbolic regression")]
         DateTimeOffset startTimeIncl,
         CancellationToken ct = default
     ) => DoAsync(async () =>
     {
         responseStream.Broadcast(EventType.Tool, "Running symbolic regression");
+
         var instructions = new SymbolicRegressionInstructionsDto
         {
             StartTimeIncl = startTimeIncl,
         };
 
-        var data = dataRouter.Data
+        var data = dataClient.Data
             .Where(data =>
                 data.Item1 >= instructions.StartTimeIncl
                 && (
@@ -92,7 +77,7 @@ public sealed class HeuristicTools(IHeuristicLibClient client, IDataClient dataR
 
         // Calculate residuals using BaseModel
         var baseModelEvaluator = new SymbolicRegressionModel(
-            BaseModel,
+            modelService.GetBaseModel(),
             new SymbolicDataAnalysisExpressionTreeInterpreter()
         );
         var dataset = Dataset.FromRowData(variableNames, datasetRows);
@@ -129,103 +114,36 @@ public sealed class HeuristicTools(IHeuristicLibClient client, IDataClient dataR
         };
 
         var expression = await client.RunSymRegAsync(request, ct);
-        ResidualModel = Parser.Parse(expression);
+        
+        var id = await modelStore.SaveModelAsync(expression);
 
         responseStream.Broadcast(EventType.Tool, "Symbolic regression completed");
 
-        return new CallToolResult
-        {
-            Content =
-            [
-                new TextContentBlock
-                {
-                    Text = expression,
-                },
-            ],
-        };
+        return TextResult(JsonSerializer.Serialize(
+            new
+            {
+                ModelId = id,
+                Expression = expression,
+            },
+            JsonOptions
+        ));
     });
 
     [UsedImplicitly]
     [McpServerTool]
-    [Description("Retrieves the latest data for symbolic regression.")]
-    public CallToolResult GetData(int numRows) => Do(() =>
-    {
-        responseStream.Broadcast(EventType.Tool, "Retrieving data");
-
-        return new CallToolResult
-        {
-            Content =
-            [
-                new TextContentBlock
-                {
-                    Text =
-                        JsonSerializer.Serialize(
-                            dataRouter.Data.Select(d => new DataDto
-                                {
-                                    Timestamp = d.Item1,
-                                    Data = d.Item2,
-                                })
-                                .OrderByDescending(d => d.Timestamp)
-                                .Take(numRows)
-                                .ToArray(),
-                            JsonOptions
-                        ),
-                }
-            ]
-        };
-    });
-
-    [UsedImplicitly]
-    [McpServerTool]
-    [Description("Gets the quality of the current model on the data starting from the specified time.")]
-    public CallToolResult GetModelQuality(DateTimeOffset startTimeIncl) => Do(() =>
-    {
-        responseStream.Broadcast(EventType.Tool, "Evaluating model quality");
-
-        var data = dataRouter.Data
-            .Where(d => d.Item1 >= startTimeIncl)
-            .Select(d => d.Item2)
-            .ToArray();
-
-        if (data.Length == 0)
-        {
-            throw new ArgumentException("No data available in the specified range.");
-        }
-
-        var variableNames = Enumerable.Range(0, data.First().Length - 1)
-            .Select(i => $"x{i}")
-            .Append("y")
-            .ToArray();
-        var dataset = Dataset.FromRowData(variableNames, data);
-        var model = new SymbolicRegressionModel(
-            CombinedModel,
-            new SymbolicDataAnalysisExpressionTreeInterpreter()
-        );
-        var predictions = model.Predict(dataset, Enumerable.Range(0, dataset.Rows)).ToArray();
-        var trueValues = data.Select(d => d.Last()).ToArray();
-
-        var quality = new PearsonR2Evaluator().Evaluate(predictions, trueValues);
-
-        return new CallToolResult
-        {
-            Content =
-            [
-                new TextContentBlock
-                {
-                    Text = $"{quality:F4}"
-                },
-            ],
-        };
-    });
-
-    [UsedImplicitly]
-    [McpServerTool]
-    [Description("Gets the quality of the current model over time.")]
-    public CallToolResult GetModelQualityOverTime(DateTimeOffset startTimeIncl, int windowSize) => Do(() =>
+    [Description("Gets the quality of a model over time.")]
+    public Task<CallToolResult> GetModelQualityOverTime(
+        [Description("The start time (inclusive) for the data to evaluate the model on")]
+        DateTimeOffset startTimeIncl,
+        [Description("The number of data points to include in each quality data point")]
+        int windowSize,
+        [Description("The ID of the model to evaluate, or the active one if not provided")]
+        int? modelId = null
+    ) => DoAsync(async () =>
     {
         responseStream.Broadcast(EventType.Tool, "Evaluating model quality over time");
 
-        var data = dataRouter.Data
+        var data = dataClient.Data
             .Where(d => d.Item1 >= startTimeIncl)
             .Select(d => (Timestamp: d.Item1, Values: d.Item2))
             .ToArray();
@@ -235,64 +153,88 @@ public sealed class HeuristicTools(IHeuristicLibClient client, IDataClient dataR
             throw new ArgumentException("No data available in the specified range.");
         }
 
-        var variableNames = Enumerable.Range(0, data.First().Values.Length - 1)
-            .Select(i => $"x{i}")
-            .Append("y")
-            .ToArray();
-        var dataset = Dataset.FromRowData(variableNames, data.Select(d => d.Values).ToArray());
-        var model = new SymbolicRegressionModel(
-            CombinedModel,
-            new SymbolicDataAnalysisExpressionTreeInterpreter()
-        );
-        var predictions = model.Predict(dataset, Enumerable.Range(0, dataset.Rows)).ToArray();
-        var trueValues = data.Select(d => d.Values.Last()).ToArray();
+        var combinedModel = await modelService.GetCombinedModelAsync(modelId);
+        var valuesOnly = data.Select(d => d.Values).ToArray();
+        
+        var qualityList = modelQualityService.EvaluateQualityOverTime(combinedModel, valuesOnly, windowSize);
 
-        var qualityOverTime = new List<(DateTimeOffset Timestamp, double Quality)>();
-        for (var i = 0; i < data.Length; i++)
+        var qualityOverTime = data.Zip(qualityList, (d, q) => new
         {
-            var windowStart = Math.Max(0, i - windowSize + 1);
-            var windowPredictions = predictions.Skip(windowStart).Take(i - windowStart + 1).ToArray();
-            var windowTrueValues = trueValues.Skip(windowStart).Take(i - windowStart + 1).ToArray();
+            d.Timestamp,
+            Quality = q
+        });
 
-            var quality = new PearsonR2Evaluator().Evaluate(windowPredictions, windowTrueValues);
-            qualityOverTime.Add((data[i].Timestamp, quality));
-        }
-
-        return new CallToolResult
-        {
-            Content =
-            [
-                new TextContentBlock
-                {
-                    Text = JsonSerializer.Serialize(
-                        qualityOverTime.Select(q => new
-                        {
-                            q.Timestamp, q.Quality,
-                        }),
-                        JsonOptions
-                    ),
-                },
-            ],
-        };
+        return TextResult(JsonSerializer.Serialize(qualityOverTime, JsonOptions));
     });
 
     [UsedImplicitly]
     [McpServerTool]
-    [Description("Gets the currently used expression")]
-    public CallToolResult GetCurrentModel() => Do(() =>
+    [Description("Gets the base model (the original model without any residuals)")]
+    public CallToolResult GetBaseModel() => Do(() =>
     {
-        responseStream.Broadcast(EventType.Tool, "Retrieving current model");
+        responseStream.Broadcast(EventType.Tool, "Retrieving base model");
 
-        return new CallToolResult
+        return TextResult(InfixExpressionFormatter.Format(modelService.GetBaseModel(), NumberFormatInfo.InvariantInfo));
+    });
+
+    [UsedImplicitly]
+    [McpServerTool]
+    [Description("Gets the residual model by ID")]
+    public Task<CallToolResult> GetResidualModel(
+        [Description("The ID of the model to retrieve, or the active one if not provided")]
+        int? modelId = null
+    ) => DoAsync(async () =>
+    {
+        responseStream.Broadcast(EventType.Tool, "Retrieving residual model");
+
+        var residualModel = await modelService.GetResidualModelAsync(modelId);
+        return TextResult(InfixExpressionFormatter.Format(residualModel, NumberFormatInfo.InvariantInfo));
+    });
+
+    [UsedImplicitly]
+    [McpServerTool]
+    [Description("Gets the combined model (base + residual) by ID")]
+    public Task<CallToolResult> GetCombinedModel(
+        [Description("The ID of the model to retrieve, or the active one if not provided")]
+        int? modelId = null
+    ) => DoAsync(async () =>
+    {
+        responseStream.Broadcast(EventType.Tool, "Retrieving combined model");
+
+        var combinedModel = await modelService.GetCombinedModelAsync(modelId);
+        return TextResult(InfixExpressionFormatter.Format(combinedModel, NumberFormatInfo.InvariantInfo));
+    });
+
+    [UsedImplicitly]
+    [McpServerTool]
+    [Description("Gets all saved models in the model store")]
+    public Task<CallToolResult> GetAllSavedModelsAsync() => DoAsync(async () =>
+    {
+        responseStream.Broadcast(EventType.Tool, "Retrieving all saved models");
+
+        var models = await modelStore.GetAllModelsAsync();
+
+        return TextResult(JsonSerializer.Serialize(models, JsonOptions));
+    });
+
+    [UsedImplicitly]
+    [McpServerTool]
+    [Description(
+        "Retrieves the model with the given ID from the model store and sets it as the active model used for predictions"
+    )]
+    public Task<CallToolResult> SetActiveModel(int modelId) => DoAsync(async () =>
+    {
+        responseStream.Broadcast(EventType.Tool, $"Switching active model to ID {modelId}");
+
+        var models = await modelStore.GetAllModelsAsync();
+        if (models.All(m => m.Id != modelId))
         {
-            Content =
-            [
-                new TextContentBlock
-                {
-                    Text = InfixExpressionFormatter.Format(CombinedModel, NumberFormatInfo.InvariantInfo)
-                },
-            ],
-        };
+            throw new ArgumentException($"Model with ID {modelId} not found.");
+        }
+
+        modelService.SetActiveModel(modelId);
+
+        return TextResult($"Active model set to ID {modelId}");
     });
 
     private static CallToolResult Do(Func<CallToolResult> func)
@@ -303,19 +245,7 @@ public sealed class HeuristicTools(IHeuristicLibClient client, IDataClient dataR
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error in tool execution: {ex}");
-
-            return new CallToolResult
-            {
-                Content =
-                [
-                    new TextContentBlock
-                    {
-                        Text = $"ERROR: {ex.Message}"
-                    },
-                ],
-                IsError = true,
-            };
+            return CreateErrorResult(ex);
         }
     }
 
@@ -327,19 +257,35 @@ public sealed class HeuristicTools(IHeuristicLibClient client, IDataClient dataR
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error in tool execution: {ex}");
-
-            return new CallToolResult
-            {
-                Content =
-                [
-                    new TextContentBlock
-                    {
-                        Text = $"ERROR: {ex.Message}"
-                    },
-                ],
-                IsError = true,
-            };
+            return CreateErrorResult(ex);
         }
     }
+
+    private static CallToolResult CreateErrorResult(Exception ex)
+    {
+        Console.WriteLine($"Error in tool execution: {ex}");
+
+        return new CallToolResult
+        {
+            Content =
+            [
+                new TextContentBlock
+                {
+                    Text = $"ERROR: {ex.Message}"
+                },
+            ],
+            IsError = true,
+        };
+    }
+
+    private static CallToolResult TextResult(string text) => new()
+    {
+        Content =
+        [
+            new TextContentBlock
+            {
+                Text = text,
+            },
+        ],
+    };
 }

@@ -40,6 +40,7 @@
         "@humanspeak/svelte-markdown": "^1.4.3",
         "chart.js": "^4.5.1",
         "reconnecting-eventsource": "^1.6.5",
-        "svelte-chartjs": "^4.0.1"
+        "svelte-chartjs": "^4.0.1",
+        "svelte-modals": "^2.0.1"
     }
 }

@@ -7,7 +7,9 @@ namespace HEAL.HeuristicAgent.Web.Services;
 public sealed class LlmClient(
     IDataClient dataClient,
     IHeuristicChatClient chatClient,
-    LlmResponseStream responseStream
+    LlmResponseStream responseStream,
+    IModelService modelService,
+    IModelQualityService modelQualityService
 ) : IHostedService
 {
     private const int NumValuesToUse = 20;
@@ -23,9 +25,17 @@ public sealed class LlmClient(
         dataClient.DataReceived += async (_, e) =>
         {
             var data = dataClient.Data;
-            var quality = e.ModelQuality;
 
-            if (data.Count < NumValuesToUse || quality > QualityThreshold)
+            if (data.Count < NumValuesToUse)
+            {
+                return;
+            }
+
+            var recentData = data.TakeLast(NumValuesToUse).Select(x => x.Item2).ToArray();
+            var combinedModel = await modelService.GetCombinedModelAsync();
+            var quality = modelQualityService.EvaluateQuality(combinedModel, recentData);
+
+            if (quality > QualityThreshold)
             {
                 return;
             }

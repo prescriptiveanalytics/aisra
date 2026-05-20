@@ -9,7 +9,11 @@ namespace HEAL.HeuristicAgent.Web.Controllers;
 
 [ApiController]
 [Route("")]
-public class StreamController(LlmResponseStream llmStream, IDataClient dataClient) : ControllerBase
+public class StreamController(
+    LlmResponseStream llmStream,
+    IDataClient dataClient,
+    IModelService modelService,
+    IModelQualityService modelQualityService) : ControllerBase
 {
     [HttpGet("ai-stream")]
     public async Task AiStream()
@@ -57,16 +61,61 @@ public class StreamController(LlmResponseStream llmStream, IDataClient dataClien
     }
 
     [HttpGet("quality-stream")]
-    public async Task QualityStream()
+    public async Task QualityStream([FromQuery] int? modelId = null)
     {
         Response.Headers.Append("Content-Type", "text/event-stream");
         Response.Headers.Append("Cache-Control", "no-cache");
 
         var channel = Channel.CreateUnbounded<double>();
+        var eventChannel = Channel.CreateUnbounded<double[]>();
 
-        HttpContext.RequestAborted.Register(() => channel.Writer.TryComplete());
+        HttpContext.RequestAborted.Register(() => 
+        {
+            channel.Writer.TryComplete();
+            eventChannel.Writer.TryComplete();
+        });
 
         dataClient.DataReceived += Handler;
+
+        Task.Run(async () =>
+        {
+            try
+            {
+                await foreach (var _ in eventChannel.Reader.ReadAllAsync(HttpContext.RequestAborted))
+                {
+                    var recentData = dataClient.Data.TakeLast(20).Select(x => x.Item2).ToArray();
+                    if (recentData.Length >= 20)
+                    {
+                        var combinedModel = await modelService.GetCombinedModelAsync(modelId);
+                        var quality = modelQualityService.EvaluateQuality(combinedModel, recentData);
+                        channel.Writer.TryWrite(quality);
+                    }
+                }
+            }
+            catch (OperationCanceledException) { }
+        }).Forget();
+
+        dataClient.DataReceived += Handler;
+
+        Task.Run(async () =>
+        {
+            try
+            {
+                await foreach (var _ in eventChannel.Reader.ReadAllAsync(HttpContext.RequestAborted))
+                {
+                    var recentData = dataClient.Data.TakeLast(20).Select(x => x.Item2).ToArray();
+                    if (recentData.Length >= 20)
+                    {
+                        var combinedModel = await modelService.GetCombinedModelAsync(modelId);
+                        var quality = modelQualityService.EvaluateQuality(combinedModel, recentData);
+                        channel.Writer.TryWrite(quality);
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+            }
+        }).Forget();
 
         try
         {
@@ -84,12 +133,9 @@ public class StreamController(LlmResponseStream llmStream, IDataClient dataClien
 
         return;
 
-        void Handler(object? sender, DataReceivedEventArgs e)
+        void Handler(object? sender, double[] e)
         {
-            if (e.ModelQuality is not null)
-            {
-                channel.Writer.TryWrite(e.ModelQuality.Value);
-            }
+            eventChannel.Writer.TryWrite(e);
         }
     }
 }

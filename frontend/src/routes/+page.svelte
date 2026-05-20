@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { Line } from "svelte-chartjs";
     import {
         Chart as ChartJS,
         Title,
@@ -9,14 +8,14 @@
         LinearScale,
         PointElement,
         CategoryScale,
-        type ChartData,
-        type ChartOptions,
     } from "chart.js";
     import SvelteMarkdown from "@humanspeak/svelte-markdown";
     import ServerEventNotification from "$lib/components/ServerEventNotification.svelte";
+    import QualityChart from "$lib/components/QualityChart.svelte";
     import type { ServerEvent } from "$lib/types/serverEvents";
     import ReconnectingEventSource from "reconnecting-eventsource";
-    import { themeState } from "$lib/theme.svelte";
+    import { type ModalComponent, type ModalProps, modals } from "svelte-modals";
+    import AddChartModal from "$lib/components/AddChartModal.svelte";
 
     ChartJS.register(Title, Tooltip, Legend, LineElement, LinearScale, PointElement, CategoryScale);
 
@@ -26,67 +25,27 @@
     let chatInput = $state("");
     let isDone = $state(true);
 
-    let chartLabels = $state<string[]>([]);
-    let chartValues = $state<number[]>([]);
+    let selectedCharts = $state<(number | null)[]>([null]);
 
-    let chartData = $derived<ChartData<"line">>({
-        labels: chartLabels,
-        datasets: [
-            {
-                label: "Quality (%)",
-                data: chartValues,
-                borderColor: "rgb(59, 130, 246)",
-                backgroundColor: "rgba(59, 130, 246, 0.5)",
-                tension: 0.3,
-                pointRadius: 2,
-            },
-        ],
-    });
+    async function handleAddChart(): Promise<void> {
+        const res = await fetch("https://localhost:5297/models");
+        if (res.ok) {
+            const fetchedModels = (await res.json()) as { id: number; model: string }[];
+            await modals.open(AddChartModal as unknown as ModalComponent<ModalProps<unknown>, object, ''>, {
+                models: fetchedModels,
+                selectedCharts,
+                onConfirm: (modelId: number) => {
+                    if (!selectedCharts.includes(modelId)) {
+                        selectedCharts = [...selectedCharts, modelId];
+                    }
+                },
+            });
+        }
+    }
 
-    let chartOptions = $derived<ChartOptions<"line">>({
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-            y: {
-                min: 0,
-                max: 100,
-                title: {
-                    display: true,
-                    text: "Quality %",
-                    color: themeState.current === "dark" ? "#e5e7eb" : "#374151",
-                },
-                grid: {
-                    color: themeState.current === "dark" ? "#374151" : "#e5e7eb",
-                },
-                ticks: {
-                    color: themeState.current === "dark" ? "#9ca3af" : "#6b7280",
-                },
-            },
-            x: {
-                title: {
-                    display: true,
-                    text: "Time",
-                    color: themeState.current === "dark" ? "#e5e7eb" : "#374151",
-                },
-                grid: {
-                    color: themeState.current === "dark" ? "#374151" : "#e5e7eb",
-                },
-                ticks: {
-                    color: themeState.current === "dark" ? "#9ca3af" : "#6b7280",
-                },
-            },
-        },
-        plugins: {
-            legend: {
-                labels: {
-                    color: themeState.current === "dark" ? "#e5e7eb" : "#374151",
-                },
-            },
-        },
-        animation: {
-            duration: 0,
-        },
-    });
+    function removeChart(modelIdToRemove: number | null): void {
+        selectedCharts = selectedCharts.filter((id) => id !== modelIdToRemove);
+    }
 
     function getMessage(data: string): string {
         return (JSON.parse(data) as ServerEventData).message as string;
@@ -128,34 +87,6 @@
         };
     });
 
-    $effect(() => {
-        let eventSource = new ReconnectingEventSource("https://localhost:5297/quality-stream");
-
-        eventSource.onmessage = (event) => {
-            const num = parseFloat(event.data as string);
-            if (!isNaN(num)) {
-                const percent = num * 100;
-                const now = new Date();
-                const timeLabel =
-                    `${now.getHours()}` +
-                    `:${now.getMinutes().toString().padStart(2, "0")}` +
-                    `:${now.getSeconds().toString().padStart(2, "0")}`;
-
-                chartLabels = [...chartLabels, timeLabel];
-                chartValues = [...chartValues, percent];
-
-                if (chartLabels.length > 50) {
-                    chartLabels = chartLabels.slice(-50);
-                    chartValues = chartValues.slice(-50);
-                }
-            }
-        };
-
-        return () => {
-            eventSource.close();
-        };
-    });
-
     async function handleChatSubmit(): Promise<void> {
         if (!chatInput.trim() || !isDone) {
             return;
@@ -181,13 +112,13 @@
     }
 </script>
 
-<div class="mx-auto max-w-6xl p-8 font-sans">
+<div class="mx-auto max-w-500 p-8 font-sans">
     <h1 class="mb-6 text-3xl font-bold text-gray-800 dark:text-gray-100">
         HeuristicAgent Dashboard
     </h1>
 
-    <div class="grid grid-cols-1 gap-8 lg:grid-cols-2">
-        <div class="flex flex-col">
+    <div class="flex flex-col gap-8 lg:flex-row">
+        <div class="flex w-full max-w-lg flex-col lg:max-w-md">
             <h2 class="mb-4 text-xl font-semibold text-gray-700 dark:text-gray-200">Agent</h2>
 
             <div
@@ -228,22 +159,46 @@
                 <button
                     type="submit"
                     disabled={!isDone || !chatInput.trim()}
-                    class="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+                    class="cursor-pointer rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
                 >
                     Send
                 </button>
             </form>
         </div>
 
-        <div>
-            <h2 class="mb-4 text-xl font-semibold text-gray-700 dark:text-gray-200">
-                Model Quality
-            </h2>
+        <div class="flex-1">
+            <div class="mb-4 flex items-center justify-between">
+                <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-200">
+                    Model Quality
+                </h2>
 
-            <div
-                class="h-100 flex-1 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900"
-            >
-                <Line data={chartData} options={chartOptions} />
+                <div class="flex gap-2">
+                    <button
+                        onclick={handleAddChart}
+                        class="cursor-pointer rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
+                    >
+                        Add Chart
+                    </button>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 2xl:grid-cols-2">
+                {#each selectedCharts as chartModelId, index (chartModelId)}
+                    <div class="mb-4 h-full min-w-0 flex-1 content-end">
+                        {#if index > 0}
+                            <div class="flex justify-end">
+                                <button
+                                    onclick={() => removeChart(chartModelId)}
+                                    class="mb-1 cursor-pointer rounded-lg bg-red-100 px-3 py-1 text-sm text-red-600 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
+                                    aria-label="Remove chart"
+                                >
+                                    Remove
+                                </button>
+                            </div>
+                        {/if}
+                        <QualityChart modelId={chartModelId} />
+                    </div>
+                {/each}
             </div>
         </div>
     </div>
