@@ -9,8 +9,6 @@ namespace HEAL.HeuristicAgent.Web.Controllers;
 public class ModelController(IModelStore modelStore) : ControllerBase
 {
     [HttpGet]
-    public async Task<IEnumerable<SymbolicRegressionModelDto>> GetAllModels()
-    {
-        return await modelStore.GetAllModelsAsync();
-    }
+    public IAsyncEnumerable<SymbolicRegressionModelDto> GetAllModels()
+        => modelStore.GetAllModelsAsync();
 }

@@ -212,7 +212,7 @@ public sealed class HeuristicTools(
     {
         responseStream.Broadcast(EventType.Tool, "Retrieving all saved models");
 
-        var models = await modelStore.GetAllModelsAsync();
+        var models = await modelStore.GetAllModelsAsync().ToArrayAsync();
 
         return TextResult(JsonSerializer.Serialize(models, JsonOptions));
     });
@@ -226,8 +226,9 @@ public sealed class HeuristicTools(
     {
         responseStream.Broadcast(EventType.Tool, $"Switching active model to ID {modelId}");
 
-        var models = await modelStore.GetAllModelsAsync();
-        if (models.All(m => m.Id != modelId))
+        var models = modelStore.GetAllModelsAsync();
+
+        if (await models.AllAsync(m => m.Id != modelId))
         {
             throw new ArgumentException($"Model with ID {modelId} not found.");
         }

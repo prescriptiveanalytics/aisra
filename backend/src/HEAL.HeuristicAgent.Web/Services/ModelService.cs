@@ -12,7 +12,7 @@ public sealed class ModelService(IModelStore modelStore) : IModelService
     private static readonly SymbolicExpressionTree BaseModel =
         Parser.Parse("'x0' * 'x0' + 'x1' / 2 + 7");
 
-    private int _activeModelId;
+    private int _activeModelId = 1;
 
     public SymbolicExpressionTree GetBaseModel() => BaseModel;
 
@@ -20,8 +20,9 @@ public sealed class ModelService(IModelStore modelStore) : IModelService
 
     private async Task<SymbolicExpressionTree> GetResidualModelByIdAsync(int modelId)
     {
-        var models = await modelStore.GetAllModelsAsync();
-        var modelDto = models.FirstOrDefault(m => m.Id == modelId);
+        var modelDto = await modelStore
+            .GetAllModelsAsync()
+            .FirstOrDefaultAsync(m => m.Id == modelId);
         var residualExpression = modelDto?.Model ?? "0";
 
         return Parser.Parse(residualExpression);

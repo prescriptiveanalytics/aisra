@@ -16,6 +16,6 @@ public sealed class InMemoryModelStore : IModelStore
         return Task.FromResult(_models.Count);
     }
 
-    public Task<IReadOnlyCollection<SymbolicRegressionModelDto>> GetAllModelsAsync()
-        => Task.FromResult<IReadOnlyCollection<SymbolicRegressionModelDto>>(_models);
+    public IAsyncEnumerable<SymbolicRegressionModelDto> GetAllModelsAsync()
+        => _models.ToAsyncEnumerable();
 }

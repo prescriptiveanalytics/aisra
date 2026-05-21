@@ -110,7 +110,7 @@ services
     .AddSingleton<LlmResponseStream>()
     .AddSingleton<LlmClient>()
     .AddHostedService(sp => sp.GetRequiredService<LlmClient>())
-    .AddSingleton<IModelStore, InMemoryModelStore>()
+    .AddSingleton<IModelStore>(new RedisModelStore(cfg["RedisHost"] ?? "localhost:6379"))
     .AddSingleton<IModelService, ModelService>()
     .AddSingleton<IModelQualityService, ModelQualityService>();
 
