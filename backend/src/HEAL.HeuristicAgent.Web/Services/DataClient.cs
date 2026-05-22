@@ -1,9 +1,9 @@
-﻿namespace HEAL.HeuristicAgent.Web.Services;
+﻿using HEAL.HeuristicAgent.Web.Persistence;
+
+namespace HEAL.HeuristicAgent.Web.Services;
 
 public interface IDataClient
 {
-    IReadOnlyCollection<(DateTimeOffset, double[])> Data { get; }
-
     event EventHandler<double[]> DataReceived;
 }
 
@@ -11,8 +11,6 @@ public sealed class DataClient : IDataClient
 {
     private const int MinValue = -100;
     private const int MaxValue = 100;
-
-    private readonly Queue<(DateTimeOffset, double[])> _data = new();
 
     public event EventHandler<double[]>? DataReceived;
 
@@ -23,15 +21,18 @@ public sealed class DataClient : IDataClient
     private int _i;
     private int _interval = 40;
 
-    public DataClient(ICancellationTokenProvider ctp)
+    public DataClient(IDataStore dataStore, ICancellationTokenProvider ctp)
     {
         var ct = ctp.Token;
 
         Task.Run(async () =>
         {
             var rand = new Random();
+
             while (!ct.IsCancellationRequested)
             {
+                var delayTask = 0.5.Seconds.WithCancellationToken(ct);
+
                 var x1 = rand.NextDouble() * (MaxValue - MinValue) + MinValue;
                 var x2 = rand.NextDouble() * (MaxValue - MinValue) + MinValue;
 
@@ -40,22 +41,18 @@ public sealed class DataClient : IDataClient
                     x1, x2, _useF2 ? F2(x1, x2) : F1(x1, x2)
                 };
 
-                _data.Enqueue((DateTimeOffset.UtcNow, data));
+                await dataStore.InsertAsync(data);
 
                 DataReceived?.Invoke(this, data);
 
-                await 0.5.Seconds.WithCancellationToken(ct);
-
-                if (++_i % _interval != 0)
+                if (++_i % _interval == 0)
                 {
-                    continue;
+                    _useF2 = !_useF2;
+                    _interval *= 12;
                 }
 
-                _useF2 = !_useF2;
-                _interval *= 12;
+                await delayTask;
             }
         }, ct);
     }
-
-    public IReadOnlyCollection<(DateTimeOffset, double[])> Data => _data;
 }

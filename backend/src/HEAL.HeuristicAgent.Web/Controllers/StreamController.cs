@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text.Json;
 using System.Threading.Channels;
 using HEAL.HeuristicAgent.Web.Dtos;
+using HEAL.HeuristicAgent.Web.Persistence;
 using HEAL.HeuristicAgent.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,8 +13,9 @@ namespace HEAL.HeuristicAgent.Web.Controllers;
 public class StreamController(
     LlmResponseStream llmStream,
     IDataClient dataClient,
+    IDataStore dataStore,
     IModelService modelService,
-    IModelQualityService modelQualityService) : ControllerBase
+    IModelAnalysisService modelAnalysisService) : ControllerBase
 {
     [HttpGet("ai-stream")]
     public async Task AiStream()
@@ -83,33 +85,19 @@ public class StreamController(
             {
                 await foreach (var _ in eventChannel.Reader.ReadAllAsync(HttpContext.RequestAborted))
                 {
-                    var recentData = dataClient.Data.TakeLast(20).Select(x => x.Item2).ToArray();
-                    if (recentData.Length >= 20)
-                    {
-                        var combinedModel = await modelService.GetCombinedModelAsync(modelId);
-                        var quality = modelQualityService.EvaluateQuality(combinedModel, recentData);
-                        channel.Writer.TryWrite(quality);
-                    }
-                }
-            }
-            catch (OperationCanceledException) { }
-        }).Forget();
+                    var recentData = await dataStore
+                        .GetLastAsync(20)
+                        .Select(x => x.Item2)
+                        .ToArrayAsync();
 
-        dataClient.DataReceived += Handler;
-
-        Task.Run(async () =>
-        {
-            try
-            {
-                await foreach (var _ in eventChannel.Reader.ReadAllAsync(HttpContext.RequestAborted))
-                {
-                    var recentData = dataClient.Data.TakeLast(20).Select(x => x.Item2).ToArray();
-                    if (recentData.Length >= 20)
+                    if (recentData.Length < 20)
                     {
-                        var combinedModel = await modelService.GetCombinedModelAsync(modelId);
-                        var quality = modelQualityService.EvaluateQuality(combinedModel, recentData);
-                        channel.Writer.TryWrite(quality);
+                        continue;
                     }
+
+                    var combinedModel = await modelService.GetCombinedModelAsync(modelId);
+                    var quality = modelAnalysisService.EvaluateQuality(combinedModel, recentData);
+                    channel.Writer.TryWrite(quality);
                 }
             }
             catch (OperationCanceledException)

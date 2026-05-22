@@ -19,11 +19,11 @@ namespace HEAL.HeuristicAgent.Web.Mcp.Server.Tools;
 [McpServerToolType]
 public sealed class HeuristicTools(
     IHeuristicLibClient client,
-    IDataClient dataClient,
     LlmResponseStream responseStream,
     IModelStore modelStore,
+    IDataStore dataStore,
     IModelService modelService,
-    IModelQualityService modelQualityService
+    IModelAnalysisService modelAnalysisService
 )
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
@@ -51,20 +51,13 @@ public sealed class HeuristicTools(
             StartTimeIncl = startTimeIncl,
         };
 
-        var data = dataClient.Data
-            .Where(data =>
-                data.Item1 >= instructions.StartTimeIncl
-                && (
-                    instructions.EndTimeExcl is null
-                    || data.Item1 <= instructions.EndTimeExcl
-                )
-            )
+        var data = await dataStore.GetLastAsync(startTimeIncl)
             .Select(d => new DataDto
             {
                 Timestamp = d.Item1,
                 Data = d.Item2,
             })
-            .ToArray();
+            .ToArrayAsync(cancellationToken: ct);
 
         if (data.Length == 0)
         {
@@ -138,15 +131,16 @@ public sealed class HeuristicTools(
         [Description("The number of data points to include in each quality data point")]
         int windowSize,
         [Description("The ID of the model to evaluate, or the active one if not provided")]
-        int? modelId = null
+        int? modelId = null,
+        CancellationToken ct = default
     ) => DoAsync(async () =>
     {
         responseStream.Broadcast(EventType.Tool, "Evaluating model quality over time");
 
-        var data = dataClient.Data
+        var data = await dataStore.GetLastAsync(startTimeIncl)
             .Where(d => d.Item1 >= startTimeIncl)
             .Select(d => (Timestamp: d.Item1, Values: d.Item2))
-            .ToArray();
+            .ToArrayAsync(cancellationToken: ct);
 
         if (data.Length == 0)
         {
@@ -156,7 +150,7 @@ public sealed class HeuristicTools(
         var combinedModel = await modelService.GetCombinedModelAsync(modelId);
         var valuesOnly = data.Select(d => d.Values).ToArray();
         
-        var qualityList = modelQualityService.EvaluateQualityOverTime(combinedModel, valuesOnly, windowSize);
+        var qualityList = modelAnalysisService.EvaluateQualityOverTime(combinedModel, valuesOnly, windowSize);
 
         var qualityOverTime = data.Zip(qualityList, (d, q) => new
         {

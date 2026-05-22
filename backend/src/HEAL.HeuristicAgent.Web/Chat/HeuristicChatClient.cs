@@ -13,8 +13,7 @@ public interface IHeuristicChatClient
 public sealed class HeuristicChatClient(
     IChatClient chatClient,
     McpClientProvider mcpClientProvider,
-    ICancellationTokenProvider ctp,
-    IConfiguration config
+    ICancellationTokenProvider ctp
 ) : IHeuristicChatClient
 {
     private readonly List<ChatMessage> _messageHistory =

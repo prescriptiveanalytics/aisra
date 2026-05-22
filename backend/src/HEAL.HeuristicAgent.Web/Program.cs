@@ -79,6 +79,8 @@ var chatClient = new ChatClientBuilder(openAiChatClient)
     .UseFunctionInvocation()
     .Build();
 
+await using var redisStore = new RedisStore(cfg["RedisHost"] ?? "localhost:6379");
+
 await using var cs = new CancellationService();
 
 services.AddMcpServer()
@@ -110,9 +112,10 @@ services
     .AddSingleton<LlmResponseStream>()
     .AddSingleton<LlmClient>()
     .AddHostedService(sp => sp.GetRequiredService<LlmClient>())
-    .AddSingleton<IModelStore>(new RedisModelStore(cfg["RedisHost"] ?? "localhost:6379"))
+    .AddSingleton<IDataStore>(redisStore)
+    .AddSingleton<IModelStore>(redisStore)
     .AddSingleton<IModelService, ModelService>()
-    .AddSingleton<IModelQualityService, ModelQualityService>();
+    .AddSingleton<IModelAnalysisService, ModelAnalysisService>();
 
 var app = builder.Build();
 

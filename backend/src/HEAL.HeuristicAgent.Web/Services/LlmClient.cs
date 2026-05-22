@@ -1,15 +1,17 @@
 ﻿using HEAL.HeuristicAgent.Web.Chat;
 using HEAL.HeuristicAgent.Web.Dtos;
+using HEAL.HeuristicAgent.Web.Persistence;
 using Microsoft.Extensions.AI;
 
 namespace HEAL.HeuristicAgent.Web.Services;
 
 public sealed class LlmClient(
     IDataClient dataClient,
+    IDataStore dataStore,
     IHeuristicChatClient chatClient,
     LlmResponseStream responseStream,
     IModelService modelService,
-    IModelQualityService modelQualityService
+    IModelAnalysisService modelAnalysisService
 ) : IHostedService
 {
     private const int NumValuesToUse = 20;
@@ -22,18 +24,20 @@ public sealed class LlmClient(
 
     public Task StartAsync(CancellationToken ct)
     {
-        dataClient.DataReceived += async (_, e) =>
+        dataClient.DataReceived += async (_, _) =>
         {
-            var data = dataClient.Data;
+            var data = await dataStore
+                .GetLastAsync(NumValuesToUse)
+                .Select(c => c.Item2)
+                .ToArrayAsync(ct);
 
-            if (data.Count < NumValuesToUse)
+            if (data.Length < NumValuesToUse)
             {
                 return;
             }
 
-            var recentData = data.TakeLast(NumValuesToUse).Select(x => x.Item2).ToArray();
             var combinedModel = await modelService.GetCombinedModelAsync();
-            var quality = modelQualityService.EvaluateQuality(combinedModel, recentData);
+            var quality = modelAnalysisService.EvaluateQuality(combinedModel, data);
 
             if (quality > QualityThreshold)
             {
