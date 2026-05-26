@@ -149,7 +149,7 @@ public sealed class HeuristicTools(
             throw new ArgumentException("No data available in the specified range.");
         }
 
-        var combinedModel = await modelService.GetCombinedModelAsync(modelId);
+        var combinedModel = await modelService.GetCombinedModelAsync(modelId, ct);
         var valuesOnly = data.Select(d => d.Values).ToArray();
         
         var qualityList = modelAnalysisService.EvaluateQualityOverTime(combinedModel, valuesOnly, windowSize);
@@ -178,12 +178,13 @@ public sealed class HeuristicTools(
     [Description("Gets the residual model by ID")]
     public Task<CallToolResult> GetResidualModel(
         [Description("The ID of the model to retrieve, or the active one if not provided")]
-        int? modelId = null
+        int? modelId = null,
+        CancellationToken ct = default
     ) => DoAsync(async () =>
     {
         responseStream.Broadcast(EventType.Tool, "Retrieving residual model");
 
-        var residualModel = await modelService.GetResidualModelAsync(modelId);
+        var residualModel = await modelService.GetResidualModelAsync(modelId, ct);
         return TextResult(InfixExpressionFormatter.Format(residualModel, NumberFormatInfo.InvariantInfo));
     });
 
@@ -192,12 +193,13 @@ public sealed class HeuristicTools(
     [Description("Gets the combined model (base + residual) by ID")]
     public Task<CallToolResult> GetCombinedModel(
         [Description("The ID of the model to retrieve, or the active one if not provided")]
-        int? modelId = null
+        int? modelId = null,
+        CancellationToken ct = default
     ) => DoAsync(async () =>
     {
         responseStream.Broadcast(EventType.Tool, "Retrieving combined model");
 
-        var combinedModel = await modelService.GetCombinedModelAsync(modelId);
+        var combinedModel = await modelService.GetCombinedModelAsync(modelId, ct);
         return TextResult(InfixExpressionFormatter.Format(combinedModel, NumberFormatInfo.InvariantInfo));
     });
 

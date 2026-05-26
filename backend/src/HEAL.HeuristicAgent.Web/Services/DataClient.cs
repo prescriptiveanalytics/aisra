@@ -1,4 +1,5 @@
 ﻿using HEAL.HeuristicAgent.Web.Persistence;
+using HEAL.HeuristicLibContracts.Threading;
 
 namespace HEAL.HeuristicAgent.Web.Services;
 

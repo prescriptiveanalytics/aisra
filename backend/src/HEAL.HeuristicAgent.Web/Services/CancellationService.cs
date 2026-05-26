@@ -1,4 +1,6 @@
-﻿namespace HEAL.HeuristicAgent.Web.Services;
+﻿using HEAL.HeuristicLibContracts.Threading;
+
+namespace HEAL.HeuristicAgent.Web.Services;
 
 public sealed class CancellationService : ICancellationTokenProvider, IAsyncDisposable
 {

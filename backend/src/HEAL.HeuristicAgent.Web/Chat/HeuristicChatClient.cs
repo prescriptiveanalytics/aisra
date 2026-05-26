@@ -1,5 +1,6 @@
 ﻿using HEAL.HeuristicAgent.Web.Mcp.Client;
-using HEAL.HeuristicAgent.Web.Services;
+using HEAL.HeuristicLibContracts.Random;
+using HEAL.HeuristicLibContracts.Threading;
 using Microsoft.Extensions.AI;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
@@ -13,6 +14,7 @@ public interface IHeuristicChatClient
 public sealed class HeuristicChatClient(
     IChatClient chatClient,
     McpClientProvider mcpClientProvider,
+    IRng rng,
     ICancellationTokenProvider ctp
 ) : IHeuristicChatClient
 {
@@ -43,6 +45,7 @@ public sealed class HeuristicChatClient(
                 new ChatOptions
                 {
                     Tools = await GetToolsAsync(),
+                    Seed = rng.Next()
                 },
                 cancellationToken: ctp.Token
             )

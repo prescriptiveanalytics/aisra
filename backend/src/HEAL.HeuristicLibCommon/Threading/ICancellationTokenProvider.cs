@@ -1,4 +1,4 @@
-﻿namespace HEAL.HeuristicAgent.Web.Services;
+﻿namespace HEAL.HeuristicLibContracts.Threading;
 
 public interface ICancellationTokenProvider
 {

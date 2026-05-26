@@ -4,6 +4,7 @@ using HEAL.HeuristicLib.Genotypes.Trees;
 using HEAL.HeuristicLib.Problems.DataAnalysis.Formatter;
 using HEAL.HeuristicLibContracts.Dtos;
 using HEAL.HeuristicLibContracts.Enums;
+using HEAL.HeuristicLibContracts.Random;
 using HEAL.HeuristicLibWrapper.Exceptions;
 using HEAL.HeuristicLibWrapper.Runners;
 using HEAL.HeuristicWeb.Server.Rest.Services.Storage;
@@ -13,7 +14,7 @@ namespace HEAL.HeuristicWeb.Server.Rest.Controllers;
 
 [Controller]
 [Route("symreg")]
-public sealed class SymRegController(SolutionStore store) : ControllerBase
+public sealed class SymRegController(SolutionStore store, IRng rng) : ControllerBase
 {
     private readonly TypedSolutionStore<SymbolicExpressionTree> _store = store.ToTyped<SymbolicExpressionTree>();
 
@@ -23,7 +24,7 @@ public sealed class SymRegController(SolutionStore store) : ControllerBase
     /// The client can GET the status of the algorithm at the location provided by the location header.
     /// </summary>
     [HttpPost("problems", Name = "PostSymRegProblem")]
-    public ActionResult PostProblem([FromBody] SymbolicRegressionRequestDto dto)
+    public ActionResult PostProblem([FromBody] SymbolicRegressionRequestDto dto, CancellationToken ct)
     {
         try
         {
@@ -39,7 +40,7 @@ public sealed class SymRegController(SolutionStore store) : ControllerBase
             {
                 try
                 {
-                    var result = await SymRegRunner.RunAsync(dto);
+                    var result = await SymRegRunner.RunAsync(dto, rng.Next(), ct);
 
                     _store.Store(id, result, TrainingStatus.Successful);
                 }
@@ -47,7 +48,7 @@ public sealed class SymRegController(SolutionStore store) : ControllerBase
                 {
                     _store.Store(id, status: TrainingStatus.Failed);
                 }
-            });
+            }, ct);
 
             return AcceptedAtAction(nameof(GetStatus), new { id }, null);
         }

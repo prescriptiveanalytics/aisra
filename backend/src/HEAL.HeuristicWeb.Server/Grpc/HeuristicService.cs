@@ -2,19 +2,21 @@
 using Grpc.Core;
 using HEAL.HeuristicGrpc.Core.Proto;
 using HEAL.HeuristicLib.Problems.DataAnalysis.Formatter;
+using HEAL.HeuristicLibContracts.Random;
+using HEAL.HeuristicLibContracts.Threading;
 using HEAL.HeuristicLibWrapper.Runners;
 using HEAL.HeuristicWeb.Grpc.Core.Mapping;
 
 namespace HEAL.HeuristicWeb.Server.Grpc;
 
-public sealed class HeuristicService : GrpcHeuristicService.GrpcHeuristicServiceBase
+public sealed class HeuristicService(IRng rng, ICancellationTokenProvider ctp) : GrpcHeuristicService.GrpcHeuristicServiceBase
 {
     public override async Task<GrpcBenchmarkSolution> RunBenchmark(GrpcFuncProblem request, ServerCallContext context)
     {
         try
         {
             var solution = new GrpcBenchmarkSolution();
-            solution.Values.AddRange(await BenchmarkRunner.RunAsync(request.ToDto()));
+            solution.Values.AddRange(await BenchmarkRunner.RunAsync(request.ToDto(), rng.Next(), ctp.Token));
 
             return solution;
         }
@@ -35,7 +37,7 @@ public sealed class HeuristicService : GrpcHeuristicService.GrpcHeuristicService
             return new GrpcSymbolicRegressionSolution
             {
                 Expression = InfixExpressionFormatter.Format(
-                    await SymRegRunner.RunAsync(request.ToDto()),
+                    await SymRegRunner.RunAsync(request.ToDto(), rng.Next(), ctp.Token),
                     NumberFormatInfo.InvariantInfo
                 )
             };

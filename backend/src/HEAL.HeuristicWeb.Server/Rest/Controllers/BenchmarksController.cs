@@ -1,6 +1,8 @@
 using System.Net;
 using HEAL.HeuristicLibContracts.Dtos;
 using HEAL.HeuristicLibContracts.Enums;
+using HEAL.HeuristicLibContracts.Random;
+using HEAL.HeuristicLibContracts.Threading;
 using HEAL.HeuristicLibWrapper.Exceptions;
 using HEAL.HeuristicLibWrapper.Runners;
 using HEAL.HeuristicWeb.Server.Rest.Services.Storage;
@@ -10,7 +12,7 @@ namespace HEAL.HeuristicWeb.Server.Rest.Controllers;
 
 [Controller]
 [Route("benchmarks")]
-public sealed class BenchmarksController(SolutionStore store) : ControllerBase
+public sealed class BenchmarksController(SolutionStore store, IRng rng) : ControllerBase
 {
     private readonly TypedSolutionStore<double[]> _store = store.ToTyped<double[]>();
 
@@ -20,7 +22,7 @@ public sealed class BenchmarksController(SolutionStore store) : ControllerBase
     /// The client can GET the status of the benchmark at the location provided by the location header.
     /// </summary>
     [HttpPost("problems", Name = "PostBenchmarkProblem")]
-    public ActionResult PostProblem([FromBody] BenchmarkHyperparametersDto dto)
+    public ActionResult PostProblem([FromBody] BenchmarkHyperparametersDto dto, CancellationToken ct = default)
     {
         try
         {
@@ -31,7 +33,7 @@ public sealed class BenchmarksController(SolutionStore store) : ControllerBase
             {
                 try
                 {
-                    var result = await BenchmarkRunner.RunAsync(dto);
+                    var result = await BenchmarkRunner.RunAsync(dto, rng.Next(), ct);
 
                     _store.Store(id, result, TrainingStatus.Successful);
                 }

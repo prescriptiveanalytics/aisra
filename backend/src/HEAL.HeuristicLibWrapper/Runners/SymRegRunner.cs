@@ -26,8 +26,11 @@ namespace HEAL.HeuristicLibWrapper.Runners;
 
 public static class SymRegRunner
 {
-    public static async Task<SymbolicExpressionTree> RunAsync(SymbolicRegressionRequestDto dto,
-        CancellationToken ct = default)
+    public static async Task<SymbolicExpressionTree> RunAsync(
+        SymbolicRegressionRequestDto dto,
+        int? seed,
+        CancellationToken ct
+    )
     {
         ImmutableArray<IMutator<SymbolicExpressionTree, SymbolicExpressionTreeSearchSpace, SymbolicRegressionProblem>>
             mutators =
@@ -106,7 +109,7 @@ public static class SymRegRunner
 
         problem.SearchSpace.Grammar.AddFullyConnectedSymbols(linearScalingRoot, symbols);
 
-        var state = await alg.RunToCompletionAsync(problem, RandomNumberGenerator.Create(Random.Shared.Next()), ct: ct);
+        var state = await alg.RunToCompletionAsync(problem, RandomNumberGenerator.Create(seed ?? Random.Shared.Next()), ct: ct);
 
         return state.Population.Solutions
                    .MinBy(s => s.ObjectiveVector, problem.Objective.TotalOrderComparer)?.Genotype

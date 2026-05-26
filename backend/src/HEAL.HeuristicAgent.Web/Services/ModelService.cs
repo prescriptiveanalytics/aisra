@@ -18,30 +18,30 @@ public sealed class ModelService(IModelStore modelStore) : IModelService
 
     public void SetActiveModel(int modelId) => _activeModelId = modelId;
 
-    private async Task<SymbolicExpressionTree> GetResidualModelByIdAsync(int modelId)
+    public async Task<SymbolicExpressionTree> GetCombinedModelAsync(int? modelId, CancellationToken ct)
     {
-        var modelDto = await modelStore
-            .GetAllModelsAsync()
-            .FirstOrDefaultAsync(m => m.Id == modelId);
-        var residualExpression = modelDto?.Model ?? "0";
-
-        return Parser.Parse(residualExpression);
-    }
-
-    public async Task<SymbolicExpressionTree> GetResidualModelAsync(int? modelId = null)
-    {
-        var idToUse = modelId ?? _activeModelId;
-
-        return await GetResidualModelByIdAsync(idToUse);
-    }
-
-    public async Task<SymbolicExpressionTree> GetCombinedModelAsync(int? modelId = null)
-    {
-        var residualModel = await GetResidualModelAsync(modelId);
+        var residualModel = await GetResidualModelAsync(modelId, ct);
 
         return Parser.Parse(
             $"({InfixExpressionFormatter.Format(BaseModel, NumberFormatInfo.InvariantInfo)})"
             + $" + ({InfixExpressionFormatter.Format(residualModel, NumberFormatInfo.InvariantInfo)})"
         );
+    }
+
+    public async Task<SymbolicExpressionTree> GetResidualModelAsync(int? modelId, CancellationToken ct)
+    {
+        var idToUse = modelId ?? _activeModelId;
+
+        return await GetResidualModelByIdAsync(idToUse, ct);
+    }
+
+    private async Task<SymbolicExpressionTree> GetResidualModelByIdAsync(int modelId, CancellationToken ct)
+    {
+        var modelDto = await modelStore
+            .GetAllModelsAsync()
+            .FirstOrDefaultAsync(m => m.Id == modelId, cancellationToken: ct);
+        var residualExpression = modelDto?.Model ?? "0";
+
+        return Parser.Parse(residualExpression);
     }
 }

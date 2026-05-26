@@ -7,6 +7,8 @@ using HEAL.HeuristicAgent.Web.Persistence;
 using HEAL.HeuristicAgent.Web.Services;
 using HEAL.HeuristicLibAdapter;
 using HEAL.HeuristicLibAdapter.Grpc;
+using HEAL.HeuristicLibContracts.Random;
+using HEAL.HeuristicLibContracts.Threading;
 using HEAL.HeuristicLibWrapper;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.AI;
@@ -77,9 +79,9 @@ var chatClient = new ChatClientBuilder(openAiChatClient)
     .UseFunctionInvocation()
     .Build();
 
-await using var redisStore = new RedisStore(cfg["RedisHost"] ?? "localhost:6379");
-
 await using var cs = new CancellationService();
+await using var redisStore = new RedisStore(cfg["RedisHost"] ?? "localhost:6379");
+var rng = new Rng(0);
 
 services.AddMcpServer()
     .WithStreamServerTransport(
@@ -101,11 +103,12 @@ services
                     "Server URL must be provided in configuration."
                 )
             ),
-            ClientType.Lib => new HeuristicLibClient(),
+            ClientType.Lib => new HeuristicLibClient(rng),
             _ => throw new UnreachableException(),
         }
     )
     .AddSingleton<ICancellationTokenProvider>(cs)
+    .AddSingleton<IRng>(rng)
     .AddSingleton<IDataClient, DataClient>()
     .AddSingleton<LlmResponseStream>()
     .AddSingleton<LlmClient>()
