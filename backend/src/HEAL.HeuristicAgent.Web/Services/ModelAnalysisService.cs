@@ -17,7 +17,7 @@ public sealed class ModelAnalysisService : IModelAnalysisService
             throw new ArgumentException("Data cannot be empty.");
         }
 
-        var variableNames = Enumerable.Range(0, data[0].Length - 1)
+        var variableNames = Enumerable.Range(1, data[0].Length - 1)
             .Select(i => $"x{i}")
             .Append("y")
             .ToArray();
@@ -38,7 +38,7 @@ public sealed class ModelAnalysisService : IModelAnalysisService
     {
         if (data.Length == 0) throw new ArgumentException("Data cannot be empty.");
 
-        var variableNames = Enumerable.Range(0, data[0].Length - 1)
+        var variableNames = Enumerable.Range(1, data[0].Length - 1)
             .Select(i => $"x{i}")
             .Append("y")
             .ToArray();
@@ -65,5 +65,56 @@ public sealed class ModelAnalysisService : IModelAnalysisService
         }
 
         return qualityOverTime;
+    }
+
+    public IReadOnlyList<double> CalculatePermutationFeatureImportance(
+        SymbolicExpressionTree tree,
+        double[][] data,
+        int permutations = 5
+    )
+    {
+        if (data.Length == 0)
+        {
+            throw new ArgumentException("Data cannot be empty.");
+        }
+
+        if (permutations <= 0)
+        {
+            throw new ArgumentException("Permutations must be greater than zero.");
+        }
+
+        var baselineQuality = EvaluateQuality(tree, data);
+        var numFeatures = data[0].Length - 1;
+        var importance = new double[numFeatures];
+        var random = new Random(0);
+
+        for (var f = 0; f < numFeatures; f++)
+        {
+            var featureImportanceSum = 0.0;
+
+            for (var p = 0; p < permutations; p++)
+            {
+                var permutedData = new double[data.Length][];
+
+                for (var i = 0; i < data.Length; i++)
+                {
+                    permutedData[i] = (double[])data[i].Clone();
+                }
+
+                for (var i = permutedData.Length - 1; i > 0; i--)
+                {
+                    var j = random.Next(i + 1);
+                    (permutedData[i][f], permutedData[j][f]) =
+                        (permutedData[j][f], permutedData[i][f]);
+                }
+
+                var permutedQuality = EvaluateQuality(tree, permutedData);
+                featureImportanceSum += baselineQuality - permutedQuality;
+            }
+
+            importance[f] = featureImportanceSum / permutations;
+        }
+
+        return importance;
     }
 }

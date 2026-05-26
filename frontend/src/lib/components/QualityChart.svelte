@@ -8,6 +8,17 @@
 
     let chartLabels = $state<string[]>([]);
     let chartValues = $state<number[]>([]);
+    let featureData = $state<Record<string, number[]>>({});
+
+    const colors = [
+        "rgb(239, 68, 68)",
+        "rgb(34, 197, 94)",
+        "rgb(234, 179, 8)",
+        "rgb(168, 85, 247)",
+        "rgb(236, 72, 153)",
+        "rgb(20, 184, 166)",
+        "rgb(249, 115, 22)",
+    ];
 
     let chartData = $derived<ChartData<"line">>({
         labels: chartLabels,
@@ -19,7 +30,21 @@
                 backgroundColor: "rgba(59, 130, 246, 0.5)",
                 tension: 0.3,
                 pointRadius: 2,
+                yAxisID: "y",
             },
+            ...Object.entries(featureData).map(([featureName, data], index) => {
+                const color = colors[index % colors.length];
+                return {
+                    label: `Importance: ${featureName}`,
+                    data: data,
+                    borderColor: color,
+                    backgroundColor: color.replace("rgb", "rgba").replace(")", ", 0.5)"),
+                    tension: 0.3,
+                    pointRadius: 2,
+                    yAxisID: "y1",
+                    borderDash: [5, 5],
+                };
+            }),
         ],
     });
 
@@ -37,6 +62,23 @@
                 },
                 grid: {
                     color: themeState.current === "dark" ? "#374151" : "#e5e7eb",
+                },
+                ticks: {
+                    color: themeState.current === "dark" ? "#9ca3af" : "#6b7280",
+                },
+            },
+            y1: {
+                type: "linear",
+                display: true,
+                position: "right",
+                min: 0,
+                title: {
+                    display: true,
+                    text: "Importance",
+                    color: themeState.current === "dark" ? "#e5e7eb" : "#374151",
+                },
+                grid: {
+                    drawOnChartArea: false,
                 },
                 ticks: {
                     color: themeState.current === "dark" ? "#9ca3af" : "#6b7280",
@@ -68,29 +110,50 @@
         },
     });
 
+    type ModelMetrics = {
+        quality: number;
+        featureImportances: {
+            feature: string;
+            importance: number;
+        }[];
+    };
+
     $effect(() => {
         let eventSource = new ReconnectingEventSource(
-            `https://localhost:5297/quality-stream${modelId != null ? `?modelId=${modelId}` : ""}`,
+            `https://localhost:5297/metrics-stream${modelId != null ? `?modelId=${modelId}` : ""}`,
         );
 
         eventSource.onmessage = (event: MessageEvent): void => {
-            const num = parseFloat(event.data as string);
-            if (!isNaN(num)) {
-                const percent = num * 100;
-                const now = new Date();
-                const timeLabel =
-                    `${now.getHours()}` +
-                    `:${now.getMinutes().toString().padStart(2, "0")}` +
-                    `:${now.getSeconds().toString().padStart(2, "0")}`;
+            const metrics = JSON.parse(event.data as string) as ModelMetrics;
+            const now = new Date();
+            const timeLabel =
+                `${now.getHours()}` +
+                `:${now.getMinutes().toString().padStart(2, "0")}` +
+                `:${now.getSeconds().toString().padStart(2, "0")}`;
 
-                chartLabels = [...chartLabels, timeLabel];
-                chartValues = [...chartValues, percent];
+            chartLabels = [...chartLabels, timeLabel];
+            chartValues = [...chartValues, metrics.quality * 100];
 
-                if (chartLabels.length > 50) {
-                    chartLabels = chartLabels.slice(-50);
-                    chartValues = chartValues.slice(-50);
+            let newFeatureData = { ...featureData };
+            metrics.featureImportances.forEach((f) => {
+                if (!newFeatureData[f.feature]) {
+                    newFeatureData[f.feature] = new Array(chartLabels.length - 1).fill(0);
+                }
+            });
+            for (const key of Object.keys(newFeatureData)) {
+                const feature = metrics.featureImportances.find((f) => f.feature === key);
+                newFeatureData[key].push(feature ? feature.importance : 0);
+            }
+
+            if (chartLabels.length > 50) {
+                chartLabels = chartLabels.slice(-50);
+                chartValues = chartValues.slice(-50);
+                for (const key of Object.keys(newFeatureData)) {
+                    newFeatureData[key] = newFeatureData[key].slice(-50);
                 }
             }
+
+            featureData = newFeatureData;
         };
 
         return () => {

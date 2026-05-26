@@ -6,4 +6,5 @@ public interface IModelAnalysisService
 {
     double EvaluateQuality(SymbolicExpressionTree model, double[][] data);
     IReadOnlyList<double> EvaluateQualityOverTime(SymbolicExpressionTree model, double[][] data, int windowSize);
+    IReadOnlyList<double> CalculatePermutationFeatureImportance(SymbolicExpressionTree model, double[][] data, int permutations = 5);
 }

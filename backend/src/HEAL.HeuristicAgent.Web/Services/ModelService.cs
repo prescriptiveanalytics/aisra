@@ -10,7 +10,7 @@ public sealed class ModelService(IModelStore modelStore) : IModelService
     private static readonly InfixExpressionParser Parser = new();
 
     private static readonly SymbolicExpressionTree BaseModel =
-        Parser.Parse("'x0' * 'x0' + 'x1' / 2 + 7");
+        Parser.Parse("'x1' * 'x1' + 'x2' / 2 + 7");
 
     private int _activeModelId = 1;
 

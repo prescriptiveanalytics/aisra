@@ -31,15 +31,18 @@
         const res = await fetch("https://localhost:5297/models");
         if (res.ok) {
             const fetchedModels = (await res.json()) as { id: number; model: string }[];
-            await modals.open(AddChartModal as unknown as ModalComponent<ModalProps<unknown>, object, ''>, {
-                models: fetchedModels,
-                selectedCharts,
-                onConfirm: (modelId: number) => {
-                    if (!selectedCharts.includes(modelId)) {
-                        selectedCharts = [...selectedCharts, modelId];
-                    }
+            await modals.open(
+                AddChartModal as unknown as ModalComponent<ModalProps<unknown>, object, "">,
+                {
+                    models: fetchedModels,
+                    selectedCharts,
+                    onConfirm: (modelId: number) => {
+                        if (!selectedCharts.includes(modelId)) {
+                            selectedCharts = [...selectedCharts, modelId];
+                        }
+                    },
                 },
-            });
+            );
         }
     }
 

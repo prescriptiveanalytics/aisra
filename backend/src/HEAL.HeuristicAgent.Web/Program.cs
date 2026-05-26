@@ -64,14 +64,12 @@ var apiKey = cfg["OpenRouterApiKey"].NotBlankOrThrow(
 );
 
 cfg["Model"] ??= "openrouter/free";
-Console.WriteLine("Model: " + cfg["Model"]);
 
 var openAiChatClient = new OpenAIClient(
     new ApiKeyCredential(apiKey),
     new OpenAIClientOptions
     {
         Endpoint = new Uri("https://openrouter.ai/api/v1/"),
-        NetworkTimeout = 60.Minutes,
     }
 ).GetChatClient(cfg["Model"]).AsIChatClient();
 

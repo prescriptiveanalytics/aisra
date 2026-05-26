@@ -1,4 +1,3 @@
-using System.Globalization;
 using System.Text.Json;
 using System.Threading.Channels;
 using HEAL.HeuristicAgent.Web.Dtos;
@@ -10,13 +9,18 @@ namespace HEAL.HeuristicAgent.Web.Controllers;
 
 [ApiController]
 [Route("")]
-public class StreamController(
+public sealed class StreamController(
     LlmResponseStream llmStream,
     IDataClient dataClient,
     IDataStore dataStore,
     IModelService modelService,
     IModelAnalysisService modelAnalysisService) : ControllerBase
 {
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+    };
+
     [HttpGet("ai-stream")]
     public async Task AiStream()
     {
@@ -54,7 +58,7 @@ public class StreamController(
             channel.Writer.TryWrite(
                 $"""
                  event: {type.ToString().ToLowerInvariant()}
-                 data: {(dto is null ? "" : JsonSerializer.Serialize(dto, new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }))}
+                 data: {(dto is null ? "" : JsonSerializer.Serialize(dto, JsonOptions))}
 
 
                  """
@@ -62,13 +66,13 @@ public class StreamController(
         }
     }
 
-    [HttpGet("quality-stream")]
-    public async Task QualityStream([FromQuery] int? modelId = null)
+    [HttpGet("metrics-stream")]
+    public async Task MetricsStream([FromQuery] int? modelId = null)
     {
         Response.Headers.Append("Content-Type", "text/event-stream");
         Response.Headers.Append("Cache-Control", "no-cache");
 
-        var channel = Channel.CreateUnbounded<double>();
+        var channel = Channel.CreateUnbounded<ModelMetricsDto>();
         var eventChannel = Channel.CreateUnbounded<double[]>();
 
         HttpContext.RequestAborted.Register(() => 
@@ -96,8 +100,19 @@ public class StreamController(
                     }
 
                     var combinedModel = await modelService.GetCombinedModelAsync(modelId);
-                    var quality = modelAnalysisService.EvaluateQuality(combinedModel, recentData);
-                    channel.Writer.TryWrite(quality);
+
+                    channel.Writer.TryWrite(
+                        new ModelMetricsDto(
+                            modelAnalysisService.EvaluateQuality(combinedModel, recentData),
+                            modelAnalysisService
+                                .CalculatePermutationFeatureImportance(combinedModel, recentData)
+                                .Select((d, i) => new FeatureImportanceDto(
+                                    i == recentData[0].Length - 1 ? "y" : $"x{i + 1}",
+                                    d
+                                ))
+                                .ToArray()
+                        )
+                    );
                 }
             }
             catch (OperationCanceledException)
@@ -109,8 +124,9 @@ public class StreamController(
         {
             await foreach (var quality in channel.Reader.ReadAllAsync(HttpContext.RequestAborted))
             {
-                await Response.WriteAsync($"data: {quality.ToString(CultureInfo.InvariantCulture)}\n\n",
-                    HttpContext.RequestAborted);
+                await Response.WriteAsync($"data: {
+                    JsonSerializer.Serialize(quality, JsonOptions)
+                }\n\n", HttpContext.RequestAborted);
                 await Response.Body.FlushAsync(HttpContext.RequestAborted);
             }
         }

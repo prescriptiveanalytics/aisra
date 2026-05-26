@@ -65,7 +65,9 @@ public sealed class HeuristicTools(
         }
 
         var datasetRows = data.Select(d => d.Data.ToArray()).ToArray();
-        var variableNames = Enumerable.Range(0, datasetRows.First().Length - 1).Select(i => $"x{i}").Append("y")
+        var variableNames = Enumerable.Range(1, datasetRows[0].Length - 1)
+            .Select(i => $"x{i}")
+            .Append("y")
             .ToArray();
 
         // Calculate residuals using BaseModel
