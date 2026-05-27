@@ -65,13 +65,21 @@ var apiKey = cfg["OpenRouterApiKey"].NotBlankOrThrow(
     )
 );
 
-cfg["Model"] ??= "openrouter/free";
+if (string.IsNullOrWhiteSpace(cfg["Model"]))
+{
+    throw new InvalidOperationException("Model not specified in configuration.");
+}
+
+if (string.IsNullOrWhiteSpace(cfg["ModelEndpoint"]))
+{
+    throw new InvalidOperationException("ModelEndpoint not specified in configuration.");
+}
 
 var openAiChatClient = new OpenAIClient(
     new ApiKeyCredential(apiKey),
     new OpenAIClientOptions
     {
-        Endpoint = new Uri("https://openrouter.ai/api/v1/"),
+        Endpoint = new Uri(cfg["ModelEndpoint"]!),
     }
 ).GetChatClient(cfg["Model"]).AsIChatClient();
 
