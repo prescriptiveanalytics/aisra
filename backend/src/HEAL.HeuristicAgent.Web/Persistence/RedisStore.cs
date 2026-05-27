@@ -28,27 +28,19 @@ public sealed class RedisStore : IDataStore, IModelStore, IDisposable, IAsyncDis
 
     public async IAsyncEnumerable<(DateTimeOffset, double[])> GetLastAsync(DateTimeOffset minTime)
     {
-        const int batchSize = 100;
+        var entries = await _db.StreamRangeAsync(
+            "data-records",
+            messageOrder: Order.Descending,
+            minId: $"{minTime.ToUnixTimeMilliseconds()}-0"
+        );
 
-        StreamEntry[] entries;
-
-        do
+        foreach (var entry in entries)
         {
-            entries = await _db.StreamRangeAsync(
-                "data-records",
-                count: batchSize,
-                messageOrder: Order.Descending,
-                minId: $"{minTime.ToUnixTimeMilliseconds()}-0"
+            yield return (
+                DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(entry.Id.ToString().Split('-')[0])),
+                entry.Values[0].Value.ToString().Split(',').Select(double.Parse).ToArray()
             );
-
-            foreach (var entry in entries)
-            {
-                yield return (
-                    DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(entry.Id.ToString().Split('-')[0])),
-                    entry.Values[0].Value.ToString().Split(',').Select(double.Parse).ToArray()
-                );
-            }
-        } while (entries.Length > 0);
+        }
     }
 
     public async IAsyncEnumerable<(DateTimeOffset, double[])> GetLastAsync(int count)
