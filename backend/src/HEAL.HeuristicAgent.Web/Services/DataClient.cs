@@ -15,8 +15,8 @@ public sealed class DataClient : IDataClient
 
     public event EventHandler<double[]>? DataReceived;
 
-    private static readonly Func<double, double, double> F1 = (x1, x2) => x1 * x1 * (1 + x1 / 2000) + x2 / 1.99 + 7.01;
-    private static readonly Func<double, double, double> F2 = (x1, x2) => x1 * x1 * (1 + x1 / 300) + x2 / 1.88 + 7.11;
+    private static readonly Func<double, double, double> F1 = (x1, x2) => x1 * x1 * (1 + x1 / 2000) + x2 * x2 / 1.99 + 7.01;
+    private static readonly Func<double, double, double> F2 = (x1, x2) => x1 * x1 * (1 + x1 / 300) + x2 * x2 / 1.88 + 7.11;
 
     private bool _useF2;
     private int _i;
