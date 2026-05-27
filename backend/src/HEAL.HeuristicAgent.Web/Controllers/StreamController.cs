@@ -67,7 +67,7 @@ public sealed class StreamController(
     }
 
     [HttpGet("metrics-stream")]
-    public async Task MetricsStream([FromQuery] int? modelId = null)
+    public async Task MetricsStream([FromQuery] int? modelId = null, CancellationToken ct = default)
     {
         Response.Headers.Append("Content-Type", "text/event-stream");
         Response.Headers.Append("Cache-Control", "no-cache");
@@ -92,14 +92,14 @@ public sealed class StreamController(
                     var recentData = await dataStore
                         .GetLastAsync(20)
                         .Select(x => x.Item2)
-                        .ToArrayAsync();
+                        .ToArrayAsync(cancellationToken: ct);
 
                     if (recentData.Length < 20)
                     {
                         continue;
                     }
 
-                    var combinedModel = await modelService.GetCombinedModelAsync(modelId);
+                    var combinedModel = await modelService.GetCombinedModelAsync(modelId, ct);
 
                     channel.Writer.TryWrite(
                         new ModelMetricsDto(
@@ -118,7 +118,7 @@ public sealed class StreamController(
             catch (OperationCanceledException)
             {
             }
-        }).Forget();
+        }, ct).Forget();
 
         try
         {
