@@ -8,7 +8,11 @@
 
     let chartLabels = $state<string[]>([]);
     let chartValues = $state<number[]>([]);
-    let featureData = $state<Record<string, number[]>>({});
+    let featureData = $state<Record<string, (number | null)[]>>({});
+
+    let hasFeatureData = $derived(
+        Object.values(featureData).some((data) => data.some((val) => val !== null))
+    );
 
     const colors = [
         "rgb(239, 68, 68)",
@@ -24,7 +28,7 @@
         labels: chartLabels,
         datasets: [
             {
-                label: `Quality (%) - ${modelId == null ? "Current Model" : `Model ${modelId}`}`,
+                label: `Quality (%) - ${modelId == null ? "Active Model" : `Model ${modelId}`}`,
                 data: chartValues,
                 borderColor: "rgb(59, 130, 246)",
                 backgroundColor: "rgba(59, 130, 246, 0.5)",
@@ -39,6 +43,7 @@
                     data: data,
                     borderColor: color,
                     backgroundColor: color.replace("rgb", "rgba").replace(")", ", 0.5)"),
+                    spanGaps: false,
                     tension: 0.3,
                     pointRadius: 2,
                     yAxisID: "y1",
@@ -69,7 +74,7 @@
             },
             y1: {
                 type: "linear",
-                display: true,
+                display: hasFeatureData,
                 position: "right",
                 min: 0,
                 title: {
@@ -115,7 +120,7 @@
         featureImportances: {
             feature: string;
             importance: number;
-        }[];
+        }[] | null;
     };
 
     $effect(() => {
@@ -125,6 +130,7 @@
 
         eventSource.onmessage = (event: MessageEvent): void => {
             const metrics = JSON.parse(event.data as string) as ModelMetrics;
+
             const now = new Date();
             const timeLabel =
                 `${now.getHours()}` +
@@ -135,14 +141,18 @@
             chartValues = [...chartValues, metrics.quality * 100];
 
             let newFeatureData = { ...featureData };
-            metrics.featureImportances.forEach((f) => {
-                if (!newFeatureData[f.feature]) {
-                    newFeatureData[f.feature] = new Array(chartLabels.length - 1).fill(0);
-                }
-            });
+
+            if (metrics.featureImportances != null) {
+                metrics.featureImportances.forEach((f) => {
+                    if (!newFeatureData[f.feature]) {
+                        newFeatureData[f.feature] = new Array(chartLabels.length - 1).fill(null);
+                    }
+                });
+            }
+
             for (const key of Object.keys(newFeatureData)) {
-                const feature = metrics.featureImportances.find((f) => f.feature === key);
-                newFeatureData[key].push(feature ? feature.importance : 0);
+                const feature = metrics.featureImportances?.find((f) => f.feature === key);
+                newFeatureData[key].push(feature ? feature.importance : null);
             }
 
             if (chartLabels.length > 50) {

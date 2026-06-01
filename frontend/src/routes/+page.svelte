@@ -117,7 +117,7 @@
 
 <div class="mx-auto max-w-500 p-8 font-sans">
     <h1 class="mb-6 text-3xl font-bold text-gray-800 dark:text-gray-100">
-        HeuristicAgent Dashboard
+        Dashboard
     </h1>
 
     <div class="flex flex-col gap-8 lg:flex-row">

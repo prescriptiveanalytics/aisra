@@ -14,7 +14,9 @@ public sealed class StreamController(
     IDataClient dataClient,
     IDataStore dataStore,
     IModelService modelService,
-    IModelAnalysisService modelAnalysisService) : ControllerBase
+    IModelAnalysisService modelAnalysisService,
+    EnabledFeatures features
+) : ControllerBase
 {
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
@@ -90,7 +92,7 @@ public sealed class StreamController(
                 await foreach (var _ in eventChannel.Reader.ReadAllAsync(HttpContext.RequestAborted))
                 {
                     var recentData = await dataStore
-                        .GetLastAsync(20)
+                        .GetLastAsync(50)
                         .Select(x => x.Item2)
                         .ToArrayAsync(cancellationToken: ct);
 
@@ -103,8 +105,8 @@ public sealed class StreamController(
 
                     channel.Writer.TryWrite(
                         new ModelMetricsDto(
-                            modelAnalysisService.EvaluateQuality(combinedModel, recentData),
-                            modelAnalysisService
+                            modelAnalysisService.EvaluateQuality(combinedModel, recentData.Take(20).ToArray()),
+                            (!features.FeatureImportance || recentData.Length < 50) ? null : modelAnalysisService
                                 .CalculatePermutationFeatureImportance(combinedModel, recentData)
                                 .Select((d, i) => new FeatureImportanceDto(
                                     i == recentData[0].Length - 1 ? "y" : $"x{i + 1}",

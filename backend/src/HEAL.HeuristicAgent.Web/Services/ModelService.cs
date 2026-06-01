@@ -7,10 +7,12 @@ namespace HEAL.HeuristicAgent.Web.Services;
 
 public sealed class ModelService(IModelStore modelStore) : IModelService
 {
+    internal const string BaseModelString = "'x1' * 'x1' + 'x2' * 'x2' / 2 + 7";
+
     private static readonly InfixExpressionParser Parser = new();
 
     private static readonly SymbolicExpressionTree BaseModel =
-        Parser.Parse("'x1' * 'x1' + 'x2' * 'x2' / 2 + 7");
+        Parser.Parse(BaseModelString);
 
     private int _activeModelId = 1;
 

@@ -1,4 +1,5 @@
 ﻿using HEAL.HeuristicAgent.Web.Dtos;
+using HEAL.HeuristicAgent.Web.Services;
 using StackExchange.Redis;
 
 namespace HEAL.HeuristicAgent.Web.Persistence;
@@ -12,6 +13,9 @@ public sealed class RedisStore : IDataStore, IModelStore, IDisposable, IAsyncDis
     {
         _connection = ConnectionMultiplexer.Connect(host);
         _db = _connection.GetDatabase();
+
+        // Assumes an empty database. TODO
+        SaveModelAsync(ModelService.BaseModelString).Wait();
     }
 
     ~RedisStore()

@@ -17,13 +17,14 @@ using ModelContextProtocol.Server;
 namespace HEAL.HeuristicAgent.Web.Mcp.Server.Tools;
 
 [McpServerToolType]
-public sealed class HeuristicTools(
+public sealed partial class HeuristicTools(
     IHeuristicLibClient client,
     LlmResponseStream responseStream,
     IModelStore modelStore,
     IDataStore dataStore,
     IModelService modelService,
-    IModelAnalysisService modelAnalysisService
+    IModelAnalysisService modelAnalysisService,
+    EnabledFeatures features
 )
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
@@ -236,55 +237,9 @@ public sealed class HeuristicTools(
         return TextResult($"Active model set to ID {modelId}");
     });
 
-    private static CallToolResult Do(Func<CallToolResult> func)
-    {
-        try
-        {
-            return func();
-        }
-        catch (Exception ex)
-        {
-            return CreateErrorResult(ex);
-        }
-    }
-
-    private static async Task<CallToolResult> DoAsync(Func<Task<CallToolResult>> func)
-    {
-        try
-        {
-            return await func();
-        }
-        catch (Exception ex)
-        {
-            return CreateErrorResult(ex);
-        }
-    }
-
-    private static CallToolResult CreateErrorResult(Exception ex)
-    {
-        Console.WriteLine($"Error in tool execution: {ex}");
-
-        return new CallToolResult
-        {
-            Content =
-            [
-                new TextContentBlock
-                {
-                    Text = $"ERROR: {ex.Message}"
-                },
-            ],
-            IsError = true,
-        };
-    }
-
-    private static CallToolResult TextResult(string text) => new()
-    {
-        Content =
-        [
-            new TextContentBlock
-            {
-                Text = text,
-            },
-        ],
-    };
+    [UsedImplicitly]
+    [McpServerTool]
+    [Description("Enables or disables showing the permutation feature importances in the user's chart.")]
+    public void SetShowPermutationFeatureImportances(bool show)
+        => features.FeatureImportance = show;
 }

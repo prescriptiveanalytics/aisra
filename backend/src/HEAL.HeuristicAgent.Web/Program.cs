@@ -124,7 +124,8 @@ services
     .AddSingleton<IDataStore>(redisStore)
     .AddSingleton<IModelStore>(redisStore)
     .AddSingleton<IModelService, ModelService>()
-    .AddSingleton<IModelAnalysisService, ModelAnalysisService>();
+    .AddSingleton<IModelAnalysisService, ModelAnalysisService>()
+    .AddSingleton<EnabledFeatures>();
 
 var app = builder.Build();
 
