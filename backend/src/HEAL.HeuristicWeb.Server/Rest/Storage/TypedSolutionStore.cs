@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using HEAL.HeuristicLibContracts.Enums;
 
-namespace HEAL.HeuristicWeb.Server.Rest.Services.Storage;
+namespace HEAL.HeuristicWeb.Server.Rest.Storage;
 
 public sealed class TypedSolutionStore<TGenotype>(SolutionStore store) where TGenotype : notnull
 {

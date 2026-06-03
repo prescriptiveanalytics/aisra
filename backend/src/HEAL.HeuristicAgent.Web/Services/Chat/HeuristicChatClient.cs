@@ -1,10 +1,10 @@
-﻿using HEAL.HeuristicAgent.Web.Mcp.Client;
+﻿using HEAL.HeuristicAgent.Web.Services.Mcp.Client;
 using HEAL.HeuristicLibContracts.Random;
 using HEAL.HeuristicLibContracts.Threading;
 using Microsoft.Extensions.AI;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
-namespace HEAL.HeuristicAgent.Web.Chat;
+namespace HEAL.HeuristicAgent.Web.Services.Chat;
 
 public interface IHeuristicChatClient
 {

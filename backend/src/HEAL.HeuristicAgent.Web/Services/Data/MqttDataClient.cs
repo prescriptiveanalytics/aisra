@@ -1,10 +1,10 @@
 ﻿using System.Text.Json;
-using HEAL.HeuristicAgent.Web.Persistence;
+using HEAL.HeuristicAgent.Web.Services.Persistence;
 using HEAL.HeuristicLibContracts.Threading;
 using MQTTnet;
 using MQTTnet.Protocol;
 
-namespace HEAL.HeuristicAgent.Web.Data;
+namespace HEAL.HeuristicAgent.Web.Services.Data;
 
 public sealed class MqttDataClient : IDataClient, IDisposable
 {

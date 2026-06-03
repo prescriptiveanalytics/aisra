@@ -1,5 +1,6 @@
 using HEAL.HeuristicAgent.Web.Dtos;
 using HEAL.HeuristicAgent.Web.Services;
+using HEAL.HeuristicAgent.Web.Services.Chat;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HEAL.HeuristicAgent.Web.Controllers;

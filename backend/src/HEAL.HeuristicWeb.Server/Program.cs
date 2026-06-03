@@ -1,5 +1,5 @@
 using HEAL.HeuristicWeb.Server.Grpc;
-using HEAL.HeuristicWeb.Server.Rest.Services.Storage;
+using HEAL.HeuristicWeb.Server.Rest.Storage;
 using HEAL.HeuristicWeb.Server.Rest.Util;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 

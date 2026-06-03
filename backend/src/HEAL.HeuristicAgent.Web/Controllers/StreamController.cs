@@ -1,9 +1,11 @@
 using System.Text.Json;
 using System.Threading.Channels;
-using HEAL.HeuristicAgent.Web.Data;
 using HEAL.HeuristicAgent.Web.Dtos;
-using HEAL.HeuristicAgent.Web.Persistence;
 using HEAL.HeuristicAgent.Web.Services;
+using HEAL.HeuristicAgent.Web.Services.Chat;
+using HEAL.HeuristicAgent.Web.Services.Data;
+using HEAL.HeuristicAgent.Web.Services.Modeling;
+using HEAL.HeuristicAgent.Web.Services.Persistence;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HEAL.HeuristicAgent.Web.Controllers;
@@ -16,7 +18,7 @@ public sealed class StreamController(
     IDataStore dataStore,
     IModelService modelService,
     IModelAnalysisService modelAnalysisService,
-    EnabledFeatures features
+    Settings features
 ) : ControllerBase
 {
     private static readonly JsonSerializerOptions JsonOptions = new()

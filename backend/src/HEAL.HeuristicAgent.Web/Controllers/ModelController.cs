@@ -1,5 +1,5 @@
 using HEAL.HeuristicAgent.Web.Dtos;
-using HEAL.HeuristicAgent.Web.Persistence;
+using HEAL.HeuristicAgent.Web.Services.Persistence;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HEAL.HeuristicAgent.Web.Controllers;

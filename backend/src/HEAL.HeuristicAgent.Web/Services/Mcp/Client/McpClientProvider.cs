@@ -1,6 +1,6 @@
 ﻿using ModelContextProtocol.Client;
 
-namespace HEAL.HeuristicAgent.Web.Mcp.Client;
+namespace HEAL.HeuristicAgent.Web.Services.Mcp.Client;
 
 public sealed class McpClientProvider(IClientTransport transport) : IAsyncDisposable
 {

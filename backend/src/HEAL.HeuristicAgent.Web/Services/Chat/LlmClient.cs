@@ -1,11 +1,11 @@
-﻿using HEAL.HeuristicAgent.Web.Chat;
-using HEAL.HeuristicAgent.Web.Data;
-using HEAL.HeuristicAgent.Web.Dtos;
-using HEAL.HeuristicAgent.Web.Persistence;
+﻿using HEAL.HeuristicAgent.Web.Dtos;
+using HEAL.HeuristicAgent.Web.Services.Data;
+using HEAL.HeuristicAgent.Web.Services.Modeling;
+using HEAL.HeuristicAgent.Web.Services.Persistence;
 using HEAL.HeuristicLibContracts.Threading;
 using Microsoft.Extensions.AI;
 
-namespace HEAL.HeuristicAgent.Web.Services;
+namespace HEAL.HeuristicAgent.Web.Services.Chat;
 
 public sealed class LlmClient(
     IDataClient dataClient,

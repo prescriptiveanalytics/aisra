@@ -2,8 +2,9 @@
 using System.Globalization;
 using System.Text.Json;
 using HEAL.HeuristicAgent.Web.Dtos;
-using HEAL.HeuristicAgent.Web.Persistence;
-using HEAL.HeuristicAgent.Web.Services;
+using HEAL.HeuristicAgent.Web.Services.Chat;
+using HEAL.HeuristicAgent.Web.Services.Modeling;
+using HEAL.HeuristicAgent.Web.Services.Persistence;
 using HEAL.HeuristicLib.Problems.DataAnalysis;
 using HEAL.HeuristicLib.Problems.DataAnalysis.Formatter;
 using HEAL.HeuristicLib.Problems.DataAnalysis.Regression;
@@ -14,7 +15,7 @@ using JetBrains.Annotations;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
 
-namespace HEAL.HeuristicAgent.Web.Mcp.Server.Tools;
+namespace HEAL.HeuristicAgent.Web.Services.Mcp.Server;
 
 [McpServerToolType]
 public sealed partial class HeuristicTools(
@@ -24,7 +25,7 @@ public sealed partial class HeuristicTools(
     IDataStore dataStore,
     IModelService modelService,
     IModelAnalysisService modelAnalysisService,
-    EnabledFeatures features
+    Settings features
 )
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web)
@@ -144,12 +145,10 @@ public sealed partial class HeuristicTools(
         ));
     });
 
-    [UsedImplicitly]
-    [McpServerTool]
-    [Description(
-        "Runs a symbolic regression algorithm with the given data to train and store the base model. " +
-        "Returns the generated expression."
-    )]
+    [UsedImplicitly, McpServerTool, Description(
+         "Runs a symbolic regression algorithm with the given data to train and store the base model. " +
+         "Returns the generated expression."
+     )]
     public Task<CallToolResult> TrainBaseModelAsync(
         [Description("The start time (inclusive) for the data to use for training, or null to use all available data")]
         DateTimeOffset? startTimeIncl = null,

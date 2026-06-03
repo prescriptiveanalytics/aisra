@@ -1,4 +1,4 @@
-﻿namespace HEAL.HeuristicAgent.Web.Persistence;
+﻿namespace HEAL.HeuristicAgent.Web.Services.Persistence;
 
 public interface IDataStore
 {

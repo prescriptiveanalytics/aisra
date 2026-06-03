@@ -1,9 +1,9 @@
 using System.Globalization;
-using HEAL.HeuristicAgent.Web.Persistence;
+using HEAL.HeuristicAgent.Web.Services.Persistence;
 using HEAL.HeuristicLib.Genotypes.Trees;
 using HEAL.HeuristicLib.Problems.DataAnalysis.Formatter;
 
-namespace HEAL.HeuristicAgent.Web.Services;
+namespace HEAL.HeuristicAgent.Web.Services.Modeling;
 
 public sealed class ModelService(IModelStore modelStore) : IModelService
 {

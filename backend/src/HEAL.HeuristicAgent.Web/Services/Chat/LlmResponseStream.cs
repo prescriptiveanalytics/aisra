@@ -1,6 +1,6 @@
 using HEAL.HeuristicAgent.Web.Dtos;
 
-namespace HEAL.HeuristicAgent.Web.Services;
+namespace HEAL.HeuristicAgent.Web.Services.Chat;
 
 public sealed class LlmResponseStream
 {

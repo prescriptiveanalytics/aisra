@@ -1,4 +1,4 @@
-﻿namespace HEAL.HeuristicAgent.Web.Data;
+﻿namespace HEAL.HeuristicAgent.Web.Services.Data;
 
 public interface IDataClient
 {

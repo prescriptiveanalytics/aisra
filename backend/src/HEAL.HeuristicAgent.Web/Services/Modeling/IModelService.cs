@@ -1,6 +1,6 @@
 using HEAL.HeuristicLib.Genotypes.Trees;
 
-namespace HEAL.HeuristicAgent.Web.Services;
+namespace HEAL.HeuristicAgent.Web.Services.Modeling;
 
 public interface IModelService
 {

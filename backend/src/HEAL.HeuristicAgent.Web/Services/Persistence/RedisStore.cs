@@ -1,7 +1,7 @@
 ﻿using HEAL.HeuristicAgent.Web.Dtos;
 using StackExchange.Redis;
 
-namespace HEAL.HeuristicAgent.Web.Persistence;
+namespace HEAL.HeuristicAgent.Web.Services.Persistence;
 
 public sealed class RedisStore : IDataStore, IModelStore, IDisposable, IAsyncDisposable
 {

@@ -1,11 +1,12 @@
 using System.ClientModel;
 using System.Diagnostics;
 using System.IO.Pipelines;
-using HEAL.HeuristicAgent.Web.Chat;
-using HEAL.HeuristicAgent.Web.Data;
-using HEAL.HeuristicAgent.Web.Mcp.Client;
-using HEAL.HeuristicAgent.Web.Persistence;
 using HEAL.HeuristicAgent.Web.Services;
+using HEAL.HeuristicAgent.Web.Services.Chat;
+using HEAL.HeuristicAgent.Web.Services.Data;
+using HEAL.HeuristicAgent.Web.Services.Mcp.Client;
+using HEAL.HeuristicAgent.Web.Services.Modeling;
+using HEAL.HeuristicAgent.Web.Services.Persistence;
 using HEAL.HeuristicLibAdapter;
 using HEAL.HeuristicLibAdapter.Grpc;
 using HEAL.HeuristicLibContracts.Random;
@@ -126,7 +127,7 @@ services
     .AddSingleton<IModelStore>(redisStore)
     .AddSingleton<IModelService, ModelService>()
     .AddSingleton<IModelAnalysisService, ModelAnalysisService>()
-    .AddSingleton<EnabledFeatures>();
+    .AddSingleton<Settings>();
 
 var app = builder.Build();
 

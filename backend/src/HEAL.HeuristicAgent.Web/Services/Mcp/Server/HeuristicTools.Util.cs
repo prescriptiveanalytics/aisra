@@ -1,6 +1,6 @@
 ﻿using ModelContextProtocol.Protocol;
 
-namespace HEAL.HeuristicAgent.Web.Mcp.Server.Tools;
+namespace HEAL.HeuristicAgent.Web.Services.Mcp.Server;
 
 public partial class HeuristicTools
 {

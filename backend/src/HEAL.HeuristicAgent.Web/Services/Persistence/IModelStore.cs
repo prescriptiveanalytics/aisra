@@ -1,6 +1,6 @@
 ﻿using HEAL.HeuristicAgent.Web.Dtos;
 
-namespace HEAL.HeuristicAgent.Web.Persistence;
+namespace HEAL.HeuristicAgent.Web.Services.Persistence;
 
 public interface IModelStore
 {

@@ -4,7 +4,7 @@ using HEAL.HeuristicLib.Problems.DataAnalysis.Regression;
 using HEAL.HeuristicLib.Problems.DataAnalysis.Regression.Evaluators;
 using HEAL.HeuristicLib.Problems.DataAnalysis.Symbolic;
 
-namespace HEAL.HeuristicAgent.Web.Services;
+namespace HEAL.HeuristicAgent.Web.Services.Modeling;
 
 public sealed class ModelAnalysisService : IModelAnalysisService
 {

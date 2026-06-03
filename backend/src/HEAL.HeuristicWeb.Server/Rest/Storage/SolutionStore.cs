@@ -2,7 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using HEAL.HeuristicLibContracts.Enums;
 using HEAL.HeuristicWeb.Server.Rest.Data;
 
-namespace HEAL.HeuristicWeb.Server.Rest.Services.Storage;
+namespace HEAL.HeuristicWeb.Server.Rest.Storage;
 
 public sealed class SolutionStore
 {

@@ -7,7 +7,7 @@ using HEAL.HeuristicLibContracts.Enums;
 using HEAL.HeuristicLibContracts.Random;
 using HEAL.HeuristicLibWrapper.Exceptions;
 using HEAL.HeuristicLibWrapper.Runners;
-using HEAL.HeuristicWeb.Server.Rest.Services.Storage;
+using HEAL.HeuristicWeb.Server.Rest.Storage;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HEAL.HeuristicWeb.Server.Rest.Controllers;
