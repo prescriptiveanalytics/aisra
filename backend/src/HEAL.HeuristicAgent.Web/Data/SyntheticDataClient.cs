@@ -13,9 +13,9 @@ public sealed class SyntheticDataClient : IDataClient
     private static readonly Func<double, double, double> F1 = (x1, x2) => x1 * x1 * (1 + x1 / 2000) + x2 * x2 / 1.99 + 7.01;
     private static readonly Func<double, double, double> F2 = (x1, x2) => x1 * x1 * (1 + x1 / 200) + x2 * x2 / 1.8 + 7.2;
 
-    private bool _useF2;
-    private int _i;
-    private int _interval = 200;
+    private bool useF2;
+    private int i;
+    private int interval = 200;
 
     public SyntheticDataClient(IDataStore dataStore, ICancellationTokenProvider ctp)
     {
@@ -34,18 +34,18 @@ public sealed class SyntheticDataClient : IDataClient
 
                 var data = new[]
                 {
-                    x1, x2, _useF2 ? F2(x1, x2) : F1(x1, x2)
+                    x1, x2, useF2 ? F2(x1, x2) : F1(x1, x2)
                 };
 
                 await dataStore.InsertAsync(data);
 
                 DataReceived?.Invoke(this, data);
 
-                if (++_i % _interval == 0)
+                if (++i % interval == 0)
                 {
-                    _useF2 = !_useF2;
+                    useF2 = !useF2;
                     // _interval *= 12;
-                    _interval = int.MaxValue;
+                    interval = int.MaxValue;
                 }
 
                 await delayTask;

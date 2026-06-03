@@ -21,9 +21,9 @@ public sealed class LlmClient(
 
     private static readonly double QualityThreshold = 90.Percent;
 
-    private readonly SemaphoreSlim _agentGate = new(1, 1);
+    private readonly SemaphoreSlim agentGate = new(1, 1);
 
-    public bool AgentIsBusy => _agentGate.CurrentCount == 0;
+    public bool AgentIsBusy => agentGate.CurrentCount == 0;
 
     public Task StartAsync(CancellationToken ct)
     {
@@ -53,7 +53,7 @@ public sealed class LlmClient(
                 return;
             }
 
-            if (!await _agentGate.WaitAsync(0, ct))
+            if (!await agentGate.WaitAsync(0, ct))
             {
                 return;
             }
@@ -79,7 +79,7 @@ public sealed class LlmClient(
             }
             finally
             {
-                _agentGate.Release();
+                agentGate.Release();
             }
         };
 
@@ -88,7 +88,7 @@ public sealed class LlmClient(
 
     public async Task ChatAsync(string message, CancellationToken ct = default)
     {
-        if (!await _agentGate.WaitAsync(0, ct))
+        if (!await agentGate.WaitAsync(0, ct))
         {
             return;
         }
@@ -108,7 +108,7 @@ public sealed class LlmClient(
         }
         finally
         {
-            _agentGate.Release();
+            agentGate.Release();
         }
     }
 

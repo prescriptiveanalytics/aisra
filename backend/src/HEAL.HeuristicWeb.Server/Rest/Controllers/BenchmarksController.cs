@@ -14,7 +14,7 @@ namespace HEAL.HeuristicWeb.Server.Rest.Controllers;
 [Route("benchmarks")]
 public sealed class BenchmarksController(SolutionStore store, IRng rng) : ControllerBase
 {
-    private readonly TypedSolutionStore<double[]> _store = store.ToTyped<double[]>();
+    private readonly TypedSolutionStore<double[]> store = store.ToTyped<double[]>();
 
     /// <summary>
     /// Starts a new benchmark based on the provided parameters.
@@ -27,7 +27,7 @@ public sealed class BenchmarksController(SolutionStore store, IRng rng) : Contro
         try
         {
             var id = Guid.NewGuid();
-            _store.Store(id);
+            store.Store(id);
 
             _ = Task.Run(async () =>
             {
@@ -35,11 +35,11 @@ public sealed class BenchmarksController(SolutionStore store, IRng rng) : Contro
                 {
                     var result = await BenchmarkRunner.RunAsync(dto, rng.Next(), ct);
 
-                    _store.Store(id, result, TrainingStatus.Successful);
+                    store.Store(id, result, TrainingStatus.Successful);
                 }
                 catch (Exception)
                 {
-                    _store.Store(id, status: TrainingStatus.Failed);
+                    store.Store(id, status: TrainingStatus.Failed);
                 }
             });
 
@@ -58,7 +58,7 @@ public sealed class BenchmarksController(SolutionStore store, IRng rng) : Contro
     [HttpGet("status/{id:guid}", Name = "GetBenchmarkStatus")]
     public ActionResult<TrainingStatusDto> GetStatus(Guid id)
     {
-        if (!_store.TryGet(id, out _, out var status))
+        if (!store.TryGet(id, out _, out var status))
         {
             return NotFound();
         }
@@ -78,7 +78,7 @@ public sealed class BenchmarksController(SolutionStore store, IRng rng) : Contro
     [HttpGet("solutions/{id:guid}", Name = "GetBenchmarkSolution")]
     public ActionResult<double[]> GetSolution(Guid id)
     {
-        if (!_store.TryGet(id, out var solution, out var status))
+        if (!store.TryGet(id, out var solution, out var status))
         {
             return NotFound();
         }

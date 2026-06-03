@@ -16,7 +16,7 @@ namespace HEAL.HeuristicWeb.Server.Rest.Controllers;
 [Route("symreg")]
 public sealed class SymRegController(SolutionStore store, IRng rng) : ControllerBase
 {
-    private readonly TypedSolutionStore<SymbolicExpressionTree> _store = store.ToTyped<SymbolicExpressionTree>();
+    private readonly TypedSolutionStore<SymbolicExpressionTree> store = store.ToTyped<SymbolicExpressionTree>();
 
     /// <summary>
     /// Starts a new symbolic regression problem based on the provided parameters.
@@ -29,7 +29,7 @@ public sealed class SymRegController(SolutionStore store, IRng rng) : Controller
         try
         {
             var id = Guid.NewGuid();
-            _store.Store(id);
+            store.Store(id);
 
             if (dto.Dataset.Data.Any(x => x.Length != dto.Dataset.VariableNames.Length))
             {
@@ -42,11 +42,11 @@ public sealed class SymRegController(SolutionStore store, IRng rng) : Controller
                 {
                     var result = await SymRegRunner.RunAsync(dto, rng.Next(), ct);
 
-                    _store.Store(id, result, TrainingStatus.Successful);
+                    store.Store(id, result, TrainingStatus.Successful);
                 }
                 catch (Exception)
                 {
-                    _store.Store(id, status: TrainingStatus.Failed);
+                    store.Store(id, status: TrainingStatus.Failed);
                 }
             }, ct);
 
@@ -65,7 +65,7 @@ public sealed class SymRegController(SolutionStore store, IRng rng) : Controller
     [HttpGet("status/{id:guid}", Name = "GetSymRegStatus")]
     public ActionResult<TrainingStatusDto> GetStatus(Guid id)
     {
-        if (!_store.TryGet(id, out _, out var status))
+        if (!store.TryGet(id, out _, out var status))
         {
             return NotFound();
         }
@@ -85,7 +85,7 @@ public sealed class SymRegController(SolutionStore store, IRng rng) : Controller
     [HttpGet("solutions/{id:guid}", Name = "GetSymRegSolution")]
     public ActionResult<string> GetSolution(Guid id)
     {
-        if (!_store.TryGet(id, out var solution, out var status))
+        if (!store.TryGet(id, out var solution, out var status))
         {
             return NotFound();
         }

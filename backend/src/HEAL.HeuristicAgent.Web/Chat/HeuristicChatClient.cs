@@ -18,7 +18,7 @@ public sealed class HeuristicChatClient(
     ICancellationTokenProvider ctp
 ) : IHeuristicChatClient
 {
-    private readonly List<ChatMessage> _messageHistory =
+    private readonly List<ChatMessage> messageHistory =
     [
         new(
             ChatRole.System,
@@ -36,12 +36,12 @@ public sealed class HeuristicChatClient(
 
     public async IAsyncEnumerable<string> GetStreamingResponseAsync(ICollection<ChatMessage> messages)
     {
-        _messageHistory.AddRange(messages);
+        messageHistory.AddRange(messages);
         var text = "";
 
         await foreach (
             var update in chatClient.GetStreamingResponseAsync(
-                _messageHistory,
+                messageHistory,
                 new ChatOptions
                 {
                     Tools = await GetToolsAsync(),
@@ -60,6 +60,6 @@ public sealed class HeuristicChatClient(
             text += update.Text;
         }
 
-        _messageHistory.Add(new ChatMessage(ChatRole.Assistant, text));
+        messageHistory.Add(new ChatMessage(ChatRole.Assistant, text));
     }
 }

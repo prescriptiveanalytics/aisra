@@ -7,26 +7,26 @@ namespace HEAL.HeuristicLibAdapter.Grpc;
 
 public class HeuristicLibGrpcClient : IHeuristicLibClient
 {
-    private readonly GrpcChannel _channel;
-    private readonly GrpcHeuristicService.GrpcHeuristicServiceClient _client;
+    private readonly GrpcChannel channel;
+    private readonly GrpcHeuristicService.GrpcHeuristicServiceClient client;
 
     public HeuristicLibGrpcClient(string address)
     {
-        _channel = GrpcChannel.ForAddress(address);
-        _client = new(_channel);
+        channel = GrpcChannel.ForAddress(address);
+        client = new(channel);
     }
 
     ~HeuristicLibGrpcClient() => Dispose();
 
     public async Task<double[]> RunBenchmarkAsync(BenchmarkHyperparametersDto dto, CancellationToken ct)
-        => (await _client.RunBenchmarkAsync(dto.ToGrpc(), cancellationToken: ct)).Values.ToArray();
+        => (await client.RunBenchmarkAsync(dto.ToGrpc(), cancellationToken: ct)).Values.ToArray();
 
     public async Task<string> RunSymRegAsync(SymbolicRegressionRequestDto dto, CancellationToken ct)
-        => (await _client.FitAsync(dto.ToGrpc(), cancellationToken: ct)).Expression;
+        => (await client.FitAsync(dto.ToGrpc(), cancellationToken: ct)).Expression;
 
     public void Dispose()
     {
         GC.SuppressFinalize(this);
-        _channel.Dispose();
+        channel.Dispose();
     }
 }

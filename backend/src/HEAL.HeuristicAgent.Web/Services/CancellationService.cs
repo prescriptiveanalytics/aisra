@@ -4,19 +4,19 @@ namespace HEAL.HeuristicAgent.Web.Services;
 
 public sealed class CancellationService : ICancellationTokenProvider, IAsyncDisposable
 {
-    private readonly CancellationTokenSource _cts = new();
+    private readonly CancellationTokenSource cts = new();
 
-    public CancellationToken Token => _cts.Token;
+    public CancellationToken Token => cts.Token;
 
     ~CancellationService()
     {
-        _cts.Dispose();
+        cts.Dispose();
     }
 
     public async ValueTask DisposeAsync()
     {
         GC.SuppressFinalize(this);
-        await _cts.CancelAsync();
-        _cts.Dispose();
+        await cts.CancelAsync();
+        cts.Dispose();
     }
 }

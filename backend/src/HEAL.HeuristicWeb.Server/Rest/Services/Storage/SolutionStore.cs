@@ -6,7 +6,7 @@ namespace HEAL.HeuristicWeb.Server.Rest.Services.Storage;
 
 public sealed class SolutionStore
 {
-    private readonly ConcurrentMultiTypeDictionary<Guid> _solutions = new();
+    private readonly ConcurrentMultiTypeDictionary<Guid> solutions = new();
 
     public void Store<TGenotype>(
         Guid id,
@@ -14,9 +14,9 @@ public sealed class SolutionStore
         TrainingStatus? status = null
     ) where TGenotype : notnull
     {
-        if (!_solutions.TryGet<StoredResult<TGenotype>>(id, out var result))
+        if (!solutions.TryGet<StoredResult<TGenotype>>(id, out var result))
         {
-            _solutions.Set(
+            solutions.Set(
                 id,
                 new StoredResult<TGenotype>
                 {
@@ -48,7 +48,7 @@ public sealed class SolutionStore
         status = null;
         solution = default;
 
-        if (!_solutions.TryGet(id, out StoredResult<TGenotype>? result))
+        if (!solutions.TryGet(id, out StoredResult<TGenotype>? result))
         {
             return false;
         }

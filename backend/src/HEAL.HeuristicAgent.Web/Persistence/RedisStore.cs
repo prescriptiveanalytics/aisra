@@ -5,13 +5,13 @@ namespace HEAL.HeuristicAgent.Web.Persistence;
 
 public sealed class RedisStore : IDataStore, IModelStore, IDisposable, IAsyncDisposable
 {
-    private readonly ConnectionMultiplexer _connection;
-    private readonly IDatabase _db;
+    private readonly ConnectionMultiplexer connection;
+    private readonly IDatabase db;
 
     public RedisStore(string host)
     {
-        _connection = ConnectionMultiplexer.Connect(host);
-        _db = _connection.GetDatabase();
+        connection = ConnectionMultiplexer.Connect(host);
+        db = connection.GetDatabase();
     }
 
     ~RedisStore()
@@ -21,14 +21,14 @@ public sealed class RedisStore : IDataStore, IModelStore, IDisposable, IAsyncDis
 
     public async Task InsertAsync(double[] data)
     {
-        await _db.StreamAddAsync("data-records", [
+        await db.StreamAddAsync("data-records", [
             new("data", string.Join(",", data))
         ]);
     }
 
     public async IAsyncEnumerable<(DateTimeOffset, double[])> GetLastAsync(DateTimeOffset minTime)
     {
-        var entries = await _db.StreamRangeAsync(
+        var entries = await db.StreamRangeAsync(
             "data-records",
             messageOrder: Order.Descending,
             minId: $"{Math.Max(minTime.ToUnixTimeMilliseconds(), 0)}-0"
@@ -45,7 +45,7 @@ public sealed class RedisStore : IDataStore, IModelStore, IDisposable, IAsyncDis
 
     public async IAsyncEnumerable<(DateTimeOffset, double[])> GetLastAsync(int count)
     {
-        var entries = await _db.StreamRangeAsync(
+        var entries = await db.StreamRangeAsync(
             "data-records",
             count: count,
             messageOrder: Order.Descending
@@ -62,19 +62,19 @@ public sealed class RedisStore : IDataStore, IModelStore, IDisposable, IAsyncDis
 
     public async Task<int> SaveModelAsync(string model)
     {
-        var id = await _db.StringIncrementAsync("model-id");
-        await _db.StringSetAsync($"model:{id}", model);
+        var id = await db.StringIncrementAsync("model-id");
+        await db.StringSetAsync($"model:{id}", model);
 
         return (int)id;
     }
 
     public async IAsyncEnumerable<SymbolicRegressionModelDto> GetAllResidualModelsAsync()
     {
-        var id = (int)await _db.StringGetAsync("model-id");
+        var id = (int)await db.StringGetAsync("model-id");
 
         for (var i = 1; i <= id; i++)
         {
-            var model = await _db.StringGetAsync($"model:{i}");
+            var model = await db.StringGetAsync($"model:{i}");
 
             if (!model.IsNullOrEmpty)
             {
@@ -85,24 +85,24 @@ public sealed class RedisStore : IDataStore, IModelStore, IDisposable, IAsyncDis
 
     public async Task SaveBaseModelAsync(string model)
     {
-        await _db.StringSetAsync("base-model", model);
+        await db.StringSetAsync("base-model", model);
     }
 
     public async Task<string?> GetBaseModelAsync()
     {
-        var model = await _db.StringGetAsync("base-model");
+        var model = await db.StringGetAsync("base-model");
         return model.IsNullOrEmpty ? null : model.ToString();
     }
 
     public void Dispose()
     {
         GC.SuppressFinalize(this);
-        _connection.Dispose();
+        connection.Dispose();
     }
 
     public async ValueTask DisposeAsync()
     {
         GC.SuppressFinalize(this);
-        await _connection.DisposeAsync();
+        await connection.DisposeAsync();
     }
 }

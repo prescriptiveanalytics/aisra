@@ -8,11 +8,11 @@ namespace HEAL.HeuristicLibWrapper.Heuristic;
 
 public sealed class TestFunction : IGradientTestFunction
 {
-    private readonly IGradientTestFunction _function;
+    private readonly IGradientTestFunction function;
 
     private TestFunction(IGradientTestFunction function)
     {
-        _function = function;
+        this.function = function;
     }
 
     public static TestFunction? FromType(BenchmarkFunctionType? type, int dimensions)
@@ -30,11 +30,11 @@ public sealed class TestFunction : IGradientTestFunction
         return func is null ? null : new TestFunction(func);
     }
 
-    public double Evaluate(RealVector solution) => _function.Evaluate(solution);
+    public double Evaluate(RealVector solution) => function.Evaluate(solution);
 
-    public int Dimension => _function.Dimension;
-    public double Min => _function.Min;
-    public double Max => _function.Max;
-    public ObjectiveDirection Objective => _function.Objective;
-    public RealVector EvaluateGradient(RealVector solution) => _function.EvaluateGradient(solution);
+    public int Dimension => function.Dimension;
+    public double Min => function.Min;
+    public double Max => function.Max;
+    public ObjectiveDirection Objective => function.Objective;
+    public RealVector EvaluateGradient(RealVector solution) => function.EvaluateGradient(solution);
 }

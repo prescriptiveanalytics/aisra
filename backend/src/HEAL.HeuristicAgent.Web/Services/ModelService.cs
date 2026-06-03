@@ -9,7 +9,7 @@ public sealed class ModelService(IModelStore modelStore) : IModelService
 {
     private static readonly InfixExpressionParser Parser = new();
 
-    private int _activeModelId = 1;
+    private int activeModelId = 1;
 
     public async Task<SymbolicExpressionTree?> GetBaseModelAsync(CancellationToken ct = default)
     {
@@ -17,7 +17,7 @@ public sealed class ModelService(IModelStore modelStore) : IModelService
         return modelString == null ? null : Parser.Parse(modelString);
     }
 
-    public void SetActiveModel(int modelId) => _activeModelId = modelId;
+    public void SetActiveModel(int modelId) => activeModelId = modelId;
 
     public async Task<SymbolicExpressionTree?> GetCombinedModelAsync(int? modelId, CancellationToken ct)
     {
@@ -37,7 +37,7 @@ public sealed class ModelService(IModelStore modelStore) : IModelService
 
     public async Task<SymbolicExpressionTree> GetResidualModelAsync(int? modelId, CancellationToken ct)
     {
-        var idToUse = modelId ?? _activeModelId;
+        var idToUse = modelId ?? activeModelId;
 
         return await GetResidualModelByIdAsync(idToUse, ct);
     }
