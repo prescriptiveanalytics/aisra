@@ -7,7 +7,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\HEAL.HeuristicLibCommon\HEAL.HeuristicLibCommon.csproj" />
+        <ProjectReference Include="..\HEAL.HeuristicLibCommon\HEAL.HeuristicLibCommon.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="HEAL.HeuristicLib" Version="0.1.80-alpha"/>
     </ItemGroup>
 
 </Project>

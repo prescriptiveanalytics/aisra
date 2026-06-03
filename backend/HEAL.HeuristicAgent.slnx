@@ -1,7 +1,4 @@
 <Solution>
-    <Project Path="../../HeuristicLib/src/HeuristicLib.Abstractions/HeuristicLib.Abstractions.csproj" />
-    <Project Path="../../HeuristicLib/src/HeuristicLib.Core/HeuristicLib.Core.csproj" />
-    <Project Path="../../HeuristicLib/src/HeuristicLib.Extensions/HeuristicLib.Extensions.csproj" />
     <Project Path="src/HEAL.HeuristicAgent.Web/HEAL.HeuristicAgent.Web.csproj" />
     <Project Path="src/HEAL.HeuristicLibAdapter.Grpc/HEAL.HeuristicLibAdapter.Grpc.csproj" />
     <Project Path="src/HEAL.HeuristicLibAdapter/HEAL.HeuristicLibAdapter.csproj" />
