@@ -21,10 +21,10 @@ namespace HEAL.HeuristicAgent.Web.Services.Mcp.Server;
 public sealed partial class HeuristicTools(
     IHeuristicLibClient client,
     LlmResponseStream responseStream,
-    IModelStore modelStore,
-    IDataStore dataStore,
+    IModelStorage modelStorage,
+    IDataStorage dataStorage,
     IModelService modelService,
-    IModelAnalysisService modelAnalysisService,
+    IModelAnalyzer modelAnalyzer,
     Settings features
 )
 {
@@ -67,7 +67,7 @@ public sealed partial class HeuristicTools(
             }
         };
 
-        var data = await dataStore.GetLastAsync(startTimeIncl)
+        var data = await dataStorage.GetLastAsync(startTimeIncl)
             .Select(d => new DataDto
             {
                 Timestamp = d.Item1,
@@ -131,7 +131,7 @@ public sealed partial class HeuristicTools(
 
         var expression = await client.RunSymRegAsync(request, ct);
         
-        var id = await modelStore.SaveModelAsync(expression);
+        var id = await modelStorage.SaveModelAsync(expression);
 
         responseStream.Broadcast(EventType.Tool, "Symbolic regression completed");
 
@@ -164,7 +164,7 @@ public sealed partial class HeuristicTools(
             StartTimeIncl = startTimeIncl.Value,
         };
 
-        var data = await dataStore.GetLastAsync(startTimeIncl.Value)
+        var data = await dataStorage.GetLastAsync(startTimeIncl.Value)
             .Select(d => new DataDto
             {
                 Timestamp = d.Item1,
@@ -196,7 +196,7 @@ public sealed partial class HeuristicTools(
 
         var expression = await client.RunSymRegAsync(request, ct);
         
-        await modelStore.SaveBaseModelAsync(expression);
+        await modelStorage.SaveBaseModelAsync(expression);
 
         responseStream.Broadcast(EventType.Tool, "Base model trained successfully");
 
@@ -224,7 +224,7 @@ public sealed partial class HeuristicTools(
     {
         responseStream.Broadcast(EventType.Tool, "Evaluating model quality over time");
 
-        var data = await dataStore.GetLastAsync(startTimeIncl)
+        var data = await dataStorage.GetLastAsync(startTimeIncl)
             .Where(d => d.Item1 >= startTimeIncl)
             .Select(d => (Timestamp: d.Item1, Values: d.Item2))
             .ToArrayAsync(cancellationToken: ct);
@@ -242,7 +242,7 @@ public sealed partial class HeuristicTools(
         }
 
         var valuesOnly = data.Select(d => d.Values).ToArray();
-        var qualityList = modelAnalysisService.EvaluateQualityOverTime(combinedModel, valuesOnly, windowSize);
+        var qualityList = modelAnalyzer.EvaluateQualityOverTime(combinedModel, valuesOnly, windowSize);
 
         var qualityOverTime = data.Zip(qualityList, (d, q) => new
         {
@@ -314,7 +314,7 @@ public sealed partial class HeuristicTools(
     {
         responseStream.Broadcast(EventType.Tool, "Retrieving all saved models");
 
-        var models = await modelStore.GetAllResidualModelsAsync().ToArrayAsync();
+        var models = await modelStorage.GetAllResidualModelsAsync().ToArrayAsync();
 
         return TextResult(JsonSerializer.Serialize(models, JsonOptions));
     });
@@ -328,7 +328,7 @@ public sealed partial class HeuristicTools(
     {
         responseStream.Broadcast(EventType.Tool, $"Switching active model to ID {modelId}");
 
-        var models = modelStore.GetAllResidualModelsAsync();
+        var models = modelStorage.GetAllResidualModelsAsync();
 
         if (await models.AllAsync(m => m.Id != modelId))
         {

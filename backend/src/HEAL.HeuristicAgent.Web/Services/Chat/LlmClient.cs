@@ -9,11 +9,11 @@ namespace HEAL.HeuristicAgent.Web.Services.Chat;
 
 public sealed class LlmClient(
     IDataClient dataClient,
-    IDataStore dataStore,
+    IDataStorage dataStorage,
     IHeuristicChatClient chatClient,
     LlmResponseStream responseStream,
     IModelService modelService,
-    IModelAnalysisService modelAnalysisService,
+    IModelAnalyzer modelAnalyzer,
     ICancellationTokenProvider ctp
 ) : IHostedService
 {
@@ -29,7 +29,7 @@ public sealed class LlmClient(
     {
         dataClient.DataReceived += async (_, _) =>
         {
-            var data = await dataStore
+            var data = await dataStorage
                 .GetLastAsync(NumValuesToUse)
                 .Select(c => c.Item2)
                 .ToArrayAsync(ct);
@@ -46,7 +46,7 @@ public sealed class LlmClient(
                 return;
             }
 
-            var quality = modelAnalysisService.EvaluateQuality(combinedModel, data);
+            var quality = modelAnalyzer.EvaluateQuality(combinedModel, data);
 
             if (quality > QualityThreshold)
             {

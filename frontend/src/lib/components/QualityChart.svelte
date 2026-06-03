@@ -127,7 +127,7 @@
 
     $effect(() => {
         let eventSource = new ReconnectingEventSource(
-            `https://localhost:5297/metrics-stream${modelId != null ? `?modelId=${modelId}` : ""}`,
+            `https://localhost:5297/api/metrics-stream${modelId != null ? `?modelId=${modelId}` : ""}`,
         );
 
         eventSource.onmessage = (event: MessageEvent): void => {

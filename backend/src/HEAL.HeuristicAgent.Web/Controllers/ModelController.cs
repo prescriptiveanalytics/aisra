@@ -6,7 +6,7 @@ namespace HEAL.HeuristicAgent.Web.Controllers;
 
 [ApiController]
 [Route("models")]
-public class ModelController(IModelStore modelStore) : ControllerBase
+public class ModelController(IModelStorage modelStore) : ControllerBase
 {
     [HttpGet]
     public IAsyncEnumerable<SymbolicRegressionModelDto> GetAllModels()

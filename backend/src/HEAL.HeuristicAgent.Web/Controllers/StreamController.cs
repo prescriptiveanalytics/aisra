@@ -15,9 +15,9 @@ namespace HEAL.HeuristicAgent.Web.Controllers;
 public sealed class StreamController(
     LlmResponseStream llmStream,
     IDataClient dataClient,
-    IDataStore dataStore,
+    IDataStorage dataStorage,
     IModelService modelService,
-    IModelAnalysisService modelAnalysisService,
+    IModelAnalyzer modelAnalyzer,
     Settings features
 ) : ControllerBase
 {
@@ -26,8 +26,11 @@ public sealed class StreamController(
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
 
-    [HttpGet("ai-stream")]
-    public async Task AiStream()
+    /// <summary>
+    /// SSE endpoint for streaming LLM responses.
+    /// </summary>
+    [HttpGet("token-stream")]
+    public async Task TokenStream()
     {
         Response.Headers.Append("Content-Type", "text/event-stream");
         Response.Headers.Append("Cache-Control", "no-cache");
@@ -53,17 +56,12 @@ public sealed class StreamController(
 
         void Handler(EventType type, string? msg)
         {
-            var dto = msg is not null
-                ? new EventDto
-                {
-                    Message = msg,
-                }
-                : null;
+            var data = msg is null ? "" : JsonSerializer.Serialize(new EventDto(msg), JsonOptions);
 
             channel.Writer.TryWrite(
                 $"""
                  event: {type.ToString().ToLowerInvariant()}
-                 data: {(dto is null ? "" : JsonSerializer.Serialize(dto, JsonOptions))}
+                 data: {data}
 
 
                  """
@@ -71,8 +69,12 @@ public sealed class StreamController(
         }
     }
 
+    /// <summary>
+    /// SSE endpoint for streaming model metrics like quality and feature importance.
+    /// </summary>
+    /// <param name="modelId">The ID of the model to evaluate, or <see langword="null"/> to use the active model.</param>
     [HttpGet("metrics-stream")]
-    public async Task MetricsStream([FromQuery] int? modelId = null, CancellationToken ct = default)
+    public async Task MetricsStream([FromQuery] int? modelId = null)
     {
         Response.Headers.Append("Content-Type", "text/event-stream");
         Response.Headers.Append("Cache-Control", "no-cache");
@@ -94,17 +96,17 @@ public sealed class StreamController(
             {
                 await foreach (var _ in eventChannel.Reader.ReadAllAsync(HttpContext.RequestAborted))
                 {
-                    var recentData = await dataStore
+                    var recentData = await dataStorage
                         .GetLastAsync(50)
                         .Select(x => x.Item2)
-                        .ToArrayAsync(cancellationToken: ct);
+                        .ToArrayAsync(cancellationToken: HttpContext.RequestAborted);
 
                     if (recentData.Length < 20)
                     {
                         continue;
                     }
 
-                    var combinedModel = await modelService.GetCombinedModelAsync(modelId, ct);
+                    var combinedModel = await modelService.GetCombinedModelAsync(modelId, HttpContext.RequestAborted);
 
                     if (combinedModel is null)
                     {
@@ -113,8 +115,8 @@ public sealed class StreamController(
 
                     channel.Writer.TryWrite(
                         new ModelMetricsDto(
-                            modelAnalysisService.EvaluateQuality(combinedModel, recentData.Take(20).ToArray()),
-                            (!features.FeatureImportance || recentData.Length < 50) ? null : modelAnalysisService
+                            modelAnalyzer.EvaluateQuality(combinedModel, recentData.Take(20).ToArray()),
+                            !features.FeatureImportance || recentData.Length < 50 ? null : modelAnalyzer
                                 .CalculatePermutationFeatureImportance(combinedModel, recentData)
                                 .Select((d, i) => new FeatureImportanceDto(
                                     i == recentData[0].Length - 1 ? "y" : $"x{i + 1}",
@@ -128,7 +130,7 @@ public sealed class StreamController(
             catch (OperationCanceledException)
             {
             }
-        }, ct).Forget();
+        }, HttpContext.RequestAborted).Forget();
 
         try
         {

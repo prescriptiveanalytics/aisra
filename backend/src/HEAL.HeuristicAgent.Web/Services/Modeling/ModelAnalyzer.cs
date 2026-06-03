@@ -6,7 +6,7 @@ using HEAL.HeuristicLib.Problems.DataAnalysis.Symbolic;
 
 namespace HEAL.HeuristicAgent.Web.Services.Modeling;
 
-public sealed class ModelAnalysisService : IModelAnalysisService
+public sealed class ModelAnalyzer : IModelAnalyzer
 {
     private static readonly PearsonR2Evaluator Evaluator = new();
 
@@ -34,6 +34,7 @@ public sealed class ModelAnalysisService : IModelAnalysisService
         return Evaluator.Evaluate(predictions, trueValues);
     }
 
+    /// <inheritdoc/>
     public IReadOnlyList<double> EvaluateQualityOverTime(SymbolicExpressionTree tree, double[][] data, int windowSize)
     {
         if (data.Length == 0) throw new ArgumentException("Data cannot be empty.");

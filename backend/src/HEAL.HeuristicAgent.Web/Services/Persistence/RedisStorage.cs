@@ -3,18 +3,19 @@ using StackExchange.Redis;
 
 namespace HEAL.HeuristicAgent.Web.Services.Persistence;
 
-public sealed class RedisStore : IDataStore, IModelStore, IDisposable, IAsyncDisposable
+/// <inheritdoc cref="IDataStorage" />
+public sealed class RedisStorage : IDataStorage, IModelStorage, IDisposable, IAsyncDisposable
 {
     private readonly ConnectionMultiplexer connection;
     private readonly IDatabase db;
 
-    public RedisStore(string host)
+    public RedisStorage(string host)
     {
         connection = ConnectionMultiplexer.Connect(host);
         db = connection.GetDatabase();
     }
 
-    ~RedisStore()
+    ~RedisStorage()
     {
         Dispose();
     }

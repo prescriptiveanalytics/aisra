@@ -29,7 +29,7 @@
     let selectedCharts = $state<(number | null)[]>([null]);
 
     async function handleAddChart(): Promise<void> {
-        const res = await fetch("https://localhost:5297/models");
+        const res = await fetch("https://localhost:5297/api/models");
         if (res.ok) {
             const fetchedModels = (await res.json()) as { id: number; model: string }[];
             await modals.open(
@@ -56,7 +56,7 @@
     }
 
     $effect(() => {
-        let eventSource = new ReconnectingEventSource("https://localhost:5297/ai-stream");
+        let eventSource = new ReconnectingEventSource("https://localhost:5297/api/token-stream");
 
         eventSource.addEventListener("tool", (event) => {
             isDone = false;
@@ -103,7 +103,7 @@
         serverEvents = [{ type: "user_message", message }, ...serverEvents];
 
         try {
-            await fetch("https://localhost:5297/chat", {
+            await fetch("https://localhost:5297/api/chat", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

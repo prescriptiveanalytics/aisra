@@ -6,11 +6,6 @@ using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
 namespace HEAL.HeuristicAgent.Web.Services.Chat;
 
-public interface IHeuristicChatClient
-{
-    IAsyncEnumerable<string> GetStreamingResponseAsync(ICollection<ChatMessage> messages);
-}
-
 public sealed class HeuristicChatClient(
     IChatClient chatClient,
     McpClientProvider mcpClientProvider,

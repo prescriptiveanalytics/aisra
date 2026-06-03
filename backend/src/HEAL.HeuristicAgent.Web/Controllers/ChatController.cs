@@ -6,10 +6,13 @@ using Microsoft.AspNetCore.Mvc;
 namespace HEAL.HeuristicAgent.Web.Controllers;
 
 [ApiController]
-[Route("")]
+[Route("chat")]
 public class ChatController(LlmClient llmClient) : ControllerBase
 {
-    [HttpPost("chat")]
+    /// <summary>
+    /// Sends a chat message to the AI agent.
+    /// </summary>
+    [HttpPost]
     public IActionResult Chat([FromBody] ChatRequest request)
     {
         if (llmClient.AgentIsBusy)

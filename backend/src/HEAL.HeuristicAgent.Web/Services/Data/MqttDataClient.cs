@@ -16,7 +16,7 @@ public sealed class MqttDataClient : IDataClient, IDisposable
     };
     private static readonly TimeSpan Interval = 0.5.Seconds;
 
-    public MqttDataClient(IDataStore dataStore, ICancellationTokenProvider ctp)
+    public MqttDataClient(IDataStorage dataStorage, ICancellationTokenProvider ctp)
     {
         const string host = "localhost";
         const int port = 1883;
@@ -43,7 +43,7 @@ public sealed class MqttDataClient : IDataClient, IDisposable
 
                     if (data.Length >= 3)
                     {
-                        await dataStore.InsertAsync(data);
+                        await dataStorage.InsertAsync(data);
                         DataReceived?.Invoke(this, data);
                     }
 

@@ -2,7 +2,7 @@
 
 namespace HEAL.HeuristicAgent.Web.Services.Persistence;
 
-public interface IModelStore
+public interface IModelStorage
 {
     Task<int> SaveModelAsync(string model);
     IAsyncEnumerable<SymbolicRegressionModelDto> GetAllResidualModelsAsync();

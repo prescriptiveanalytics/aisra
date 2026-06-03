@@ -2,7 +2,7 @@
 
 namespace HEAL.HeuristicAgent.Web.Services.Persistence;
 
-public sealed class InMemoryModelStore : IModelStore
+public sealed class InMemoryModelStorage : IModelStorage
 {
     private string? baseModel;
 

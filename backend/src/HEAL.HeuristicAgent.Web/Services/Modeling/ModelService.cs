@@ -5,15 +5,15 @@ using HEAL.HeuristicLib.Problems.DataAnalysis.Formatter;
 
 namespace HEAL.HeuristicAgent.Web.Services.Modeling;
 
-public sealed class ModelService(IModelStore modelStore) : IModelService
+public sealed class ModelService(IModelStorage modelStorage) : IModelService
 {
     private static readonly InfixExpressionParser Parser = new();
 
     private int activeModelId = 1;
 
-    public async Task<SymbolicExpressionTree?> GetBaseModelAsync(CancellationToken ct = default)
+    public async Task<SymbolicExpressionTree?> GetBaseModelAsync(CancellationToken ct)
     {
-        var modelString = await modelStore.GetBaseModelAsync();
+        var modelString = await modelStorage.GetBaseModelAsync();
         return modelString == null ? null : Parser.Parse(modelString);
     }
 
@@ -44,10 +44,10 @@ public sealed class ModelService(IModelStore modelStore) : IModelService
 
     private async Task<SymbolicExpressionTree> GetResidualModelByIdAsync(int modelId, CancellationToken ct)
     {
-        var modelDto = await modelStore
+        var modelDto = await modelStorage
             .GetAllResidualModelsAsync()
             .FirstOrDefaultAsync(m => m.Id == modelId, cancellationToken: ct);
-        var residualExpression = modelDto?.Model ?? "0";
+        var residualExpression = modelDto != default ? modelDto.Model : "0";
 
         return Parser.Parse(residualExpression);
     }
