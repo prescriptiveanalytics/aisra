@@ -1,5 +1,4 @@
 ﻿using HEAL.HeuristicAgent.Web.Dtos;
-using HEAL.HeuristicAgent.Web.Services;
 using StackExchange.Redis;
 
 namespace HEAL.HeuristicAgent.Web.Persistence;
@@ -13,9 +12,6 @@ public sealed class RedisStore : IDataStore, IModelStore, IDisposable, IAsyncDis
     {
         _connection = ConnectionMultiplexer.Connect(host);
         _db = _connection.GetDatabase();
-
-        // Assumes an empty database. TODO
-        SaveModelAsync(ModelService.BaseModelString).Wait();
     }
 
     ~RedisStore()
@@ -35,7 +31,7 @@ public sealed class RedisStore : IDataStore, IModelStore, IDisposable, IAsyncDis
         var entries = await _db.StreamRangeAsync(
             "data-records",
             messageOrder: Order.Descending,
-            minId: $"{minTime.ToUnixTimeMilliseconds()}-0"
+            minId: $"{Math.Max(minTime.ToUnixTimeMilliseconds(), 0)}-0"
         );
 
         foreach (var entry in entries)
@@ -72,7 +68,7 @@ public sealed class RedisStore : IDataStore, IModelStore, IDisposable, IAsyncDis
         return (int)id;
     }
 
-    public async IAsyncEnumerable<SymbolicRegressionModelDto> GetAllModelsAsync()
+    public async IAsyncEnumerable<SymbolicRegressionModelDto> GetAllResidualModelsAsync()
     {
         var id = (int)await _db.StringGetAsync("model-id");
 
@@ -85,6 +81,17 @@ public sealed class RedisStore : IDataStore, IModelStore, IDisposable, IAsyncDis
                 yield return new SymbolicRegressionModelDto(i, model.ToString());
             }
         }
+    }
+
+    public async Task SaveBaseModelAsync(string model)
+    {
+        await _db.StringSetAsync("base-model", model);
+    }
+
+    public async Task<string?> GetBaseModelAsync()
+    {
+        var model = await _db.StringGetAsync("base-model");
+        return model.IsNullOrEmpty ? null : model.ToString();
     }
 
     public void Dispose()

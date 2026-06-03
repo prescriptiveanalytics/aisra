@@ -39,17 +39,31 @@ public sealed partial class HeuristicTools(
         "Does not activate the generated model automatically. " +
         "Returns the generated expression and the ID of the stored model."
     )]
-    public Task<CallToolResult> RunSymbolicRegressionAsync(
-        [Description("The start time (inclusive) for the data to use in symbolic regression")]
+    public Task<CallToolResult> TrainResidualModel(
+        [Description("The start time (inclusive) for the data to use for training")]
         DateTimeOffset startTimeIncl,
+        [Description("Hyperparameter preset: Low (fastest, lowest quality), Medium, or High (slowest, highest quality).")]
+        HyperparameterPreset preset,
         CancellationToken ct = default
     ) => DoAsync(async () =>
     {
-        responseStream.Broadcast(EventType.Tool, "Running symbolic regression");
+        responseStream.Broadcast(EventType.Tool, $"Running symbolic regression (Preset: {preset})");
+
+        var baseHyperparameters = preset switch
+        {
+            HyperparameterPreset.Low => new HyperparametersDto { PopulationSize = 50, MaxIterations = 50 },
+            HyperparameterPreset.Medium => new HyperparametersDto { PopulationSize = 100, MaxIterations = 100 },
+            HyperparameterPreset.High => new HyperparametersDto { PopulationSize = 200, MaxIterations = 200 },
+            _ => throw new ArgumentOutOfRangeException(nameof(preset), preset, null)
+        };
 
         var instructions = new SymbolicRegressionInstructionsDto
         {
             StartTimeIncl = startTimeIncl,
+            Hyperparameters = new SymbolicRegressionHyperparametersDto
+            {
+                Base = baseHyperparameters
+            }
         };
 
         var data = await dataStore.GetLastAsync(startTimeIncl)
@@ -71,31 +85,36 @@ public sealed partial class HeuristicTools(
             .Append("y")
             .ToArray();
 
-        // Calculate residuals using BaseModel
-        var baseModelEvaluator = new SymbolicRegressionModel(
-            modelService.GetBaseModel(),
-            new SymbolicDataAnalysisExpressionTreeInterpreter()
-        );
-        var dataset = Dataset.FromRowData(variableNames, datasetRows);
-        var basePredictions = baseModelEvaluator.Predict(dataset, Enumerable.Range(0, dataset.Rows)).ToArray();
-
-        // Modify the dataset to contain residuals
-        for (var i = 0; i < datasetRows.Length; i++)
+        var baseModel = await modelService.GetBaseModelAsync(ct);
+        
+        if (baseModel != null)
         {
-            var trueY = datasetRows[i][^1];
-            var predictedY = basePredictions[i];
-            var residual = trueY - predictedY;
+            // Calculate residuals using BaseModel
+            var baseModelEvaluator = new SymbolicRegressionModel(
+                baseModel,
+                new SymbolicDataAnalysisExpressionTreeInterpreter()
+            );
+            var dataset = Dataset.FromRowData(variableNames, datasetRows);
+            var basePredictions = baseModelEvaluator.Predict(dataset, Enumerable.Range(0, dataset.Rows)).ToArray();
 
-            var newRow = new double[datasetRows[i].Length];
-            var length = datasetRows[i].Length;
-            var col = 0;
-            foreach (var val in datasetRows[i])
+            // Modify the dataset to contain residuals
+            for (var i = 0; i < datasetRows.Length; i++)
             {
-                newRow[col++] = val;
-            }
+                var trueY = datasetRows[i][^1];
+                var predictedY = basePredictions[i];
+                var residual = trueY - predictedY;
 
-            newRow[length - 1] = residual;
-            datasetRows[i] = newRow;
+                var newRow = new double[datasetRows[i].Length];
+                var length = datasetRows[i].Length;
+                var col = 0;
+                foreach (var val in datasetRows[i])
+                {
+                    newRow[col++] = val;
+                }
+
+                newRow[length - 1] = residual;
+                datasetRows[i] = newRow;
+            }
         }
 
         var request = new SymbolicRegressionRequestDto
@@ -119,6 +138,72 @@ public sealed partial class HeuristicTools(
             new
             {
                 ModelId = id,
+                Expression = expression,
+            },
+            JsonOptions
+        ));
+    });
+
+    [UsedImplicitly]
+    [McpServerTool]
+    [Description(
+        "Runs a symbolic regression algorithm with the given data to train and store the base model. " +
+        "Returns the generated expression."
+    )]
+    public Task<CallToolResult> TrainBaseModelAsync(
+        [Description("The start time (inclusive) for the data to use for training, or null to use all available data")]
+        DateTimeOffset? startTimeIncl = null,
+        CancellationToken ct = default
+    ) => DoAsync(async () =>
+    {
+        startTimeIncl ??= DateTimeOffset.MinValue;
+
+        responseStream.Broadcast(EventType.Tool, "Training base model");
+
+        var instructions = new SymbolicRegressionInstructionsDto
+        {
+            StartTimeIncl = startTimeIncl.Value,
+        };
+
+        var data = await dataStore.GetLastAsync(startTimeIncl.Value)
+            .Select(d => new DataDto
+            {
+                Timestamp = d.Item1,
+                Data = d.Item2,
+            })
+            .ToArrayAsync(cancellationToken: ct);
+
+        if (data.Length == 0)
+        {
+            throw new ArgumentException("No data available in the specified range.");
+        }
+
+        var datasetRows = data.Select(d => d.Data.ToArray()).ToArray();
+        var variableNames = Enumerable.Range(1, datasetRows[0].Length - 1)
+            .Select(i => $"x{i}")
+            .Append("y")
+            .ToArray();
+
+        var request = new SymbolicRegressionRequestDto
+        {
+            Hyperparameters = instructions.Hyperparameters,
+            Dataset = new SymbolicRegressionDatasetDto
+            {
+                Data = datasetRows,
+                VariableNames = variableNames,
+                TargetVariableName = "y",
+            },
+        };
+
+        var expression = await client.RunSymRegAsync(request, ct);
+        
+        await modelStore.SaveBaseModelAsync(expression);
+
+        responseStream.Broadcast(EventType.Tool, "Base model trained successfully");
+
+        return TextResult(JsonSerializer.Serialize(
+            new
+            {
                 Expression = expression,
             },
             JsonOptions
@@ -151,8 +236,13 @@ public sealed partial class HeuristicTools(
         }
 
         var combinedModel = await modelService.GetCombinedModelAsync(modelId, ct);
+
+        if (combinedModel is null)
+        {
+            throw new InvalidOperationException("No model available to evaluate.");
+        }
+
         var valuesOnly = data.Select(d => d.Values).ToArray();
-        
         var qualityList = modelAnalysisService.EvaluateQualityOverTime(combinedModel, valuesOnly, windowSize);
 
         var qualityOverTime = data.Zip(qualityList, (d, q) => new
@@ -167,11 +257,17 @@ public sealed partial class HeuristicTools(
     [UsedImplicitly]
     [McpServerTool]
     [Description("Gets the base model (the original model without any residuals)")]
-    public CallToolResult GetBaseModel() => Do(() =>
+    public Task<CallToolResult> GetBaseModel(CancellationToken ct = default) => DoAsync(async () =>
     {
         responseStream.Broadcast(EventType.Tool, "Retrieving base model");
+        
+        var baseModel = await modelService.GetBaseModelAsync(ct);
+        if (baseModel == null)
+        {
+            return TextResult("No base model has been trained yet.");
+        }
 
-        return TextResult(InfixExpressionFormatter.Format(modelService.GetBaseModel(), NumberFormatInfo.InvariantInfo));
+        return TextResult(InfixExpressionFormatter.Format(baseModel, NumberFormatInfo.InvariantInfo));
     });
 
     [UsedImplicitly]
@@ -201,7 +297,15 @@ public sealed partial class HeuristicTools(
         responseStream.Broadcast(EventType.Tool, "Retrieving combined model");
 
         var combinedModel = await modelService.GetCombinedModelAsync(modelId, ct);
-        return TextResult(InfixExpressionFormatter.Format(combinedModel, NumberFormatInfo.InvariantInfo));
+
+        if (combinedModel is null)
+        {
+            return TextResult("No model available.");
+        }
+
+        return TextResult(
+            InfixExpressionFormatter.Format(combinedModel, NumberFormatInfo.InvariantInfo)
+        );
     });
 
     [UsedImplicitly]
@@ -211,7 +315,7 @@ public sealed partial class HeuristicTools(
     {
         responseStream.Broadcast(EventType.Tool, "Retrieving all saved models");
 
-        var models = await modelStore.GetAllModelsAsync().ToArrayAsync();
+        var models = await modelStore.GetAllResidualModelsAsync().ToArrayAsync();
 
         return TextResult(JsonSerializer.Serialize(models, JsonOptions));
     });
@@ -225,7 +329,7 @@ public sealed partial class HeuristicTools(
     {
         responseStream.Broadcast(EventType.Tool, $"Switching active model to ID {modelId}");
 
-        var models = modelStore.GetAllModelsAsync();
+        var models = modelStore.GetAllResidualModelsAsync();
 
         if (await models.AllAsync(m => m.Id != modelId))
         {

@@ -7,25 +7,30 @@ namespace HEAL.HeuristicAgent.Web.Services;
 
 public sealed class ModelService(IModelStore modelStore) : IModelService
 {
-    internal const string BaseModelString = "'x1' * 'x1' + 'x2' * 'x2' / 2 + 7";
-
     private static readonly InfixExpressionParser Parser = new();
-
-    private static readonly SymbolicExpressionTree BaseModel =
-        Parser.Parse(BaseModelString);
 
     private int _activeModelId = 1;
 
-    public SymbolicExpressionTree GetBaseModel() => BaseModel;
+    public async Task<SymbolicExpressionTree?> GetBaseModelAsync(CancellationToken ct = default)
+    {
+        var modelString = await modelStore.GetBaseModelAsync();
+        return modelString == null ? null : Parser.Parse(modelString);
+    }
 
     public void SetActiveModel(int modelId) => _activeModelId = modelId;
 
-    public async Task<SymbolicExpressionTree> GetCombinedModelAsync(int? modelId, CancellationToken ct)
+    public async Task<SymbolicExpressionTree?> GetCombinedModelAsync(int? modelId, CancellationToken ct)
     {
         var residualModel = await GetResidualModelAsync(modelId, ct);
+        var baseModel = await GetBaseModelAsync(ct);
+
+        if (baseModel is null)
+        {
+            return null;
+        }
 
         return Parser.Parse(
-            $"({InfixExpressionFormatter.Format(BaseModel, NumberFormatInfo.InvariantInfo)})"
+            $"({InfixExpressionFormatter.Format(baseModel, NumberFormatInfo.InvariantInfo)})"
             + $" + ({InfixExpressionFormatter.Format(residualModel, NumberFormatInfo.InvariantInfo)})"
         );
     }
@@ -40,7 +45,7 @@ public sealed class ModelService(IModelStore modelStore) : IModelService
     private async Task<SymbolicExpressionTree> GetResidualModelByIdAsync(int modelId, CancellationToken ct)
     {
         var modelDto = await modelStore
-            .GetAllModelsAsync()
+            .GetAllResidualModelsAsync()
             .FirstOrDefaultAsync(m => m.Id == modelId, cancellationToken: ct);
         var residualExpression = modelDto?.Model ?? "0";
 

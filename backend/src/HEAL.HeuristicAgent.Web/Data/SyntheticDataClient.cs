@@ -1,14 +1,9 @@
 ﻿using HEAL.HeuristicAgent.Web.Persistence;
 using HEAL.HeuristicLibContracts.Threading;
 
-namespace HEAL.HeuristicAgent.Web.Services;
+namespace HEAL.HeuristicAgent.Web.Data;
 
-public interface IDataClient
-{
-    event EventHandler<double[]> DataReceived;
-}
-
-public sealed class DataClient : IDataClient
+public sealed class SyntheticDataClient : IDataClient
 {
     private const int MinValue = -100;
     private const int MaxValue = 100;
@@ -20,9 +15,9 @@ public sealed class DataClient : IDataClient
 
     private bool _useF2;
     private int _i;
-    private int _interval = 40;
+    private int _interval = 200;
 
-    public DataClient(IDataStore dataStore, ICancellationTokenProvider ctp)
+    public SyntheticDataClient(IDataStore dataStore, ICancellationTokenProvider ctp)
     {
         var ct = ctp.Token;
 
@@ -49,7 +44,8 @@ public sealed class DataClient : IDataClient
                 if (++_i % _interval == 0)
                 {
                     _useF2 = !_useF2;
-                    _interval *= 12;
+                    // _interval *= 12;
+                    _interval = int.MaxValue;
                 }
 
                 await delayTask;

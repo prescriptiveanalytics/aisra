@@ -4,10 +4,23 @@ namespace HEAL.HeuristicAgent.Web.Persistence;
 
 public sealed class InMemoryModelStore : IModelStore
 {
+    private string? _baseModel;
+
     private readonly List<SymbolicRegressionModelDto> _models = new()
     {
         new(1, "0")
     };
+
+    public Task SaveBaseModelAsync(string model)
+    {
+        _baseModel = model;
+        return Task.CompletedTask;
+    }
+
+    public Task<string?> GetBaseModelAsync()
+    {
+        return Task.FromResult(_baseModel);
+    }
 
     public Task<int> SaveModelAsync(string model)
     {
@@ -16,6 +29,6 @@ public sealed class InMemoryModelStore : IModelStore
         return Task.FromResult(_models.Count);
     }
 
-    public IAsyncEnumerable<SymbolicRegressionModelDto> GetAllModelsAsync()
+    public IAsyncEnumerable<SymbolicRegressionModelDto> GetAllResidualModelsAsync()
         => _models.ToAsyncEnumerable();
 }

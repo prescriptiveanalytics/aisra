@@ -1,5 +1,6 @@
 using System.Text.Json;
 using System.Threading.Channels;
+using HEAL.HeuristicAgent.Web.Data;
 using HEAL.HeuristicAgent.Web.Dtos;
 using HEAL.HeuristicAgent.Web.Persistence;
 using HEAL.HeuristicAgent.Web.Services;
@@ -103,6 +104,11 @@ public sealed class StreamController(
 
                     var combinedModel = await modelService.GetCombinedModelAsync(modelId, ct);
 
+                    if (combinedModel is null)
+                    {
+                        continue;
+                    }
+
                     channel.Writer.TryWrite(
                         new ModelMetricsDto(
                             modelAnalysisService.EvaluateQuality(combinedModel, recentData.Take(20).ToArray()),
@@ -142,6 +148,37 @@ public sealed class StreamController(
         void Handler(object? sender, double[] e)
         {
             eventChannel.Writer.TryWrite(e);
+        }
+    }
+
+    [HttpGet("data-stream")]
+    public async Task DataStream()
+    {
+        Response.Headers.Append("Content-Type", "text/event-stream");
+        Response.Headers.Append("Cache-Control", "no-cache");
+
+        var channel = Channel.CreateUnbounded<double[]>();
+
+        dataClient.DataReceived += Handler;
+
+        try
+        {
+            await foreach (var data in channel.Reader.ReadAllAsync(HttpContext.RequestAborted))
+            {
+                await Response.WriteAsync($"data: {JsonSerializer.Serialize(data, JsonOptions)}\n\n", HttpContext.RequestAborted);
+                await Response.Body.FlushAsync(HttpContext.RequestAborted);
+            }
+        }
+        finally
+        {
+            dataClient.DataReceived -= Handler;
+        }
+
+        return;
+
+        void Handler(object? sender, double[] e)
+        {
+            channel.Writer.TryWrite(e);
         }
     }
 }

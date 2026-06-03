@@ -11,7 +11,7 @@
     let featureData = $state<Record<string, (number | null)[]>>({});
 
     let hasFeatureData = $derived(
-        Object.values(featureData).some((data) => data.some((val) => val !== null))
+        Object.values(featureData).some((data) => data.some((val) => val !== null)),
     );
 
     const colors = [
@@ -117,10 +117,12 @@
 
     type ModelMetrics = {
         quality: number;
-        featureImportances: {
-            feature: string;
-            importance: number;
-        }[] | null;
+        featureImportances:
+            | {
+                  feature: string;
+                  importance: number;
+              }[]
+            | null;
     };
 
     $effect(() => {

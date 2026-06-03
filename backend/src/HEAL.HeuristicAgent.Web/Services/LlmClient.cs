@@ -1,4 +1,5 @@
 ﻿using HEAL.HeuristicAgent.Web.Chat;
+using HEAL.HeuristicAgent.Web.Data;
 using HEAL.HeuristicAgent.Web.Dtos;
 using HEAL.HeuristicAgent.Web.Persistence;
 using HEAL.HeuristicLibContracts.Threading;
@@ -39,6 +40,12 @@ public sealed class LlmClient(
             }
 
             var combinedModel = await modelService.GetCombinedModelAsync(null, ctp.Token);
+
+            if (combinedModel is null)
+            {
+                return;
+            }
+
             var quality = modelAnalysisService.EvaluateQuality(combinedModel, data);
 
             if (quality > QualityThreshold)

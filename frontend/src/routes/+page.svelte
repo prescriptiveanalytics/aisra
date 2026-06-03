@@ -12,6 +12,7 @@
     import SvelteMarkdown from "@humanspeak/svelte-markdown";
     import ServerEventNotification from "$lib/components/ServerEventNotification.svelte";
     import QualityChart from "$lib/components/QualityChart.svelte";
+    import DataStreamCharts from "$lib/components/DataStreamCharts.svelte";
     import type { ServerEvent } from "$lib/types/serverEvents";
     import ReconnectingEventSource from "reconnecting-eventsource";
     import { type ModalComponent, type ModalProps, modals } from "svelte-modals";
@@ -116,9 +117,7 @@
 </script>
 
 <div class="mx-auto max-w-500 p-8 font-sans">
-    <h1 class="mb-6 text-3xl font-bold text-gray-800 dark:text-gray-100">
-        Dashboard
-    </h1>
+    <h1 class="mb-6 text-3xl font-bold text-gray-800 dark:text-gray-100">Dashboard</h1>
 
     <div class="flex flex-col gap-8 lg:flex-row">
         <div class="flex w-full max-w-lg flex-col lg:max-w-md">
@@ -171,6 +170,12 @@
 
         <div class="flex-1">
             <div class="mb-4 flex items-center justify-between">
+                <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-200">Data Stream</h2>
+            </div>
+
+            <DataStreamCharts />
+
+            <div class="mt-8 mb-4 flex items-center justify-between">
                 <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-200">
                     Model Quality
                 </h2>

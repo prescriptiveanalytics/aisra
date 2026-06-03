@@ -10,5 +10,5 @@ public class ModelController(IModelStore modelStore) : ControllerBase
 {
     [HttpGet]
     public IAsyncEnumerable<SymbolicRegressionModelDto> GetAllModels()
-        => modelStore.GetAllModelsAsync();
+        => modelStore.GetAllResidualModelsAsync();
 }

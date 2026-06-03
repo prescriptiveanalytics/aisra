@@ -2,6 +2,7 @@ using System.ClientModel;
 using System.Diagnostics;
 using System.IO.Pipelines;
 using HEAL.HeuristicAgent.Web.Chat;
+using HEAL.HeuristicAgent.Web.Data;
 using HEAL.HeuristicAgent.Web.Mcp.Client;
 using HEAL.HeuristicAgent.Web.Persistence;
 using HEAL.HeuristicAgent.Web.Services;
@@ -117,7 +118,7 @@ services
     )
     .AddSingleton<ICancellationTokenProvider>(cs)
     .AddSingleton<IRng>(rng)
-    .AddSingleton<IDataClient, DataClient>()
+    .AddSingleton<IDataClient, MqttDataClient>()
     .AddSingleton<LlmResponseStream>()
     .AddSingleton<LlmClient>()
     .AddHostedService(sp => sp.GetRequiredService<LlmClient>())
