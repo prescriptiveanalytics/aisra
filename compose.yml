@@ -1,0 +1,10 @@
+services:
+  db:
+    image: redis:8-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --save "" --appendonly no
+  mqtt-broker:
+    image: eclipse-mosquitto:2.1-alpine
+    ports:
+      - "1883:1883"
