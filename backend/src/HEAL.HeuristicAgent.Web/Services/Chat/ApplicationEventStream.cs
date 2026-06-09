@@ -2,7 +2,7 @@ using HEAL.HeuristicAgent.Web.Dtos;
 
 namespace HEAL.HeuristicAgent.Web.Services.Chat;
 
-public sealed class LlmResponseStream
+public sealed class ApplicationEventStream
 {
     public event Action<EventType, string?>? OnMessage;
 

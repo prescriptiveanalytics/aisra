@@ -4,5 +4,5 @@ public enum HyperparameterPreset
 {
     Low,
     Medium,
-    High
+    High,
 }

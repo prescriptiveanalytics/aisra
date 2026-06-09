@@ -39,7 +39,7 @@ public sealed class HeuristicService(IRng rng, ICancellationTokenProvider ctp) :
                 Expression = InfixExpressionFormatter.Format(
                     await SymRegRunner.RunAsync(request.ToDto(), rng.Next(), ctp.Token),
                     NumberFormatInfo.InvariantInfo
-                )
+                ),
             };
         }
         catch (Exception ex)

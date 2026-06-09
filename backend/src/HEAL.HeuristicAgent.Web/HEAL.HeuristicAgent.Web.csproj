@@ -14,7 +14,7 @@
         <PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="10.6.0"/>
         <PackageReference Include="ModelContextProtocol" Version="1.3.0"/>
         <PackageReference Include="MQTTnet" Version="5.1.0.1559"/>
-        <PackageReference Include="StackExchange.Redis" Version="2.13.1"/>
+        <PackageReference Include="StackExchange.Redis" Version="2.13.17" />
     </ItemGroup>
 
     <ItemGroup>
@@ -28,12 +28,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Update="appsettings.json">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
-        <None Update="Resources\SKILL.md">
-            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </None>
+        <EmbeddedResource Include="Resources\Prompt.md" />
     </ItemGroup>
 
 </Project>

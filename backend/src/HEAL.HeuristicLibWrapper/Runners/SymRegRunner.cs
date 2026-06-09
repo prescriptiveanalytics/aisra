@@ -44,8 +44,8 @@ public static class SymRegRunner
                             Mutator.OnePointShaker => new OnePointShaker(),
                             Mutator.RemoveBranchManipulation => new RemoveBranchManipulation(),
                             Mutator.ReplaceBranchManipulation => new ReplaceBranchManipulation(),
-                            _ => throw new ArgumentOutOfRangeException(nameof(m), m, null)
-                        }))
+                            _ => throw new ArgumentOutOfRangeException(nameof(m), m, null),
+                        })),
             ];
 
         var alg =
@@ -99,12 +99,12 @@ public static class SymRegRunner
             SymbolType.SquareRoot => new SquareRoot(),
             SymbolType.Logarithm => new Logarithm(),
             SymbolType.Exponential => new Exponential(),
-            _ => throw new ArgumentOutOfRangeException(nameof(s), s, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(s), s, null),
         })).Append(new Variable
         {
             VariableNames = dto.AllowedSymbols.Variables.Any(s => s.Trim() == "*")
                 ? dto.Dataset.VariableNames.Except([dto.Dataset.TargetVariableName]).ToArray()
-                : dto.AllowedSymbols.Variables
+                : dto.AllowedSymbols.Variables,
         }).ToArray();
 
         problem.SearchSpace.Grammar.AddFullyConnectedSymbols(linearScalingRoot, symbols);

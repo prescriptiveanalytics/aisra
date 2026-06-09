@@ -21,7 +21,7 @@ public sealed class SolutionStore
                 new StoredResult<TGenotype>
                 {
                     Solution = solution,
-                    Status = status ?? TrainingStatus.Running
+                    Status = status ?? TrainingStatus.Running,
                 }
             );
 
@@ -46,7 +46,7 @@ public sealed class SolutionStore
     ) where TGenotype : notnull
     {
         status = null;
-        solution = default;
+        solution = default(TGenotype?);
 
         if (!solutions.TryGet(id, out StoredResult<TGenotype>? result))
         {

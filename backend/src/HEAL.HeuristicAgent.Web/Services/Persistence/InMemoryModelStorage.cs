@@ -8,12 +8,13 @@ public sealed class InMemoryModelStorage : IModelStorage
 
     private readonly List<SymbolicRegressionModelDto> models = new()
     {
-        new(1, "0")
+        new(1, "0"),
     };
 
     public Task SaveBaseModelAsync(string model)
     {
         baseModel = model;
+
         return Task.CompletedTask;
     }
 
@@ -24,7 +25,7 @@ public sealed class InMemoryModelStorage : IModelStorage
 
     public Task<int> SaveModelAsync(string model)
     {
-        models.Add(new(models.Count + 1, model));
+        models.Add(new SymbolicRegressionModelDto(models.Count + 1, model));
 
         return Task.FromResult(models.Count);
     }

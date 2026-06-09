@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Collections.Concurrent;
+using System.Text.Json;
 using HEAL.HeuristicAgent.Web.Services.Persistence;
 using HEAL.HeuristicLibContracts.Threading;
 using MQTTnet;
@@ -9,7 +10,7 @@ namespace HEAL.HeuristicAgent.Web.Services.Data;
 public sealed class MqttDataClient : IDataClient, IDisposable
 {
     private readonly IMqttClient client;
-    private readonly SortedDictionary<string, double> latestValues = new();
+    private readonly ConcurrentDictionary<string, double> latestValues = new();
     private readonly JsonSerializerOptions jsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
@@ -39,7 +40,10 @@ public sealed class MqttDataClient : IDataClient, IDisposable
                 {
                     var delayTask = Interval.WithCancellationToken(ct);
 
-                    var data = latestValues.Values.ToArray();
+                    var data = latestValues
+                        .OrderBy(x => x.Key)
+                        .Select(x => x.Value)
+                        .ToArray();
 
                     if (data.Length >= 3)
                     {

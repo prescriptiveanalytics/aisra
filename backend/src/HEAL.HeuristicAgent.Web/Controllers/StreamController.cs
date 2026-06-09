@@ -13,7 +13,7 @@ namespace HEAL.HeuristicAgent.Web.Controllers;
 [ApiController]
 [Route("")]
 public sealed class StreamController(
-    LlmResponseStream llmStream,
+    ApplicationEventStream llmStream,
     IDataClient dataClient,
     IDataStorage dataStorage,
     IModelService modelService,

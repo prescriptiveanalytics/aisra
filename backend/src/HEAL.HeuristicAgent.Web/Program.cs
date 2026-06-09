@@ -103,7 +103,7 @@ services
     .AddSingleton(chatClient)
     .AddSingleton<IClientTransport>(clientTransport)
     .AddSingleton<McpClientProvider>()
-    .AddSingleton<IHeuristicChatClient, HeuristicChatClient>()
+    .AddSingleton<IHeuristicChatClient, ChatClient>()
     .AddSingleton<IHeuristicLibClient>(
         clientType switch
         {
@@ -120,7 +120,7 @@ services
     .AddSingleton<ICancellationTokenProvider>(cs)
     .AddSingleton<IRng>(rng)
     .AddSingleton<IDataClient, MqttDataClient>()
-    .AddSingleton<LlmResponseStream>()
+    .AddSingleton<ApplicationEventStream>()
     .AddSingleton<LlmClient>()
     .AddHostedService(sp => sp.GetRequiredService<LlmClient>())
     .AddSingleton<IDataStorage>(redisStore)

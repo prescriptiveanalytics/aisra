@@ -1,4 +1,5 @@
 using System.Globalization;
+using HEAL.HeuristicAgent.Web.Dtos;
 using HEAL.HeuristicAgent.Web.Services.Persistence;
 using HEAL.HeuristicLib.Genotypes.Trees;
 using HEAL.HeuristicLib.Problems.DataAnalysis.Formatter;
@@ -47,7 +48,7 @@ public sealed class ModelService(IModelStorage modelStorage) : IModelService
         var modelDto = await modelStorage
             .GetAllResidualModelsAsync()
             .FirstOrDefaultAsync(m => m.Id == modelId, cancellationToken: ct);
-        var residualExpression = modelDto != default ? modelDto.Model : "0";
+        var residualExpression = modelDto != default(SymbolicRegressionModelDto) ? modelDto.Model : "0";
 
         return Parser.Parse(residualExpression);
     }

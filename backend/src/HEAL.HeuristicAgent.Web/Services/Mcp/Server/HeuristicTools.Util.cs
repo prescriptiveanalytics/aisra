@@ -4,18 +4,6 @@ namespace HEAL.HeuristicAgent.Web.Services.Mcp.Server;
 
 public partial class HeuristicTools
 {
-    private static CallToolResult Do(Func<CallToolResult> func)
-    {
-        try
-        {
-            return func();
-        }
-        catch (Exception ex)
-        {
-            return CreateErrorResult(ex);
-        }
-    }
-
     private static async Task<CallToolResult> DoAsync(Func<Task<CallToolResult>> func)
     {
         try
@@ -38,7 +26,7 @@ public partial class HeuristicTools
             [
                 new TextContentBlock
                 {
-                    Text = $"ERROR: {ex.Message}"
+                    Text = $"ERROR: {ex.Message}",
                 },
             ],
             IsError = true,

@@ -20,7 +20,7 @@ namespace HEAL.HeuristicAgent.Web.Services.Mcp.Server;
 [McpServerToolType]
 public sealed partial class HeuristicTools(
     IHeuristicLibClient client,
-    LlmResponseStream responseStream,
+    ApplicationEventStream responseStream,
     IModelStorage modelStorage,
     IDataStorage dataStorage,
     IModelService modelService,
@@ -55,7 +55,7 @@ public sealed partial class HeuristicTools(
             HyperparameterPreset.Low => new HyperparametersDto { PopulationSize = 50, MaxIterations = 50 },
             HyperparameterPreset.Medium => new HyperparametersDto { PopulationSize = 100, MaxIterations = 100 },
             HyperparameterPreset.High => new HyperparametersDto { PopulationSize = 200, MaxIterations = 200 },
-            _ => throw new ArgumentOutOfRangeException(nameof(preset), preset, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(preset), preset, null),
         };
 
         var instructions = new SymbolicRegressionInstructionsDto
@@ -63,8 +63,8 @@ public sealed partial class HeuristicTools(
             StartTimeIncl = startTimeIncl,
             Hyperparameters = new SymbolicRegressionHyperparametersDto
             {
-                Base = baseHyperparameters
-            }
+                Base = baseHyperparameters,
+            },
         };
 
         var data = await dataStorage.GetLastAsync(startTimeIncl)
@@ -247,7 +247,7 @@ public sealed partial class HeuristicTools(
         var qualityOverTime = data.Zip(qualityList, (d, q) => new
         {
             d.Timestamp,
-            Quality = q
+            Quality = q,
         });
 
         return TextResult(JsonSerializer.Serialize(qualityOverTime, JsonOptions));

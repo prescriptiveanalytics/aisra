@@ -11,7 +11,7 @@ public sealed class LlmClient(
     IDataClient dataClient,
     IDataStorage dataStorage,
     IHeuristicChatClient chatClient,
-    LlmResponseStream responseStream,
+    ApplicationEventStream responseStream,
     IModelService modelService,
     IModelAnalyzer modelAnalyzer,
     ICancellationTokenProvider ctp
@@ -68,7 +68,7 @@ public sealed class LlmClient(
                             ChatRole.User,
                             $"[{DateTimeOffset.UtcNow}] [SYSTEM]" +
                             $" The model quality fell below the threshold of {QualityThreshold} (quality: {quality:F2})."
-                        )
+                        ),
                     ]).WithCancellation(ct)
                 )
                 {
@@ -97,7 +97,7 @@ public sealed class LlmClient(
         {
             await foreach (
                 var s in chatClient.GetStreamingResponseAsync([
-                    new ChatMessage(ChatRole.User, message)
+                    new ChatMessage(ChatRole.User, message),
                 ]).WithCancellation(ct)
             )
             {

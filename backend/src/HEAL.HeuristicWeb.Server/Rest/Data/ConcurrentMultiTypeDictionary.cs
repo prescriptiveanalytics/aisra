@@ -9,7 +9,7 @@ public sealed class ConcurrentMultiTypeDictionary<TKey> where TKey : notnull
 
     public bool TryGet<T>(TKey key, [NotNullWhen(true)] out T? value) where T : notnull
     {
-        value = default;
+        value = default(T?);
 
         if (!dict.TryGetValue(typeof(TKey), out var innerDict))
         {

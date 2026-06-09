@@ -1,12 +1,12 @@
-﻿using HEAL.HeuristicAgent.Web.Services.Mcp.Client;
+﻿using System.Reflection;
+using HEAL.HeuristicAgent.Web.Services.Mcp.Client;
 using HEAL.HeuristicLibContracts.Random;
 using HEAL.HeuristicLibContracts.Threading;
 using Microsoft.Extensions.AI;
-using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
 namespace HEAL.HeuristicAgent.Web.Services.Chat;
 
-public sealed class HeuristicChatClient(
+public sealed class ChatClient(
     IChatClient chatClient,
     McpClientProvider mcpClientProvider,
     IRng rng,
@@ -17,8 +17,10 @@ public sealed class HeuristicChatClient(
     [
         new(
             ChatRole.System,
-            File.ReadAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Resources", "SKILL.md"))
-        )
+            Assembly.GetExecutingAssembly().Let(asm
+                => asm.ReadEmbeddedTextFile($"{asm.GetName().Name}.Resources.Prompt.md")
+            )
+        ),
     ];
 
     private async Task<List<AITool>> GetToolsAsync()
@@ -40,7 +42,7 @@ public sealed class HeuristicChatClient(
                 new ChatOptions
                 {
                     Tools = await GetToolsAsync(),
-                    Seed = rng.Next()
+                    Seed = rng.Next(),
                 },
                 cancellationToken: ctp.Token
             )

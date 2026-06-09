@@ -50,7 +50,7 @@ public static class SymRegProblemMapper
             {
                 Data =
                 {
-                    dto.Dataset.Data.Select(row => new GrpcDoubleArray { Values = { row } })
+                    dto.Dataset.Data.Select(row => new GrpcDoubleArray { Values = { row } }),
                 },
                 VariableNames = { dto.Dataset.VariableNames },
                 TargetVariableName = dto.Dataset.TargetVariableName,
@@ -58,7 +58,7 @@ public static class SymRegProblemMapper
             AllowedSymbols = new GrpcAllowedSymbols
             {
                 Variables = { dto.AllowedSymbols.Variables },
-                Symbols = { dto.AllowedSymbols.Symbols.Select(s => s.ToString()) }
+                Symbols = { dto.AllowedSymbols.Symbols.Select(s => s.ToString()) },
             },
             Mutators = { dto.Hyperparameters.Mutators.Select(m => m.ToString()) },
             SearchSpace = new GrpcSymbolicRegressionSearchSpace

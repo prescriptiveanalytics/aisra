@@ -2,7 +2,6 @@ using System.Net;
 using HEAL.HeuristicLibContracts.Dtos;
 using HEAL.HeuristicLibContracts.Enums;
 using HEAL.HeuristicLibContracts.Random;
-using HEAL.HeuristicLibContracts.Threading;
 using HEAL.HeuristicLibWrapper.Exceptions;
 using HEAL.HeuristicLibWrapper.Runners;
 using HEAL.HeuristicWeb.Server.Rest.Storage;

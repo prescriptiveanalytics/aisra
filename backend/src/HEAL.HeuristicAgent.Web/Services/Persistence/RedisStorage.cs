@@ -23,7 +23,7 @@ public sealed class RedisStorage : IDataStorage, IModelStorage, IDisposable, IAs
     public async Task InsertAsync(double[] data)
     {
         await db.StreamAddAsync("data-records", [
-            new("data", string.Join(",", data))
+            new("data", string.Join(",", data)),
         ]);
     }
 
