@@ -1,5 +1,4 @@
-﻿using System.Collections.Concurrent;
-using HEAL.HeuristicAgent.Web.Dtos;
+﻿using HEAL.HeuristicAgent.Web.Dtos;
 using HEAL.HeuristicAgent.Web.Services.Persistence;
 using HEAL.HeuristicLibContracts.Threading;
 
@@ -7,7 +6,8 @@ namespace HEAL.HeuristicAgent.Web.Services.Data;
 
 public sealed class IntervalDataAggregator : IDataAggregator
 {
-    private readonly ConcurrentDictionary<string, double> latestValues = new();
+    private readonly SortedDictionary<string, double> latestValues = new();
+    private readonly Lock locker = new();
 
     public IntervalDataAggregator(
         IConfiguration config,
@@ -20,16 +20,17 @@ public sealed class IntervalDataAggregator : IDataAggregator
             : 500.Milliseconds;
         var ct = ctp.Token;
 
-        Task.Run(async () =>
+        Task.Factory.StartNew(async () =>
         {
             while (!ct.IsCancellationRequested)
             {
                 var delayTask = interval.WithCancellationToken(ct);
 
-                var data = latestValues
-                    .OrderBy(x => x.Key)
-                    .Select(x => x.Value)
-                    .ToArray();
+                double[] data;
+                lock (locker)
+                {
+                    data = latestValues.Values.ToArray();
+                }
 
                 if (data.Length >= 3)
                 {
@@ -39,11 +40,16 @@ public sealed class IntervalDataAggregator : IDataAggregator
 
                 await delayTask;
             }
-        }, ct);
+        }, ct, TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
     }
 
     public void Push(DataPointDto dataPoint)
-        => latestValues[dataPoint.Id] = dataPoint.Value;
+    {
+        lock (locker)
+        {
+            latestValues[dataPoint.Id] = dataPoint.Value;
+        }
+    }
 
     public event EventHandler<double[]>? DataAggregated;
 }

@@ -58,8 +58,10 @@ public sealed class ModelAnalyzer : IModelAnalyzer
         for (var i = 0; i < data.Length; i++)
         {
             var windowStart = Math.Max(0, i - windowSize + 1);
-            var windowPredictions = predictions.Skip(windowStart).Take(i - windowStart + 1).ToArray();
-            var windowTrueValues = trueValues.Skip(windowStart).Take(i - windowStart + 1).ToArray();
+            var windowLen = i - windowStart + 1;
+
+            var windowPredictions = predictions[windowStart..(windowStart + windowLen)];
+            var windowTrueValues = trueValues[windowStart..(windowStart + windowLen)];
 
             var quality = Evaluator.Evaluate(windowPredictions, windowTrueValues);
             qualityOverTime.Add(quality);
@@ -89,19 +91,18 @@ public sealed class ModelAnalyzer : IModelAnalyzer
         var importance = new double[numFeatures];
         var random = new Random(0);
 
+        var permutedData = new double[data.Length][];
+        for (var i = 0; i < data.Length; i++)
+        {
+            permutedData[i] = (double[])data[i].Clone();
+        }
+
         for (var f = 0; f < numFeatures; f++)
         {
             var featureImportanceSum = 0.0;
 
             for (var p = 0; p < permutations; p++)
             {
-                var permutedData = new double[data.Length][];
-
-                for (var i = 0; i < data.Length; i++)
-                {
-                    permutedData[i] = (double[])data[i].Clone();
-                }
-
                 for (var i = permutedData.Length - 1; i > 0; i--)
                 {
                     var j = random.Next(i + 1);
@@ -111,6 +112,11 @@ public sealed class ModelAnalyzer : IModelAnalyzer
 
                 var permutedQuality = EvaluateQuality(tree, permutedData);
                 featureImportanceSum += baselineQuality - permutedQuality;
+
+                for (var i = 0; i < data.Length; i++)
+                {
+                    permutedData[i][f] = data[i][f];
+                }
             }
 
             importance[f] = featureImportanceSum / permutations;

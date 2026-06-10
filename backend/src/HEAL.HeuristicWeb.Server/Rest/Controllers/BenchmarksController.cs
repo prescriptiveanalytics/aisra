@@ -2,6 +2,7 @@ using System.Net;
 using HEAL.HeuristicLibContracts.Dtos;
 using HEAL.HeuristicLibContracts.Enums;
 using HEAL.HeuristicLibContracts.Random;
+using HEAL.HeuristicLibContracts.Util;
 using HEAL.HeuristicLibWrapper.Exceptions;
 using HEAL.HeuristicLibWrapper.Runners;
 using HEAL.HeuristicWeb.Server.Rest.Storage;
@@ -28,7 +29,7 @@ public sealed class BenchmarksController(SolutionStore store, IRng rng) : Contro
             var id = Guid.NewGuid();
             store.Store(id);
 
-            _ = Task.Run(async () =>
+            Task.Run(async () =>
             {
                 try
                 {
@@ -40,7 +41,7 @@ public sealed class BenchmarksController(SolutionStore store, IRng rng) : Contro
                 {
                     store.Store(id, status: TrainingStatus.Failed);
                 }
-            });
+            }, ct);
 
             return AcceptedAtAction(nameof(GetStatus), new { id }, null);
         }

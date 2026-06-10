@@ -91,7 +91,7 @@ public sealed class StreamController(
 
         dataAggregator.DataAggregated += Handler;
 
-        Task.Run(async () =>
+        Task.Factory.StartNew(async () =>
         {
             try
             {
@@ -131,7 +131,7 @@ public sealed class StreamController(
             catch (OperationCanceledException)
             {
             }
-        }, HttpContext.RequestAborted).Forget();
+        }, HttpContext.RequestAborted, TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap().Forget();
 
         try
         {

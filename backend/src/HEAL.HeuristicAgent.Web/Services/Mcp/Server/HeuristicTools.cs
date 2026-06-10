@@ -225,7 +225,6 @@ public sealed partial class HeuristicTools(
         responseStream.Broadcast(EventType.Tool, "Evaluating model quality over time");
 
         var data = await dataStorage.GetLastAsync(startTimeIncl)
-            .Where(d => d.Item1 >= startTimeIncl)
             .Select(d => (Timestamp: d.Item1, Values: d.Item2))
             .ToArrayAsync(cancellationToken: ct);
 

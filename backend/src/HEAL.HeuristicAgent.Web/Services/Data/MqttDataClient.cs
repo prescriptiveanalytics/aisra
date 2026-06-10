@@ -25,7 +25,7 @@ public sealed class MqttDataClient : IDataClient, IDisposable
         {
             await client.SubscribeAsync(new MqttTopicFilterBuilder()
                 .WithTopic(topicFilter)
-                .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.ExactlyOnce)
+                .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
                 .Build());
         };
         client.ApplicationMessageReceivedAsync += e =>

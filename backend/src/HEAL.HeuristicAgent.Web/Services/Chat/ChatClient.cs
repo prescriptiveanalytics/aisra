@@ -7,33 +7,44 @@ using Microsoft.Extensions.AI;
 namespace HEAL.HeuristicAgent.Web.Services.Chat;
 
 public sealed class ChatClient(
+    IConfiguration config,
     IChatClient chatClient,
     McpClientProvider mcpClientProvider,
     IRng rng,
     ICancellationTokenProvider ctp
 ) : IHeuristicChatClient
 {
-    private readonly List<ChatMessage> messageHistory =
-    [
-        new(
-            ChatRole.System,
-            Assembly.GetExecutingAssembly().Let(asm
-                => asm.ReadEmbeddedTextFile($"{asm.GetName().Name}.Resources.Prompt.md")
-            )
-        ),
-    ];
+    private static readonly string SystemPrompt = Assembly.GetExecutingAssembly()
+        .Let(asm => asm.ReadEmbeddedTextFile($"{asm.GetName().Name}.Resources.Prompt.md"));
+
+    private readonly int maxHistoryChars = config["MaxHistoryChars"] is not null ? int.Parse(config["MaxHistoryChars"]!) : 20_000;
+    private readonly List<ChatMessage> messageHistory = [new(ChatRole.System, SystemPrompt)];
+    private int totalHistoryChars = SystemPrompt.Length;
+    private List<AITool>? cachedTools;
 
     private async Task<List<AITool>> GetToolsAsync()
     {
+        if (cachedTools is not null)
+        {
+            return cachedTools;
+        }
+
         var ct = ctp.Token;
         var tools = await (await mcpClientProvider.GetClientAsync()).ListToolsAsync(cancellationToken: ct);
 
-        return tools.Cast<AITool>().ToList();
+        return cachedTools = tools.Cast<AITool>().ToList();
     }
 
     public async IAsyncEnumerable<string> GetStreamingResponseAsync(ICollection<ChatMessage> messages)
     {
-        messageHistory.AddRange(messages);
+        foreach (var msg in messages)
+        {
+            messageHistory.Add(msg);
+            totalHistoryChars += msg.Contents?.OfType<TextContent>().FirstOrDefault()?.Text?.Length ?? 0;
+        }
+
+        TrimHistory();
+
         var text = "";
 
         await foreach (
@@ -58,5 +69,18 @@ public sealed class ChatClient(
         }
 
         messageHistory.Add(new ChatMessage(ChatRole.Assistant, text));
+        totalHistoryChars += text.Length;
+        TrimHistory();
+    }
+
+    private void TrimHistory()
+    {
+        while (totalHistoryChars > maxHistoryChars && messageHistory.Count > 1)
+        {
+            var removed = messageHistory[1];
+            var removedLength = removed.Contents?.OfType<TextContent>().FirstOrDefault()?.Text?.Length ?? 0;
+            totalHistoryChars -= removedLength;
+            messageHistory.RemoveAt(1);
+        }
     }
 }

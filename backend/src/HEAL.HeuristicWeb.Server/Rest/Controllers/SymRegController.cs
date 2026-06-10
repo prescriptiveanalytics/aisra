@@ -36,7 +36,7 @@ public sealed class SymRegController(SolutionStore store, IRng rng) : Controller
                 return BadRequest("All data rows must have the same length as the variable names array.");
             }
 
-            _ = Task.Run(async () =>
+            Task.Run(async () =>
             {
                 try
                 {
