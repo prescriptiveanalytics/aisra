@@ -16,7 +16,7 @@ public sealed class MqttDataClient : IDataClient, IDisposable
     public MqttDataClient(IConfiguration config, IDataAggregator dataAggregator)
     {
         var host = config["MqttHost"] ?? "localhost";
-        var port = int.Parse(config["MqttPort"] ?? "1883");
+        var port = int.TryParse(config["MqttPort"], out var parsedPort) ? parsedPort : 1883;
         var topicFilter = config["MqttTopicFilter"] ?? "#";
 
         var factory = new MqttClientFactory();

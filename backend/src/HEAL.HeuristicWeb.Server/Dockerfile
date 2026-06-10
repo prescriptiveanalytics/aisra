@@ -18,5 +18,6 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 COPY --from=build /app .
 EXPOSE 5000 8080
-ENV ASPNETCORE_ENVIRONMENT=Development
+ENV ASPNETCORE_ENVIRONMENT=Production
+USER app
 ENTRYPOINT ["dotnet", "HEAL.HeuristicWeb.Server.dll"]

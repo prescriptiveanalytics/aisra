@@ -77,19 +77,22 @@ public sealed class RedisStorage : IDataStorage, IModelStorage, IDisposable, IAs
 
     public async IAsyncEnumerable<SymbolicRegressionModelDto> GetAllResidualModelsAsync()
     {
-        var id = (int)await db.StringGetAsync("model-id");
+        var server = connection.GetServer(connection.GetEndPoints()[0]);
 
-        var keys = new RedisKey[id];
-        for (var i = 0; i < id; i++)
-            keys[i] = new RedisKey($"model:{i + 1}");
-
-        var values = await db.StringGetAsync(keys);
-
-        for (var i = 0; i < values.Length; i++)
+        await foreach (var key in server.KeysAsync(pattern: "model:*"))
         {
-            if (!values[i].IsNullOrEmpty)
+            var idStr = key.ToString()["model:".Length..];
+
+            if (!int.TryParse(idStr, out var id))
             {
-                yield return new SymbolicRegressionModelDto(i + 1, values[i].ToString());
+                continue;
+            }
+
+            var value = await db.StringGetAsync(key);
+
+            if (!value.IsNullOrEmpty)
+            {
+                yield return new SymbolicRegressionModelDto(id, value.ToString());
             }
         }
     }

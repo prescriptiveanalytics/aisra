@@ -15,8 +15,8 @@ public sealed class IntervalDataAggregator : IDataAggregator
         ICancellationTokenProvider ctp
     )
     {
-        var interval = config["DataAggregationIntervalMs"] is not null
-            ? int.Parse(config["DataAggregationIntervalMs"]!).Milliseconds
+        var interval = int.TryParse(config["DataAggregationIntervalMs"], out var parsedInterval)
+            ? parsedInterval.Milliseconds
             : 500.Milliseconds;
         var ct = ctp.Token;
 
