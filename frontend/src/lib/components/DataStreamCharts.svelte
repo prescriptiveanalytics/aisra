@@ -3,6 +3,7 @@
     import { type ChartData, type ChartOptions } from "chart.js";
     import ReconnectingEventSource from "reconnecting-eventsource";
     import { themeState } from "$lib/theme.svelte";
+    import { apiBase } from "$lib/config";
 
     let chartLabels = $state<string[]>([]);
     let featureData = $state<Record<number, number[]>>({});
@@ -19,7 +20,7 @@
     ];
 
     $effect(() => {
-        let eventSource = new ReconnectingEventSource(`https://localhost:5297/data-stream`);
+        let eventSource = new ReconnectingEventSource(`${apiBase}/data-stream`);
 
         eventSource.onmessage = (event: MessageEvent): void => {
             const dataArray = JSON.parse(event.data as string) as number[];

@@ -7,14 +7,23 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.WebHost.ConfigureKestrel(opt =>
 {
-    opt.ListenAnyIP(5000, listenOptions =>
+    var cfg = builder.Configuration;
+    var grpcPort = int.Parse(cfg["GRPC_PORT"] ?? "5000");
+    var restPort = int.Parse(cfg["REST_PORT"] ?? "5001");
+    var enableHttps = bool.Parse(cfg["ENABLE_HTTPS"] ?? "true");
+
+    opt.ListenAnyIP(grpcPort, listenOptions =>
     {
-        listenOptions.Protocols = HttpProtocols.Http1;
+        listenOptions.Protocols = HttpProtocols.Http2;
     });
 
-    opt.ListenAnyIP(5001, listenOptions =>
+    opt.ListenAnyIP(restPort, listenOptions =>
     {
-        listenOptions.UseHttps();
+        if (enableHttps)
+        {
+            listenOptions.UseHttps();
+        }
+
         listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
     });
 });

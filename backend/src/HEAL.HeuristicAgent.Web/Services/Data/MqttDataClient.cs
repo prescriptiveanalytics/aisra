@@ -17,11 +17,11 @@ public sealed class MqttDataClient : IDataClient, IDisposable
     };
     private static readonly TimeSpan Interval = 0.5.Seconds;
 
-    public MqttDataClient(IDataStorage dataStorage, ICancellationTokenProvider ctp)
+    public MqttDataClient(IDataStorage dataStorage, ICancellationTokenProvider ctp, IConfiguration config)
     {
-        const string host = "localhost";
-        const int port = 1883;
-        const string topicFilter = "resource1/raw/#";
+        var host = config["MqttHost"] ?? "localhost";
+        var port = int.Parse(config["MqttPort"] ?? "1883");
+        var topicFilter = config["MqttTopicFilter"] ?? "#";
 
         var ct = ctp.Token;
 

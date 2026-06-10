@@ -26,14 +26,22 @@ var clientTransport = new StreamClientTransport(
 );
 
 var builder = WebApplication.CreateBuilder(args);
+var cfg = builder.Configuration;
 
 var services = builder.Services;
 
 builder.WebHost.ConfigureKestrel(options =>
 {
-    options.ListenAnyIP(5297, listenOptions =>
+    var httpPort = int.Parse(cfg["HTTP_PORT"] ?? "5297");
+    var enableHttps = bool.Parse(cfg["ENABLE_HTTPS"] ?? "true");
+
+    options.ListenAnyIP(httpPort, listenOptions =>
     {
-        listenOptions.UseHttps();
+        if (enableHttps)
+        {
+            listenOptions.UseHttps();
+        }
+
         listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
     });
 });
@@ -48,8 +56,6 @@ services.AddCors(options =>
             .AllowAnyMethod()
     );
 });
-
-var cfg = builder.Configuration;
 
 if (!Enum.TryParse<ClientType>(cfg["ClientType"], true, out var clientType))
 {

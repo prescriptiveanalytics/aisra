@@ -3,6 +3,7 @@
     import { type ChartData, type ChartOptions } from "chart.js";
     import ReconnectingEventSource from "reconnecting-eventsource";
     import { themeState } from "$lib/theme.svelte";
+    import { apiBase } from "$lib/config";
 
     let { modelId }: { modelId: number | null } = $props();
 
@@ -127,7 +128,7 @@
 
     $effect(() => {
         let eventSource = new ReconnectingEventSource(
-            `https://localhost:5297/api/metrics-stream${modelId != null ? `?modelId=${modelId}` : ""}`,
+            `${apiBase}/api/metrics-stream${modelId != null ? `?modelId=${modelId}` : ""}`,
         );
 
         eventSource.onmessage = (event: MessageEvent): void => {
@@ -146,7 +147,7 @@
 
             if (metrics.featureImportances != null) {
                 metrics.featureImportances.forEach((f) => {
-                    if (!newFeatureData[f.feature]) {
+                    if (newFeatureData[f.feature] != null) {
                         newFeatureData[f.feature] = new Array(chartLabels.length - 1).fill(null);
                     }
                 });

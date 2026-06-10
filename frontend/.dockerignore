@@ -1,0 +1,8 @@
+node_modules/
+.svelte-kit/
+.git/
+.gitignore
+*.md
+.eslintrc*
+.prettierrc*
+prettier*

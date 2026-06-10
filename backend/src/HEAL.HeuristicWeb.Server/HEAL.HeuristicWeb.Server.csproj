@@ -29,7 +29,7 @@
         <ApiAssembly>$(MSBuildProjectDirectory)\bin\$(Configuration)\net10.0\HEAL.HeuristicWeb.Server.dll</ApiAssembly>
     </PropertyGroup>
 
-    <Target Name="BuildSwaggerFile" AfterTargets="Build">
+    <Target Name="BuildSwaggerFile" AfterTargets="Build" Condition="'$(SKIP_SWAGGER)' == ''">
         <Exec EnvironmentVariables="ASPNETCORE_ENVIRONMENT=Development" Command="dotnet tool restore" />
         <Exec EnvironmentVariables="ASPNETCORE_ENVIRONMENT=Development"
               Command="dotnet tool run swagger tofile --output $(ProjectDir)openapi.json $(ApiAssembly) v1" />

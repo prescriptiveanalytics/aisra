@@ -1,0 +1,15 @@
+services:
+  db:
+    image: redis:8-alpine
+    env_file:
+      - .dev.env
+    ports:
+      - "${REDIS_PORT_HOST:-6379}:6379"
+    command: redis-server --save "" --appendonly no
+
+  mqtt-broker:
+    image: eclipse-mosquitto:2.1-alpine
+    env_file:
+      - .dev.env
+    ports:
+      - "${MQTT_PORT_HOST:-1883}:1883"
