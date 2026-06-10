@@ -1,5 +1,5 @@
 <script lang="ts">
-    let {
+    const {
         isOpen,
         close,
         models,

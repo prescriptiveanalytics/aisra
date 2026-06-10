@@ -10,10 +10,20 @@ import svelteConfig from "./svelte.config.js";
 
 const gitignorePath = path.resolve(import.meta.dirname, ".gitignore");
 
+const typeCheckedFiles = [
+    "src/**/*.ts",
+    "src/**/*.svelte",
+    "src/**/*.svelte.ts",
+    "src/**/*.svelte.js",
+];
+
 export default defineConfig(
     includeIgnoreFile(gitignorePath),
     js.configs.recommended,
-    ts.configs.recommended,
+    ...ts.configs.recommended.map((config) => ({
+        ...config,
+        files: typeCheckedFiles,
+    })),
     svelte.configs.recommended,
     prettier,
     svelte.configs.prettier,
@@ -27,7 +37,7 @@ export default defineConfig(
         ignores: ["node_modules/", "build/", ".svelte-kit/", "dist/"],
     },
     {
-        files: ["**/*.svelte", "**/*.svelte.ts", "**/*.svelte.js"],
+        files: typeCheckedFiles,
         languageOptions: {
             parserOptions: {
                 projectService: true,
@@ -38,6 +48,7 @@ export default defineConfig(
         },
     },
     {
+        files: typeCheckedFiles,
         rules: {
             "@typescript-eslint/explicit-function-return-type": [
                 "error",

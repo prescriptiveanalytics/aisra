@@ -4,7 +4,7 @@
     import { themeState } from "$lib/theme.svelte";
     import { Modals } from "svelte-modals";
 
-    let { children } = $props();
+    const { children } = $props();
 
     $effect(() => {
         const stored = localStorage.getItem("theme");
@@ -34,7 +34,7 @@
 
     $effect(() => {
         const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
-        const listener = (e: MediaQueryListEvent) => {
+        const listener = (e: MediaQueryListEvent): void => {
             if (themeState.preference === "system") {
                 themeState.current = e.matches ? "dark" : "light";
             }
@@ -50,7 +50,9 @@
     {#snippet backdrop({ close })}
         <div
             class="fixed inset-0 z-40 bg-black/50"
-            onclick={() => close()}
+            onclick={() => {
+                close();
+            }}
             aria-hidden="true"
         ></div>
     {/snippet}

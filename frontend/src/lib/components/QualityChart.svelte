@@ -4,28 +4,20 @@
     import ReconnectingEventSource from "reconnecting-eventsource";
     import { themeState } from "$lib/theme.svelte";
     import { apiBase } from "$lib/config";
+    import { CHART_COLORS, MAX_DATA_POINTS } from "$lib/utils/chart";
+    import { formatTimeLabel } from "$lib/utils/time";
 
-    let { modelId }: { modelId: number | null } = $props();
+    const { modelId }: { modelId: number | null } = $props();
 
     let chartLabels = $state<string[]>([]);
     let chartValues = $state<number[]>([]);
     let featureData = $state<Record<string, (number | null)[]>>({});
 
-    let hasFeatureData = $derived(
+    const hasFeatureData = $derived(
         Object.values(featureData).some((data) => data.some((val) => val !== null)),
     );
 
-    const colors = [
-        "rgb(239, 68, 68)",
-        "rgb(34, 197, 94)",
-        "rgb(234, 179, 8)",
-        "rgb(168, 85, 247)",
-        "rgb(236, 72, 153)",
-        "rgb(20, 184, 166)",
-        "rgb(249, 115, 22)",
-    ];
-
-    let chartData = $derived<ChartData<"line">>({
+    const chartData = $derived<ChartData<"line">>({
         labels: chartLabels,
         datasets: [
             {
@@ -38,7 +30,7 @@
                 yAxisID: "y",
             },
             ...Object.entries(featureData).map(([featureName, data], index) => {
-                const color = colors[index % colors.length];
+                const color = CHART_COLORS[index % CHART_COLORS.length];
                 return {
                     label: `Importance: ${featureName}`,
                     data: data,
@@ -54,7 +46,7 @@
         ],
     });
 
-    let chartOptions = $derived<ChartOptions<"line">>({
+    const chartOptions = $derived<ChartOptions<"line">>({
         responsive: true,
         maintainAspectRatio: false,
         scales: {
@@ -127,30 +119,27 @@
     };
 
     $effect(() => {
-        let eventSource = new ReconnectingEventSource(
+        const eventSource = new ReconnectingEventSource(
             `${apiBase}/api/metrics-stream${modelId != null ? `?modelId=${modelId}` : ""}`,
         );
 
         eventSource.onmessage = (event: MessageEvent): void => {
             const metrics = JSON.parse(event.data as string) as ModelMetrics;
-
-            const now = new Date();
-            const timeLabel =
-                `${now.getHours()}` +
-                `:${now.getMinutes().toString().padStart(2, "0")}` +
-                `:${now.getSeconds().toString().padStart(2, "0")}`;
+            const timeLabel = formatTimeLabel();
 
             chartLabels = [...chartLabels, timeLabel];
             chartValues = [...chartValues, metrics.quality * 100];
 
-            let newFeatureData = { ...featureData };
+            const newFeatureData = { ...featureData };
 
             if (metrics.featureImportances != null) {
-                metrics.featureImportances.forEach((f) => {
-                    if (newFeatureData[f.feature] != null) {
-                        newFeatureData[f.feature] = new Array(chartLabels.length - 1).fill(null);
+                for (const f of metrics.featureImportances) {
+                    if (newFeatureData[f.feature] == null) {
+                        newFeatureData[f.feature] = new Array(chartLabels.length - 1).fill(
+                            null,
+                        ) as (number | null)[];
                     }
-                });
+                }
             }
 
             for (const key of Object.keys(newFeatureData)) {
@@ -158,11 +147,11 @@
                 newFeatureData[key].push(feature ? feature.importance : null);
             }
 
-            if (chartLabels.length > 50) {
-                chartLabels = chartLabels.slice(-50);
-                chartValues = chartValues.slice(-50);
+            if (chartLabels.length > MAX_DATA_POINTS) {
+                chartLabels = chartLabels.slice(-MAX_DATA_POINTS);
+                chartValues = chartValues.slice(-MAX_DATA_POINTS);
                 for (const key of Object.keys(newFeatureData)) {
-                    newFeatureData[key] = newFeatureData[key].slice(-50);
+                    newFeatureData[key] = newFeatureData[key].slice(-MAX_DATA_POINTS);
                 }
             }
 
