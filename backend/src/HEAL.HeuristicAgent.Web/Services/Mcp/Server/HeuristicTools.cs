@@ -48,7 +48,7 @@ public sealed partial class HeuristicTools(
         CancellationToken ct = default
     ) => DoAsync(async () =>
     {
-        responseStream.Broadcast(EventType.Tool, $"Running symbolic regression (Preset: {preset})");
+        responseStream.Broadcast(EventType.Tool, $"Training residual model");
 
         var baseHyperparameters = preset switch
         {
@@ -133,7 +133,7 @@ public sealed partial class HeuristicTools(
         
         var id = await modelStorage.SaveModelAsync(expression);
 
-        responseStream.Broadcast(EventType.Tool, "Symbolic regression completed");
+        responseStream.Broadcast(EventType.Tool, "Residual model training done");
 
         return TextResult(JsonSerializer.Serialize(
             new
@@ -198,7 +198,7 @@ public sealed partial class HeuristicTools(
         
         await modelStorage.SaveBaseModelAsync(expression);
 
-        responseStream.Broadcast(EventType.Tool, "Base model trained successfully");
+        responseStream.Broadcast(EventType.Tool, "Base model training done");
 
         return TextResult(JsonSerializer.Serialize(
             new
