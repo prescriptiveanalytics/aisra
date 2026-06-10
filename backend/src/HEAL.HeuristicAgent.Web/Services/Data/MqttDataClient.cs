@@ -1,7 +1,5 @@
-﻿using System.Collections.Concurrent;
-using System.Text.Json;
-using HEAL.HeuristicAgent.Web.Services.Persistence;
-using HEAL.HeuristicLibContracts.Threading;
+﻿using System.Text.Json;
+using HEAL.HeuristicAgent.Web.Dtos;
 using MQTTnet;
 using MQTTnet.Protocol;
 
@@ -10,20 +8,16 @@ namespace HEAL.HeuristicAgent.Web.Services.Data;
 public sealed class MqttDataClient : IDataClient, IDisposable
 {
     private readonly IMqttClient client;
-    private readonly ConcurrentDictionary<string, double> latestValues = new();
     private readonly JsonSerializerOptions jsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
     };
-    private static readonly TimeSpan Interval = 0.5.Seconds;
 
-    public MqttDataClient(IDataStorage dataStorage, ICancellationTokenProvider ctp, IConfiguration config)
+    public MqttDataClient(IConfiguration config, IDataAggregator dataAggregator)
     {
         var host = config["MqttHost"] ?? "localhost";
         var port = int.Parse(config["MqttPort"] ?? "1883");
         var topicFilter = config["MqttTopicFilter"] ?? "#";
-
-        var ct = ctp.Token;
 
         var factory = new MqttClientFactory();
         client = factory.CreateMqttClient();
@@ -33,43 +27,23 @@ public sealed class MqttDataClient : IDataClient, IDisposable
                 .WithTopic(topicFilter)
                 .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.ExactlyOnce)
                 .Build());
-
-            Task.Run(async () =>
-            {
-                while (!ct.IsCancellationRequested)
-                {
-                    var delayTask = Interval.WithCancellationToken(ct);
-
-                    var data = latestValues
-                        .OrderBy(x => x.Key)
-                        .Select(x => x.Value)
-                        .ToArray();
-
-                    if (data.Length >= 3)
-                    {
-                        await dataStorage.InsertAsync(data);
-                        DataReceived?.Invoke(this, data);
-                    }
-
-                    await delayTask;
-                }
-            }).Forget();
         };
         client.ApplicationMessageReceivedAsync += e =>
         {
             try
             {
                 var payload = e.ApplicationMessage.ConvertPayloadToString();
-                var dto = JsonSerializer.Deserialize<DataPointDto>(payload, jsonOptions);
+                var dataPoint = JsonSerializer.Deserialize<DataPointDto>(payload, jsonOptions);
 
-                if (dto is null)
+                if (dataPoint is null)
                 {
                     Console.WriteLine($"Received invalid MQTT message on topic {e.ApplicationMessage.Topic}: {payload}");
 
                     return Task.CompletedTask;
                 }
 
-                latestValues[dto.Id] = dto.Value;
+                dataAggregator.Push(dataPoint);
+                DataReceived?.Invoke(this, dataPoint);
 
                 return Task.CompletedTask;
             }
@@ -96,7 +70,5 @@ public sealed class MqttDataClient : IDataClient, IDisposable
         client.Dispose();
     }
 
-    public event EventHandler<double[]>? DataReceived;
-
-    public sealed record DataPointDto(string Id, double Value);
+    public event EventHandler<DataPointDto>? DataReceived;
 }

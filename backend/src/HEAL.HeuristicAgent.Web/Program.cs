@@ -126,6 +126,7 @@ services
     .AddSingleton<ICancellationTokenProvider>(cs)
     .AddSingleton<IRng>(rng)
     .AddSingleton<IDataClient, MqttDataClient>()
+    .AddSingleton<IDataAggregator, IntervalDataAggregator>()
     .AddSingleton<ApplicationEventStream>()
     .AddSingleton<LlmClient>()
     .AddHostedService(sp => sp.GetRequiredService<LlmClient>())

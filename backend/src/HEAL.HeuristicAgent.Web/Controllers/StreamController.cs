@@ -15,6 +15,7 @@ namespace HEAL.HeuristicAgent.Web.Controllers;
 public sealed class StreamController(
     ApplicationEventStream llmStream,
     IDataClient dataClient,
+    IDataAggregator dataAggregator,
     IDataStorage dataStorage,
     IModelService modelService,
     IModelAnalyzer modelAnalyzer,
@@ -88,7 +89,7 @@ public sealed class StreamController(
             eventChannel.Writer.TryComplete();
         });
 
-        dataClient.DataReceived += Handler;
+        dataAggregator.DataAggregated += Handler;
 
         Task.Run(async () =>
         {
@@ -144,7 +145,7 @@ public sealed class StreamController(
         }
         finally
         {
-            dataClient.DataReceived -= Handler;
+            dataAggregator.DataAggregated -= Handler;
         }
 
         return;
@@ -161,7 +162,7 @@ public sealed class StreamController(
         Response.Headers.Append("Content-Type", "text/event-stream");
         Response.Headers.Append("Cache-Control", "no-cache");
 
-        var channel = Channel.CreateUnbounded<double[]>();
+        var channel = Channel.CreateUnbounded<DataPointDto>();
 
         dataClient.DataReceived += Handler;
 
@@ -180,7 +181,7 @@ public sealed class StreamController(
 
         return;
 
-        void Handler(object? sender, double[] e)
+        void Handler(object? sender, DataPointDto e)
         {
             channel.Writer.TryWrite(e);
         }

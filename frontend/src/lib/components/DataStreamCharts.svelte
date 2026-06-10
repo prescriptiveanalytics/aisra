@@ -5,9 +5,12 @@
     import { themeState } from "$lib/theme.svelte";
     import { apiBase } from "$lib/config";
 
-    let chartLabels = $state<string[]>([]);
-    let featureData = $state<Record<number, number[]>>({});
-    let numFeatures = $state<number>(0);
+    type DataPoint = {
+        id: string;
+        value: number;
+    }
+
+    let series = $state<{ id: string; labels: string[]; data: number[] }[]>([]);
 
     const colors = [
         "rgb(239, 68, 68)",
@@ -23,11 +26,7 @@
         let eventSource = new ReconnectingEventSource(`${apiBase}/data-stream`);
 
         eventSource.onmessage = (event: MessageEvent): void => {
-            const dataArray = JSON.parse(event.data as string) as number[];
-
-            if (numFeatures === 0 && dataArray.length > 0) {
-                numFeatures = dataArray.length;
-            }
+            const dataPoint = JSON.parse(event.data as string) as DataPoint;
 
             const now = new Date();
             const timeLabel =
@@ -35,25 +34,29 @@
                 `:${now.getMinutes().toString().padStart(2, "0")}` +
                 `:${now.getSeconds().toString().padStart(2, "0")}`;
 
-            chartLabels = [...chartLabels, timeLabel];
-
-            let newFeatureData = { ...featureData };
-
-            for (let i = 0; i < dataArray.length; i++) {
-                if (!newFeatureData[i]) {
-                    newFeatureData[i] = new Array(chartLabels.length - 1).fill(0);
+            let found = false;
+            let newSeries = series.map((s) => {
+                if (s.id === dataPoint.id) {
+                    found = true;
+                    let newLabels = [...s.labels, timeLabel];
+                    let newData = [...s.data, dataPoint.value];
+                    if (newLabels.length > 50) {
+                        newLabels = newLabels.slice(-50);
+                        newData = newData.slice(-50);
+                    }
+                    return { ...s, labels: newLabels, data: newData };
                 }
-                newFeatureData[i].push(dataArray[i]);
+                return s;
+            });
+
+            if (!found) {
+                newSeries = [
+                    ...newSeries,
+                    { id: dataPoint.id, labels: [timeLabel], data: [dataPoint.value] },
+                ];
             }
 
-            if (chartLabels.length > 50) {
-                chartLabels = chartLabels.slice(-50);
-                for (let i = 0; i < dataArray.length; i++) {
-                    newFeatureData[i] = newFeatureData[i].slice(-50);
-                }
-            }
-
-            featureData = newFeatureData;
+            series = newSeries;
         };
 
         return () => {
@@ -61,14 +64,14 @@
         };
     });
 
-    function getChartData(index: number, data: number[]): ChartData<"line"> {
-        const color = colors[index % colors.length];
+    function getChartData(s: { id: string; labels: string[]; data: number[] }, colorIndex: number): ChartData<"line"> {
+        const color = colors[colorIndex % colors.length];
         return {
-            labels: chartLabels,
+            labels: s.labels,
             datasets: [
                 {
-                    label: index === numFeatures - 1 ? "y" : `x${index + 1}`,
-                    data: data,
+                    label: s.id,
+                    data: s.data,
                     borderColor: color,
                     backgroundColor: color.replace("rgb", "rgba").replace(")", ", 0.5)"),
                     tension: 0.3,
@@ -126,11 +129,11 @@
 </script>
 
 <div class="grid grid-cols-1 gap-4 2xl:grid-cols-2">
-    {#each Array(numFeatures) as _, i}
+    {#each series as s, i}
         <div
             class="mb-4 h-64 min-w-0 flex-1 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900"
         >
-            <Line data={getChartData(i, featureData[i] || [])} options={getChartOptions(i)} />
+            <Line data={getChartData(s, i)} options={getChartOptions(i)} />
         </div>
     {/each}
 </div>
