@@ -40,7 +40,7 @@ public sealed class ChatClient(
         foreach (var msg in messages)
         {
             messageHistory.Add(msg);
-            totalHistoryChars += msg.Contents?.OfType<TextContent>().FirstOrDefault()?.Text?.Length ?? 0;
+            totalHistoryChars += msg.Contents.OfType<TextContent>().FirstOrDefault()?.Text.Length ?? 0;
         }
 
         TrimHistory();
@@ -78,7 +78,7 @@ public sealed class ChatClient(
         while (totalHistoryChars > maxHistoryChars && messageHistory.Count > 1)
         {
             var removed = messageHistory[1];
-            var removedLength = removed.Contents?.OfType<TextContent>().FirstOrDefault()?.Text?.Length ?? 0;
+            var removedLength = removed.Contents.OfType<TextContent>().FirstOrDefault()?.Text.Length ?? 0;
             totalHistoryChars -= removedLength;
             messageHistory.RemoveAt(1);
         }
