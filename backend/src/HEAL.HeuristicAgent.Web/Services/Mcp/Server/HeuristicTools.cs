@@ -36,34 +36,30 @@ public sealed partial class HeuristicTools(
     [UsedImplicitly]
     [McpServerTool]
     [Description(
-        "Runs a symbolic regression algorithm with the given data to create and store a new model. " +
+        "Runs a symbolic regression algorithm with the given data to create and store a new residual model. " +
         "Does not activate the generated model automatically. " +
         "Returns the generated expression and the ID of the stored model."
     )]
     public Task<CallToolResult> TrainResidualModel(
         [Description("The start time (inclusive) for the data to use for training")]
         DateTimeOffset startTimeIncl,
-        [Description("Hyperparameter preset: Low (fastest, lowest quality), Medium, or High (slowest, highest quality).")]
-        HyperparameterPreset preset,
+        int populationSize,
+        int maxIterations,
         CancellationToken ct = default
     ) => DoAsync(async () =>
     {
-        responseStream.Broadcast(EventType.Tool, $"Training residual model");
-
-        var baseHyperparameters = preset switch
-        {
-            HyperparameterPreset.Low => new HyperparametersDto { PopulationSize = 50, MaxIterations = 50 },
-            HyperparameterPreset.Medium => new HyperparametersDto { PopulationSize = 100, MaxIterations = 100 },
-            HyperparameterPreset.High => new HyperparametersDto { PopulationSize = 200, MaxIterations = 200 },
-            _ => throw new ArgumentOutOfRangeException(nameof(preset), preset, null),
-        };
+        responseStream.Broadcast(EventType.Tool, "Training residual model");
 
         var instructions = new SymbolicRegressionInstructionsDto
         {
             StartTimeIncl = startTimeIncl,
             Hyperparameters = new SymbolicRegressionHyperparametersDto
             {
-                Base = baseHyperparameters,
+                Base = new HyperparametersDto
+                {
+                    PopulationSize = populationSize,
+                    MaxIterations = maxIterations,
+                },
             },
         };
 
@@ -87,8 +83,8 @@ public sealed partial class HeuristicTools(
             .ToArray();
 
         var baseModel = await modelService.GetBaseModelAsync(ct);
-        
-        if (baseModel != null)
+
+        if (baseModel is not null)
         {
             // Calculate residuals using BaseModel
             var baseModelEvaluator = new SymbolicRegressionModel(
@@ -108,6 +104,7 @@ public sealed partial class HeuristicTools(
                 var newRow = new double[datasetRows[i].Length];
                 var length = datasetRows[i].Length;
                 var col = 0;
+
                 foreach (var val in datasetRows[i])
                 {
                     newRow[col++] = val;

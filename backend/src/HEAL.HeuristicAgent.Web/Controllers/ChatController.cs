@@ -6,7 +6,7 @@ namespace HEAL.HeuristicAgent.Web.Controllers;
 
 [ApiController]
 [Route("chat")]
-public class ChatController(LlmClient llmClient) : ControllerBase
+public class ChatController(ILlmClient llmClient) : ControllerBase
 {
     /// <summary>
     /// Sends a chat message to the AI agent.
@@ -19,7 +19,7 @@ public class ChatController(LlmClient llmClient) : ControllerBase
             return BadRequest("Agent is currently busy. Please try again later.");
         }
 
-        llmClient.ChatAsync(request.Message).Forget();
+        llmClient.ChatAsync(request.Message, HttpContext.RequestAborted).Forget();
 
         return Accepted();
     }

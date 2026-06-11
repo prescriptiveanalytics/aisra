@@ -15,7 +15,7 @@ public sealed class LlmClient(
     IModelService modelService,
     IModelAnalyzer modelAnalyzer,
     ICancellationTokenProvider ctp
-) : IHostedService
+) : ILlmClient
 {
     private const int NumValuesToUse = 20;
 
@@ -86,7 +86,7 @@ public sealed class LlmClient(
         return Task.CompletedTask;
     }
 
-    public async Task ChatAsync(string message, CancellationToken ct = default)
+    public async Task ChatAsync(string message, CancellationToken ct)
     {
         if (!await agentGate.WaitAsync(0, ct))
         {
