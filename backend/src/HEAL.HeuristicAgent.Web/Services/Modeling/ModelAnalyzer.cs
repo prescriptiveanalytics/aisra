@@ -70,7 +70,8 @@ public sealed class ModelAnalyzer : IModelAnalyzer
         return qualityOverTime;
     }
 
-    public IReadOnlyList<double> CalculatePermutationFeatureImportance(
+    public void CalculatePermutationFeatureImportance(
+        Span<double> featureImportances,
         SymbolicExpressionTree tree,
         double[][] data,
         int permutations = 5
@@ -88,7 +89,6 @@ public sealed class ModelAnalyzer : IModelAnalyzer
 
         var baselineQuality = EvaluateQuality(tree, data);
         var numFeatures = data[0].Length - 1;
-        var importance = new double[numFeatures];
         var random = new Random(0);
 
         var permutedData = new double[data.Length][];
@@ -119,9 +119,7 @@ public sealed class ModelAnalyzer : IModelAnalyzer
                 }
             }
 
-            importance[f] = featureImportanceSum / permutations;
+            featureImportances[f] = featureImportanceSum / permutations;
         }
-
-        return importance;
     }
 }

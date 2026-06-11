@@ -6,6 +6,7 @@ using HEAL.HeuristicAgent.Web.Services.Chat;
 using HEAL.HeuristicAgent.Web.Services.Data;
 using HEAL.HeuristicAgent.Web.Services.Modeling;
 using HEAL.HeuristicAgent.Web.Services.Persistence;
+using HEAL.HeuristicLib.Genotypes.Trees;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HEAL.HeuristicAgent.Web.Controllers;
@@ -83,7 +84,7 @@ public sealed class StreamController(
         var channel = Channel.CreateUnbounded<ModelMetricsDto>();
         var eventChannel = Channel.CreateUnbounded<double[]>();
 
-        HttpContext.RequestAborted.Register(() => 
+        HttpContext.RequestAborted.Register(() =>
         {
             channel.Writer.TryComplete();
             eventChannel.Writer.TryComplete();
@@ -95,37 +96,30 @@ public sealed class StreamController(
         {
             try
             {
+                const int limit = 50;
+                const int minForMetricsComputation = 20;
+
                 await foreach (var _ in eventChannel.Reader.ReadAllAsync(HttpContext.RequestAborted))
                 {
                     var recentData = await dataStorage
-                        .GetLastAsync(50)
+                        .GetLastAsync(limit)
                         .Select(x => x.Item2)
                         .ToArrayAsync(cancellationToken: HttpContext.RequestAborted);
 
-                    if (recentData.Length < 20)
+                    if (recentData.Length < minForMetricsComputation)
                     {
                         continue;
                     }
 
-                    var combinedModel = await modelService.GetCombinedModelAsync(modelId, HttpContext.RequestAborted);
+                    var combinedModel =
+                        await modelService.GetCombinedModelAsync(modelId, HttpContext.RequestAborted);
 
                     if (combinedModel is null)
                     {
                         continue;
                     }
 
-                    channel.Writer.TryWrite(
-                        new ModelMetricsDto(
-                            modelAnalyzer.EvaluateQuality(combinedModel, recentData.Take(20).ToArray()),
-                            !features.FeatureImportance || recentData.Length < 50 ? null : modelAnalyzer
-                                .CalculatePermutationFeatureImportance(combinedModel, recentData)
-                                .Select((d, i) => new FeatureImportanceDto(
-                                    i == recentData[0].Length - 1 ? "y" : $"x{i + 1}",
-                                    d
-                                ))
-                                .ToArray()
-                        )
-                    );
+                    channel.Writer.TryWrite(ComputeModelMetrics(recentData, combinedModel));
                 }
             }
             catch (OperationCanceledException)
@@ -154,6 +148,32 @@ public sealed class StreamController(
         {
             eventChannel.Writer.TryWrite(e);
         }
+
+        ModelMetricsDto ComputeModelMetrics(double[][] data, SymbolicExpressionTree combinedModel)
+        {
+            Span<double> featureImportanceValues = stackalloc double[data[0].Length - 1];
+            modelAnalyzer.CalculatePermutationFeatureImportance(featureImportanceValues, combinedModel, data);
+
+            FeatureImportanceDto[]? featureImportances = null;
+
+            if (features.FeatureImportance && data.Length >= 50)
+            {
+                featureImportances = new FeatureImportanceDto[data[0].Length - 1];
+
+                for (var i = 0; i < featureImportanceValues.Length; i++)
+                {
+                    featureImportances[i] = new FeatureImportanceDto(
+                        i == data[0].Length - 1 ? "y" : $"x{i + 1}",
+                        (float)featureImportanceValues[i]
+                    );
+                }
+            }
+
+            return new ModelMetricsDto(
+                (float)modelAnalyzer.EvaluateQuality(combinedModel, data.Take(20).ToArray()),
+                featureImportances
+            );
+        }
     }
 
     [HttpGet("data-stream")]
@@ -170,7 +190,8 @@ public sealed class StreamController(
         {
             await foreach (var data in channel.Reader.ReadAllAsync(HttpContext.RequestAborted))
             {
-                await Response.WriteAsync($"data: {JsonSerializer.Serialize(data, JsonOptions)}\n\n", HttpContext.RequestAborted);
+                await Response.WriteAsync($"data: {JsonSerializer.Serialize(data, JsonOptions)}\n\n",
+                    HttpContext.RequestAborted);
                 await Response.Body.FlushAsync(HttpContext.RequestAborted);
             }
         }

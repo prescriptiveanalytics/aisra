@@ -40,7 +40,7 @@ public sealed class IntervalDataAggregator : IDataAggregator
 
                 await delayTask;
             }
-        }, ct, TaskCreationOptions.LongRunning, TaskScheduler.Default);
+        }, ct, TaskCreationOptions.LongRunning, TaskScheduler.Default).Unwrap();
     }
 
     public void Push(DataPointDto dataPoint)
