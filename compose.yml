@@ -40,7 +40,8 @@ services:
       RedisHost: db:6379
       MqttHost: mqtt-broker
       MqttPort: 1883
-      ClientType: "${CLIENT_TYPE:-Lib}"
+      ClientType: "${CLIENT_TYPE:-Grpc}"
+      Server: http://heuristic-web:5000
       OpenRouterApiKey: "${OPENROUTER_API_KEY:?OpenRouter API key is required}"
       Model: "${MODEL:-openrouter/owl-alpha}"
       ModelEndpoint: "${MODEL_ENDPOINT:-https://openrouter.ai/api/v1/}"
@@ -48,6 +49,8 @@ services:
       db:
         condition: service_started
       mqtt-broker:
+        condition: service_started
+      heuristic-web:
         condition: service_started
     networks:
       - heal-net
