@@ -13,7 +13,7 @@
 </script>
 
 <div class="mt-8 mb-4 flex items-center justify-between">
-    <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-200">Model Quality</h2>
+    <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-200">Models</h2>
 
     <button
         onclick={onAddChart}

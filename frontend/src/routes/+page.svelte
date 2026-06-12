@@ -11,7 +11,7 @@
     } from "chart.js";
     import ChatPanel from "$lib/components/ChatPanel.svelte";
     import DataStreamCharts from "$lib/components/DataStreamCharts.svelte";
-    import ModelQualitySection from "$lib/components/ModelQualitySection.svelte";
+    import ModelSection from "../lib/components/ModelSection.svelte";
     import type { ServerEvent } from "$lib/types/serverEvents";
     import ReconnectingEventSource from "reconnecting-eventsource";
     import { type ModalComponent, type ModalProps, modals } from "svelte-modals";
@@ -119,7 +119,7 @@
 
             <DataStreamCharts />
 
-            <ModelQualitySection
+            <ModelSection
                 {selectedCharts}
                 onAddChart={handleAddChart}
                 onRemoveChart={removeChart}
