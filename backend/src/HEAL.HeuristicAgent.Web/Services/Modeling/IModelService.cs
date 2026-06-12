@@ -4,6 +4,8 @@ namespace HEAL.HeuristicAgent.Web.Services.Modeling;
 
 public interface IModelService
 {
+    int ActiveModelId { get; }
+    event Action<int>? ActiveModelChanged;
     Task<SymbolicExpressionTree?> GetBaseModelAsync(CancellationToken ct);
     Task<SymbolicExpressionTree> GetResidualModelAsync(int? modelId, CancellationToken ct);
     Task<SymbolicExpressionTree?> GetCombinedModelAsync(int? modelId, CancellationToken ct);

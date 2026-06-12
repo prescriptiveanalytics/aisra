@@ -9,6 +9,7 @@
 
     const { modelId }: { modelId: number | null } = $props();
 
+    let activeModelId = $state<number | null>(null);
     let chartLabels = $state<string[]>([]);
     let chartValues = $state<number[]>([]);
     let featureData = $state<Record<string, (number | null)[]>>({});
@@ -21,7 +22,7 @@
         labels: chartLabels,
         datasets: [
             {
-                label: `Quality (%) - ${modelId == null ? "Active Model" : `Model ${modelId}`}`,
+                label: `Quality (%) - ${modelId == null ? (activeModelId == null ? "Active Model (none)" : `Active Model (ID: ${activeModelId})`) : `Model ${modelId}`}`,
                 data: chartValues,
                 borderColor: "rgb(59, 130, 246)",
                 backgroundColor: "rgba(59, 130, 246, 0.5)",
@@ -156,6 +157,21 @@
             }
 
             featureData = newFeatureData;
+        };
+
+        return () => {
+            eventSource.close();
+        };
+    });
+
+    $effect(() => {
+        if (modelId != null) return;
+
+        const eventSource = new ReconnectingEventSource(`${apiBase}/api/current-model`);
+
+        eventSource.onmessage = (event: MessageEvent): void => {
+            const data = event.data as string;
+            activeModelId = data === "null" ? null : Number.parseInt(data);
         };
 
         return () => {

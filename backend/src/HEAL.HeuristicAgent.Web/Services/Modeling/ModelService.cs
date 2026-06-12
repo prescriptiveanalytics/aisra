@@ -10,13 +10,21 @@ public sealed class ModelService(IModelStorage modelStorage) : IModelService
 
     private int activeModelId = 1;
 
+    public int ActiveModelId => activeModelId;
+
+    public event Action<int>? ActiveModelChanged;
+
     public async Task<SymbolicExpressionTree?> GetBaseModelAsync(CancellationToken ct)
     {
         var modelString = await modelStorage.GetBaseModelAsync();
         return modelString == null ? null : Parser.Parse(modelString);
     }
 
-    public void SetActiveModel(int modelId) => activeModelId = modelId;
+    public void SetActiveModel(int modelId)
+    {
+        activeModelId = modelId;
+        ActiveModelChanged?.Invoke(modelId);
+    }
 
     public async Task<SymbolicExpressionTree?> GetCombinedModelAsync(int? modelId, CancellationToken ct)
     {

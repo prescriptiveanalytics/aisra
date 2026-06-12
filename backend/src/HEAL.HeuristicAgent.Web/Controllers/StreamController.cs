@@ -176,6 +176,38 @@ public sealed class StreamController(
         }
     }
 
+    [HttpGet("current-model")]
+    public async Task CurrentModelStream(CancellationToken ct)
+    {
+        Response.Headers.Append("Content-Type", "text/event-stream");
+        Response.Headers.Append("Cache-Control", "no-cache");
+
+        var channel = Channel.CreateUnbounded<string>();
+
+        modelService.ActiveModelChanged += Handler;
+
+        var baseModel = await modelService.GetBaseModelAsync(ct);
+        channel.Writer.TryWrite(baseModel is null ? "null" : modelService.ActiveModelId.ToString());
+
+        try
+        {
+            await foreach (var id in channel.Reader.ReadAllAsync(ct))
+            {
+                await Response.WriteAsync($"data: {id}\n\n", ct);
+                await Response.Body.FlushAsync(ct);
+            }
+        }
+        finally
+        {
+            modelService.ActiveModelChanged -= Handler;
+        }
+
+        void Handler(int id)
+        {
+            channel.Writer.TryWrite(id.ToString());
+        }
+    }
+
     [HttpGet("data-stream")]
     public async Task DataStream()
     {
