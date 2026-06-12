@@ -194,6 +194,7 @@ public sealed partial class HeuristicTools(
         var expression = await client.RunSymRegAsync(request, ct);
         
         await modelStorage.SaveBaseModelAsync(expression);
+        modelService.SetActiveModel(0);
 
         responseStream.Broadcast(EventType.Tool, "Base model training done");
 

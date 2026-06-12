@@ -43,6 +43,7 @@ partial class RedisStorage
     public async Task SaveBaseModelAsync(string model)
     {
         await db.StringSetAsync("base-model", model);
+        await db.StringSetAsync("model:0", "0");
     }
 
     public async Task<string?> GetBaseModelAsync()
