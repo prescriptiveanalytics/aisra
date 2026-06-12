@@ -1,4 +1,5 @@
-﻿using StackExchange.Redis;
+﻿using System.Globalization;
+using StackExchange.Redis;
 
 namespace HEAL.HeuristicAgent.Web.Services.Persistence;
 
@@ -7,7 +8,7 @@ partial class RedisStorage
     public async Task InsertAsync(double[] data)
     {
         await db.StreamAddAsync("data-records", [
-            new("data", string.Join(",", data)),
+            new NameValueEntry("data", string.Join(",", data)),
         ]);
     }
 
@@ -40,8 +41,22 @@ partial class RedisStorage
         {
             yield return (
                 DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(entry.Id.ToString().Split('-')[0])),
-                entry.Values[0].Value.ToString().Split(',').Select(double.Parse).ToArray()
+                ParseDoubles(entry.Values[0].Value.ToString())
             );
         }
+    }
+
+    private static double[] ParseDoubles(string value)
+    {
+        var span = value.AsSpan();
+        var result = new double[span.Count(',') + 1];
+
+        var index = 0;
+        foreach (var range in span.Split(','))
+        {
+            result[index++] = double.Parse(span[range], CultureInfo.InvariantCulture);
+        }
+
+        return result;
     }
 }
