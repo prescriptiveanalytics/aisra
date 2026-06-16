@@ -18,5 +18,7 @@ WORKDIR /app
 COPY --from=build /app .
 EXPOSE 8080
 ENV ASPNETCORE_ENVIRONMENT=Production
+ENV Kestrel__Certificates__Default__Path=/app/cert.pfx
+ENV Kestrel__Certificates__Default__Password=devpassword
 USER app
 ENTRYPOINT ["dotnet", "HEAL.HeuristicAgent.Web.dll"]

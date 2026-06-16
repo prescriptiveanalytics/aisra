@@ -6,3 +6,4 @@ openapi.json
 *.bkp
 *.env
 **/appsettings.json
+certs/

@@ -1,3 +1,6 @@
+using HEAL.HeuristicAgent.Web.Services;
+using HEAL.HeuristicLibContracts.Random;
+using HEAL.HeuristicLibContracts.Threading;
 using HEAL.HeuristicWeb.Server.Grpc;
 using HEAL.HeuristicWeb.Server.Rest.Storage;
 using HEAL.HeuristicWeb.Server.Rest.Util;
@@ -10,7 +13,6 @@ builder.WebHost.ConfigureKestrel(opt =>
     var cfg = builder.Configuration;
     var grpcPort = int.Parse(cfg["GRPC_PORT"] ?? "5000");
     var restPort = int.Parse(cfg["REST_PORT"] ?? "5001");
-    var enableHttps = bool.Parse(cfg["ENABLE_HTTPS"] ?? "true");
 
     opt.ListenAnyIP(grpcPort, listenOptions =>
     {
@@ -19,18 +21,19 @@ builder.WebHost.ConfigureKestrel(opt =>
 
     opt.ListenAnyIP(restPort, listenOptions =>
     {
-        if (enableHttps)
-        {
-            listenOptions.UseHttps();
-        }
-
         listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
     });
 });
+
+await using var ctp = new CancellationService();
+var rng = new Rng();
+
 builder.Services.AddOpenApi()
     .AddControllers();
 builder.Services
     .AddSingleton<SolutionStore>()
+    .AddSingleton<IRng>(rng)
+    .AddSingleton<ICancellationTokenProvider>(ctp)
     .AddSwaggerGen(opt => opt.IncludeXmlComments(AssemblyUtil.XmlPath));
 builder.Services.AddGrpc();
 
@@ -44,7 +47,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UsePathBase("/api");
-app.UseHttpsRedirection();
 app.MapControllers();
 app.UseSwagger();
 app.UseSwaggerUI();

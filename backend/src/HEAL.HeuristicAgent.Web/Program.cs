@@ -33,15 +33,10 @@ var services = builder.Services;
 builder.WebHost.ConfigureKestrel(options =>
 {
     var httpPort = int.TryParse(cfg["HTTP_PORT"], out var parsedPort) ? parsedPort : 5297;
-    var enableHttps = bool.TryParse(cfg["ENABLE_HTTPS"], out var parsedHttps) && parsedHttps;
 
     options.ListenAnyIP(httpPort, listenOptions =>
     {
-        if (enableHttps)
-        {
-            listenOptions.UseHttps();
-        }
-
+        listenOptions.UseHttps();
         listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
     });
 });
