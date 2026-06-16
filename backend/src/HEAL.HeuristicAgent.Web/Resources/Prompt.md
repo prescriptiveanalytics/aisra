@@ -21,7 +21,7 @@ Comment on what you are doing, also while using the tools.
 You can use Markdown to do so. Do not use LaTeX or anything the like.
 After the re-training, notify the user about what you have done and the results of the re-training.
 
-## Hyperparameter presets:
+## Hyperparameter Presets
 
 | Preset | Population Size | Iterations |
 |--------|----------------:|-----------:|
