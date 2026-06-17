@@ -52,9 +52,8 @@
         <input
             type="text"
             bind:value={chatInput}
-            disabled={!isDone}
-            placeholder={isDone ? "Type your message..." : "Waiting for agent..."}
-            class="flex-1 rounded-lg border border-gray-300 p-2 text-sm disabled:opacity-50 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+            placeholder="Type your message..."
+            class="flex-1 rounded-lg border border-gray-300 p-2 text-sm dark:border-gray-600 dark:bg-gray-800 dark:text-white"
         />
         <button
             type="submit"

@@ -165,7 +165,9 @@
     });
 
     $effect(() => {
-        if (modelId != null) return;
+        if (modelId != null) {
+            return;
+        }
 
         const eventSource = new ReconnectingEventSource(`${apiBase}/api/current-model`);
 
