@@ -8,6 +8,10 @@ if ! command -v dotnet &>/dev/null; then
     exit 1
 fi
 
+if -f "$CERTS_DIR/localhost.pfx"; then
+    rm -rf "$CERTS_DIR/localhost.pfx"
+fi
+
 mkdir -p "$CERTS_DIR"
 
 PFX="$CERTS_DIR/localhost.pfx"

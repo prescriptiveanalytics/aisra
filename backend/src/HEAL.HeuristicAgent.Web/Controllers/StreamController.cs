@@ -58,7 +58,10 @@ public sealed class StreamController(
 
         void Handler(EventType type, string? msg)
         {
-            var data = msg is null ? "" : JsonSerializer.Serialize(new EventDto(msg), JsonOptions);
+            var data = msg is null ? "" : JsonSerializer.Serialize(new EventDto
+            {
+                Message = msg,
+            }, JsonOptions);
 
             channel.Writer.TryWrite(
                 $"""
@@ -102,7 +105,7 @@ public sealed class StreamController(
                 await foreach (var _ in eventChannel.Reader.ReadAllAsync(HttpContext.RequestAborted))
                 {
                     var recentData = await dataStorage
-                        .GetLastAsync(limit)
+                        .GetLastDataAsync(limit)
                         .Select(x => x.Item2)
                         .ToArrayAsync(cancellationToken: HttpContext.RequestAborted);
 
@@ -152,7 +155,7 @@ public sealed class StreamController(
         ModelMetricsDto ComputeModelMetrics(double[][] data, SymbolicExpressionTree combinedModel)
         {
             Span<double> featureImportanceValues = stackalloc double[data[0].Length - 1];
-            modelAnalyzer.CalculatePermutationFeatureImportance(featureImportanceValues, combinedModel, data);
+            modelAnalyzer.CalculatePermutationFeatureImportances(featureImportanceValues, combinedModel, data);
 
             FeatureImportanceDto[]? featureImportances = null;
 
@@ -162,17 +165,19 @@ public sealed class StreamController(
 
                 for (var i = 0; i < featureImportanceValues.Length; i++)
                 {
-                    featureImportances[i] = new FeatureImportanceDto(
-                        i == data[0].Length - 1 ? "y" : $"x{i + 1}",
-                        (float)featureImportanceValues[i]
-                    );
+                    featureImportances[i] = new FeatureImportanceDto
+                    {
+                        Feature = i == data[0].Length - 1 ? "y" : $"x{i + 1}",
+                        Importance = (float)featureImportanceValues[i],
+                    };
                 }
             }
 
-            return new ModelMetricsDto(
-                (float)modelAnalyzer.EvaluateQuality(combinedModel, data.Take(20).ToArray()),
-                featureImportances
-            );
+            return new ModelMetricsDto
+            {
+                Quality = (float)modelAnalyzer.EvaluateQuality(combinedModel, data.Take(20).ToArray()),
+                FeatureImportances = featureImportances,
+            };
         }
     }
 

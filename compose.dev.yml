@@ -4,7 +4,7 @@ services:
     env_file:
       - .dev.env
     ports:
-      - "${REDIS_PORT_HOST:-6379}:6379"
+      - "${REDIS_PORT:-6379}:6379"
     command: redis-server --save "" --appendonly no
 
   mqtt-broker:
@@ -12,4 +12,4 @@ services:
     env_file:
       - .dev.env
     ports:
-      - "${MQTT_PORT_HOST:-1883}:1883"
+      - "${MQTT_PORT:-1883}:1883"

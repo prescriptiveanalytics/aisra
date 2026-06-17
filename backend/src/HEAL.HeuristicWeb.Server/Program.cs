@@ -1,4 +1,4 @@
-using HEAL.HeuristicAgent.Web.Services;
+using DotNetEnv;
 using HEAL.HeuristicLibContracts.Random;
 using HEAL.HeuristicLibContracts.Threading;
 using HEAL.HeuristicWeb.Server.Grpc;
@@ -6,32 +6,36 @@ using HEAL.HeuristicWeb.Server.Rest.Storage;
 using HEAL.HeuristicWeb.Server.Rest.Util;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 
+Env.NoClobber().TraversePath().Load();
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.WebHost.ConfigureKestrel(opt =>
 {
     var cfg = builder.Configuration;
-    var grpcPort = int.Parse(cfg["GRPC_PORT"] ?? "5000");
-    var restPort = int.Parse(cfg["REST_PORT"] ?? "5001");
-
-    opt.ListenAnyIP(grpcPort, listenOptions =>
-    {
-        listenOptions.Protocols = HttpProtocols.Http2;
-    });
+    var restPort = int.TryParse(cfg["REST_PORT"], out var parsedPort) ? parsedPort : 5000;
+    var grpcPort = int.TryParse(cfg["GRPC_PORT"], out parsedPort) ? parsedPort : 5001;
 
     opt.ListenAnyIP(restPort, listenOptions =>
     {
         listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
+    });
+
+    opt.ListenAnyIP(grpcPort, listenOptions =>
+    {
+        listenOptions.UseHttps();
+        listenOptions.Protocols = HttpProtocols.Http2;
     });
 });
 
 await using var ctp = new CancellationService();
 var rng = new Rng();
 
-builder.Services.AddOpenApi()
+builder.Services
+    .AddOpenApi()
     .AddControllers();
 builder.Services
-    .AddSingleton<SolutionStore>()
+    .AddSingleton<SolutionStorage>()
     .AddSingleton<IRng>(rng)
     .AddSingleton<ICancellationTokenProvider>(ctp)
     .AddSwaggerGen(opt => opt.IncludeXmlComments(AssemblyUtil.XmlPath));

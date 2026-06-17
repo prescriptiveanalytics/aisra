@@ -1,5 +1,0 @@
-{
-    "ClientType": "Lib",
-    "Model": "openrouter/owl-alpha",
-    "ModelEndpoint": "https://openrouter.ai/api/v1/"
-}

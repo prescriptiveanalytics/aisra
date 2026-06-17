@@ -12,7 +12,17 @@ public class HeuristicLibGrpcClient : IHeuristicLibClient
 
     public HeuristicLibGrpcClient(string address)
     {
-        channel = GrpcChannel.ForAddress(address);
+        var httpHandler = new SocketsHttpHandler
+        {
+            SslOptions = new System.Net.Security.SslClientAuthenticationOptions
+            {
+                RemoteCertificateValidationCallback = (_, _, _, _) => true,
+            },
+        };
+        channel = GrpcChannel.ForAddress(address, new GrpcChannelOptions
+        {
+            HttpHandler = httpHandler,
+        });
         client = new(channel);
     }
 

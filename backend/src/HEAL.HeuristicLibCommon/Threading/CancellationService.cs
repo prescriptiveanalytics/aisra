@@ -1,6 +1,4 @@
-﻿using HEAL.HeuristicLibContracts.Threading;
-
-namespace HEAL.HeuristicAgent.Web.Services;
+﻿namespace HEAL.HeuristicLibContracts.Threading;
 
 /// <inheritdoc cref="ICancellationTokenProvider" />
 public sealed class CancellationService : ICancellationTokenProvider, IAsyncDisposable

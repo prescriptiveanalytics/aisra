@@ -1,8 +1,6 @@
 services:
   db:
     image: redis:8-alpine
-    ports:
-      - "${REDIS_PORT_HOST:-6379}:6379"
     command: redis-server --save "" --appendonly no
     networks:
       - heal-net
@@ -10,7 +8,7 @@ services:
   mqtt-broker:
     image: eclipse-mosquitto:2.1-alpine
     ports:
-      - "${MQTT_PORT_HOST:-1883}:1883"
+      - "${MQTT_PORT}:1883"
     networks:
       - heal-net
 
@@ -18,11 +16,10 @@ services:
     build:
       context: ./backend/src
       dockerfile: HEAL.HeuristicWeb.Server/Dockerfile
-    ports:
-      - "${SERVER_GRPC_PORT_HOST:-5000}:5000"
-    environment:
-      GRPC_PORT: 5000
-      REST_PORT: 8080
+    volumes:
+      - ./certs/localhost.pfx:/app/cert.pfx
+    env_file:
+      - .env
     networks:
       - heal-net
 
@@ -31,19 +28,15 @@ services:
       context: ./backend/src
       dockerfile: HEAL.HeuristicAgent.Web/Dockerfile
     ports:
-      - "${AGENT_PORT_HOST:-8443}:8080"
+      - "${AGENT_PORT}:${AGENT_PORT}"
     volumes:
       - ./certs/localhost.pfx:/app/cert.pfx
+    env_file:
+      - .env
     environment:
-      HTTP_PORT: 8080
-      RedisHost: db:6379
-      MqttHost: mqtt-broker
-      MqttPort: 1883
-      ClientType: "${CLIENT_TYPE:-Grpc}"
-      Server: http://heuristic-web:5000
-      OpenRouterApiKey: "${OPENROUTER_API_KEY:?OpenRouter API key is required}"
-      Model: "${MODEL:-openrouter/owl-alpha}"
-      ModelEndpoint: "${MODEL_ENDPOINT:-https://openrouter.ai/api/v1/}"
+      REDIS_HOST: db
+      MQTT_HOST: mqtt-broker
+      HEURISTIC_LIB_SERVER_URL: "https://heuristic-web:5001"
     depends_on:
       db:
         condition: service_started
@@ -59,15 +52,11 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        PUBLIC_API_URL: "${PUBLIC_API_URL:-https://localhost:8443}"
+        PUBLIC_API_URL: "https://localhost:${AGENT_PORT}"
     ports:
-      - "${FRONTEND_PORT_HOST:-3000}:3000"
-    environment:
-      PORT: 3000
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
     depends_on:
       - agent-web
-    networks:
-      - heal-net
 
 networks:
   heal-net:

@@ -30,7 +30,7 @@ public sealed class LlmClient(
         dataClient.DataReceived += async (_, _) =>
         {
             var data = await dataStorage
-                .GetLastAsync(NumValuesToUse)
+                .GetLastDataAsync(NumValuesToUse)
                 .Select(c => c.Item2)
                 .ToArrayAsync(ct);
 

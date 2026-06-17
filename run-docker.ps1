@@ -7,6 +7,10 @@ if (-not (Get-Command dotnet -ErrorAction SilentlyContinue)) {
     exit 1
 }
 
+if (Test-Path "$CERTS_DIR/localhost.pfx") {
+    Remove-Item "$CERTS_DIR/localhost.pfx" -Recurse -Force
+}
+
 if (-not (Test-Path $CERTS_DIR)) {
     New-Item -ItemType Directory -Path $CERTS_DIR | Out-Null
 }
@@ -14,4 +18,5 @@ if (-not (Test-Path $CERTS_DIR)) {
 dotnet dev-certs https -ep $CERTS_DIR/localhost.pfx -p devpassword
 dotnet dev-certs https --trust
 
+docker compose down
 docker compose up -d

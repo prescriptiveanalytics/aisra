@@ -1,6 +1,7 @@
 using System.ClientModel;
 using System.Diagnostics;
 using System.IO.Pipelines;
+using DotNetEnv;
 using HEAL.HeuristicAgent.Web.Services;
 using HEAL.HeuristicAgent.Web.Services.Chat;
 using HEAL.HeuristicAgent.Web.Services.Data;
@@ -25,6 +26,8 @@ var clientTransport = new StreamClientTransport(
     serverToClientPipe.Reader.AsStream()
 );
 
+Env.NoClobber().TraversePath().Load();
+
 var builder = WebApplication.CreateBuilder(args);
 var cfg = builder.Configuration;
 
@@ -32,7 +35,9 @@ var services = builder.Services;
 
 builder.WebHost.ConfigureKestrel(options =>
 {
-    var httpPort = int.TryParse(cfg["HTTP_PORT"], out var parsedPort) ? parsedPort : 5297;
+    var httpPort = int.Parse(cfg["AGENT_PORT"].NotBlankOrThrow(
+        new InvalidOperationException("AGENT_PORT environment variable not set.")
+    ));
 
     options.ListenAnyIP(httpPort, listenOptions =>
     {
@@ -52,7 +57,11 @@ services.AddCors(options =>
     );
 });
 
-if (!Enum.TryParse<ClientType>(cfg["ClientType"], true, out var clientType))
+cfg["CLIENT_TYPE"] ??= "Grpc";
+cfg["MODEL_ENDPOINT"] ??= "https://openrouter.ai/api/v1/";
+cfg["MODEL"] ??= "openrouter/free";
+
+if (!Enum.TryParse<ClientType>(cfg["CLIENT_TYPE"], true, out var clientType))
 {
     throw new InvalidOperationException(
         "Invalid ClientType configuration. " +
@@ -60,38 +69,32 @@ if (!Enum.TryParse<ClientType>(cfg["ClientType"], true, out var clientType))
     );
 }
 
-var apiKey = cfg["OpenRouterApiKey"].NotBlankOrThrow(
+var apiKey = cfg["LLM_API_KEY"].NotBlankOrThrow(
     new InvalidOperationException(
         "OpenRouter API key not set. " +
-        "Initialize the .NET Secret Manager with 'dotnet user-secrets init' " +
-        "and set the API key with 'dotnet user-secrets set \"OpenRouterApiKey\" \"YOUR_API_KEY\"'."
+        "Please set the LLM_API_KEY environment variable."
     )
 );
 
-if (string.IsNullOrWhiteSpace(cfg["Model"]))
+if (string.IsNullOrWhiteSpace(cfg["MODEL"]))
 {
     throw new InvalidOperationException("Model not specified in configuration.");
-}
-
-if (string.IsNullOrWhiteSpace(cfg["ModelEndpoint"]))
-{
-    throw new InvalidOperationException("ModelEndpoint not specified in configuration.");
 }
 
 var openAiChatClient = new OpenAIClient(
     new ApiKeyCredential(apiKey),
     new OpenAIClientOptions
     {
-        Endpoint = new Uri(cfg["ModelEndpoint"]!),
+        Endpoint = new Uri(cfg["MODEL_ENDPOINT"]!),
     }
-).GetChatClient(cfg["Model"]).AsIChatClient();
+).GetChatClient(cfg["MODEL"]).AsIChatClient();
 
 var chatClient = new ChatClientBuilder(openAiChatClient)
     .UseFunctionInvocation()
     .Build();
 
 await using var cs = new CancellationService();
-await using var redisStore = new RedisStorage(cfg["RedisHost"] ?? "localhost:6379");
+await using var redisStore = new RedisStorage((cfg["REDIS_HOST"] ?? "localhost") + ":" + (cfg["REDIS_PORT"] ?? "6379"));
 var rng = new Rng();
 
 services.AddMcpServer()
@@ -109,7 +112,7 @@ services
         clientType switch
         {
             ClientType.Grpc => new HeuristicLibGrpcClient(
-                cfg["Server"]
+                cfg["HEURISTIC_LIB_SERVER_URL"]
                 ?? throw new InvalidOperationException(
                     "Server URL must be provided in configuration."
                 )

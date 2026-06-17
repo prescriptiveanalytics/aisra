@@ -17,7 +17,7 @@ public sealed class ChatClient(
     private static readonly string SystemPrompt = Assembly.GetExecutingAssembly()
         .Let(asm => asm.ReadEmbeddedTextFile($"{asm.GetName().Name}.Resources.Prompt.md"));
 
-    private readonly int maxHistoryChars = config["MaxHistoryChars"] is not null ? int.Parse(config["MaxHistoryChars"]!) : 20_000;
+    private readonly int maxHistoryChars = int.TryParse(config["MAX_HISTORY_CHARS"], out var n) ? n : 20_000;
     private readonly List<ChatMessage> messageHistory = [new(ChatRole.System, SystemPrompt)];
     private int totalHistoryChars = SystemPrompt.Length;
     private List<AITool>? cachedTools;

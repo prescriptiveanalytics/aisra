@@ -16,8 +16,7 @@ RUN dotnet publish HEAL.HeuristicAgent.Web/HEAL.HeuristicAgent.Web.csproj -c Rel
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 COPY --from=build /app .
-EXPOSE 8080
-ENV ASPNETCORE_ENVIRONMENT=Production
+EXPOSE 5003
 ENV Kestrel__Certificates__Default__Path=/app/cert.pfx
 ENV Kestrel__Certificates__Default__Password=devpassword
 USER app

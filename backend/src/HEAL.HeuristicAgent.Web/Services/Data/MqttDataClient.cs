@@ -15,9 +15,9 @@ public sealed class MqttDataClient : IDataClient, IDisposable
 
     public MqttDataClient(IConfiguration config, IDataAggregator dataAggregator)
     {
-        var host = config["MqttHost"] ?? "localhost";
-        var port = int.TryParse(config["MqttPort"], out var parsedPort) ? parsedPort : 1883;
-        var topicFilter = config["MqttTopicFilter"] ?? "#";
+        var host = config["MQTT_HOST"] ?? "localhost";
+        var port = int.TryParse(config["MQTT_HOST_PORT"], out var parsedPort) ? parsedPort : 1883;
+        var topicFilter = config["MQTT_TOPIC_FILTER"] ?? "#";
 
         var factory = new MqttClientFactory();
         client = factory.CreateMqttClient();
@@ -34,14 +34,6 @@ public sealed class MqttDataClient : IDataClient, IDisposable
             {
                 var payload = e.ApplicationMessage.ConvertPayloadToString();
                 var dataPoint = JsonSerializer.Deserialize<DataPointDto>(payload, jsonOptions);
-
-                if (dataPoint is null)
-                {
-                    Console.WriteLine($"Received invalid MQTT message on topic {e.ApplicationMessage.Topic}: {payload}");
-
-                    return Task.CompletedTask;
-                }
-
                 dataAggregator.Push(dataPoint);
                 DataReceived?.Invoke(this, dataPoint);
 
