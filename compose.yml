@@ -3,30 +3,30 @@ services:
     image: redis:8-alpine
     command: redis-server --save "" --appendonly no
     networks:
-      - heal-net
+      - aisra-net
 
   mqtt-broker:
     image: eclipse-mosquitto:2.1-alpine
     ports:
       - "${MQTT_PORT}:1883"
     networks:
-      - heal-net
+      - aisra-net
 
   heuristic-web:
     build:
       context: ./backend/src
-      dockerfile: HEAL.HeuristicWeb.Server/Dockerfile
+      dockerfile: AIsra.HeuristicWeb.Server/Dockerfile
     volumes:
       - ./certs/localhost.pfx:/app/cert.pfx
     env_file:
       - .env
     networks:
-      - heal-net
+      - aisra-net
 
-  agent-web:
+  aisra-web:
     build:
       context: ./backend/src
-      dockerfile: HEAL.HeuristicAgent.Web/Dockerfile
+      dockerfile: AIsra.Web/Dockerfile
     ports:
       - "${AGENT_PORT}:${AGENT_PORT}"
     volumes:
@@ -45,7 +45,7 @@ services:
       heuristic-web:
         condition: service_started
     networks:
-      - heal-net
+      - aisra-net
 
   frontend:
     build:
@@ -56,8 +56,8 @@ services:
     ports:
       - "${FRONTEND_PORT}:${FRONTEND_PORT}"
     depends_on:
-      - agent-web
+      - aisra-web
 
 networks:
-  heal-net:
+  aisra-net:
     driver: bridge

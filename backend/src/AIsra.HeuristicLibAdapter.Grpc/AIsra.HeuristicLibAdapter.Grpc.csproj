@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\AIsra.HeuristicLibAdapter\AIsra.HeuristicLibAdapter.csproj" />
+        <ProjectReference Include="..\AIsra.HeuristicWeb.Grpc.Core\AIsra.HeuristicWeb.Grpc.Core.csproj" />
+    </ItemGroup>
+
+</Project>
