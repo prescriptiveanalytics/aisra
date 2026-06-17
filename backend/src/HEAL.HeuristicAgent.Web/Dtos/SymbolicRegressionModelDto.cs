@@ -1,3 +1,13 @@
-﻿namespace HEAL.HeuristicAgent.Web.Dtos;
+﻿using System.Runtime.InteropServices;
+using JetBrains.Annotations;
 
-public readonly record struct SymbolicRegressionModelDto(int Id, string Model);
+namespace HEAL.HeuristicAgent.Web.Dtos;
+
+[StructLayout(LayoutKind.Auto)]
+public readonly record struct SymbolicRegressionModelDto
+{
+    public required int Id { get; init; }
+
+    [UsedImplicitly]
+    public required string Model { get; init; }
+}

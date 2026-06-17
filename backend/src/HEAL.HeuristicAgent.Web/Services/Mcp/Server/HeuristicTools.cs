@@ -33,6 +33,8 @@ public sealed partial class HeuristicTools(
         WriteIndented = true,
     };
 
+    private static readonly SymbolicDataAnalysisExpressionTreeInterpreter Interpreter = new();
+
     [UsedImplicitly]
     [McpServerTool]
     [Description(
@@ -50,25 +52,8 @@ public sealed partial class HeuristicTools(
     {
         responseStream.Broadcast(EventType.Tool, "Training residual model");
 
-        var instructions = new SymbolicRegressionInstructionsDto
-        {
-            StartTimeIncl = startTimeIncl,
-            Hyperparameters = new SymbolicRegressionHyperparametersDto
-            {
-                Base = new HyperparametersDto
-                {
-                    PopulationSize = populationSize,
-                    MaxIterations = maxIterations,
-                },
-            },
-        };
-
-        var data = await dataStorage.GetLastAsync(startTimeIncl)
-            .Select(d => new DataDto
-            {
-                Timestamp = d.Item1,
-                Data = d.Item2,
-            })
+        var data = await dataStorage.GetLastDataAsync(startTimeIncl)
+            .Select(d => new DataDto(d.Item1, d.Item2))
             .ToArrayAsync(cancellationToken: ct);
 
         if (data.Length == 0)
@@ -86,15 +71,10 @@ public sealed partial class HeuristicTools(
 
         if (baseModel is not null)
         {
-            // Calculate residuals using BaseModel
-            var baseModelEvaluator = new SymbolicRegressionModel(
-                baseModel,
-                new SymbolicDataAnalysisExpressionTreeInterpreter()
-            );
+            var baseModelEvaluator = new SymbolicRegressionModel(baseModel, Interpreter);
             var dataset = Dataset.FromRowData(variableNames, datasetRows);
             var basePredictions = baseModelEvaluator.Predict(dataset, Enumerable.Range(0, dataset.Rows)).ToArray();
 
-            // Modify the dataset to contain residuals
             for (var i = 0; i < datasetRows.Length; i++)
             {
                 var trueY = datasetRows[i][^1];
@@ -117,7 +97,14 @@ public sealed partial class HeuristicTools(
 
         var request = new SymbolicRegressionRequestDto
         {
-            Hyperparameters = instructions.Hyperparameters,
+            Hyperparameters = new SymbolicRegressionHyperparametersDto
+            {
+                Base = new HyperparametersDto
+                {
+                    PopulationSize = populationSize,
+                    MaxIterations = maxIterations,
+                },
+            },
             Dataset = new SymbolicRegressionDatasetDto
             {
                 Data = datasetRows,
@@ -133,7 +120,7 @@ public sealed partial class HeuristicTools(
         responseStream.Broadcast(EventType.Tool, "Residual model training done");
 
         return TextResult(JsonSerializer.Serialize(
-            new
+            new ModelDto
             {
                 ModelId = id,
                 Expression = expression,
@@ -156,17 +143,8 @@ public sealed partial class HeuristicTools(
 
         responseStream.Broadcast(EventType.Tool, "Training base model");
 
-        var instructions = new SymbolicRegressionInstructionsDto
-        {
-            StartTimeIncl = startTimeIncl.Value,
-        };
-
-        var data = await dataStorage.GetLastAsync(startTimeIncl.Value)
-            .Select(d => new DataDto
-            {
-                Timestamp = d.Item1,
-                Data = d.Item2,
-            })
+        var data = await dataStorage.GetLastDataAsync(startTimeIncl.Value)
+            .Select(d => new DataDto(d.Item1, d.Item2))
             .ToArrayAsync(cancellationToken: ct);
 
         if (data.Length == 0)
@@ -182,7 +160,6 @@ public sealed partial class HeuristicTools(
 
         var request = new SymbolicRegressionRequestDto
         {
-            Hyperparameters = instructions.Hyperparameters,
             Dataset = new SymbolicRegressionDatasetDto
             {
                 Data = datasetRows,
@@ -222,7 +199,7 @@ public sealed partial class HeuristicTools(
     {
         responseStream.Broadcast(EventType.Tool, "Evaluating model quality over time");
 
-        var data = await dataStorage.GetLastAsync(startTimeIncl)
+        var data = await dataStorage.GetLastDataAsync(startTimeIncl)
             .Select(d => (Timestamp: d.Item1, Values: d.Item2))
             .ToArrayAsync(cancellationToken: ct);
 

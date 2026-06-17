@@ -1,7 +1,11 @@
-﻿namespace HEAL.HeuristicLibContracts.Dtos;
+﻿using System.Runtime.InteropServices;
 
-public sealed record SymbolicRegressionSearchSpaceDto
+namespace HEAL.HeuristicLibContracts.Dtos;
+
+[StructLayout(LayoutKind.Auto)]
+public readonly record struct SymbolicRegressionSearchSpaceDto(int TreeDepth = 20, int TreeLength = 50)
 {
-    public int TreeDepth { get; init; } = 20;
-    public int TreeLength { get; init; } = 50;
+    public SymbolicRegressionSearchSpaceDto() : this(20)
+    {
+    }
 }

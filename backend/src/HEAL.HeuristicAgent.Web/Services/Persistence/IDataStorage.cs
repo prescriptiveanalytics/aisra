@@ -8,6 +8,6 @@ namespace HEAL.HeuristicAgent.Web.Services.Persistence;
 public interface IDataStorage
 {
     Task InsertAsync(double[] data);
-    IAsyncEnumerable<(DateTimeOffset, double[])> GetLastAsync(DateTimeOffset minTime);
-    IAsyncEnumerable<(DateTimeOffset, double[])> GetLastAsync(int count);
+    IAsyncEnumerable<(DateTimeOffset, double[])> GetLastDataAsync(DateTimeOffset minTime);
+    IAsyncEnumerable<(DateTimeOffset, double[])> GetLastDataAsync(int count);
 }

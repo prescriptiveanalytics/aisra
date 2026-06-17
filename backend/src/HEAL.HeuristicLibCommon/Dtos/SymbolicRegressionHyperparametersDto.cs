@@ -1,8 +1,10 @@
-﻿using HEAL.HeuristicLibContracts.Enums;
+﻿using System.Runtime.InteropServices;
+using HEAL.HeuristicLibContracts.Enums;
 
 namespace HEAL.HeuristicLibContracts.Dtos;
 
-public record SymbolicRegressionHyperparametersDto
+[StructLayout(LayoutKind.Auto)]
+public readonly record struct SymbolicRegressionHyperparametersDto()
 {
     public HyperparametersDto Base { get; init; } = new();
 

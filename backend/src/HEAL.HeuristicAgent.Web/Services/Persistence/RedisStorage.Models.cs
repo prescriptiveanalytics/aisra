@@ -35,7 +35,11 @@ partial class RedisStorage
 
             if (!value.IsNullOrEmpty)
             {
-                yield return new SymbolicRegressionModelDto(id, value.ToString());
+                yield return new SymbolicRegressionModelDto
+                {
+                    Id = id,
+                    Model = value.ToString(),
+                };
             }
         }
     }

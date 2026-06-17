@@ -4,8 +4,11 @@ using JetBrains.Annotations;
 namespace HEAL.HeuristicAgent.Web.Dtos;
 
 [StructLayout(LayoutKind.Auto)]
-public readonly record struct EventDto
+public readonly record struct ModelDto
 {
     [UsedImplicitly]
-    public required string Message { get; init; }
+    public required int ModelId { get; init; }
+
+    [UsedImplicitly]
+    public required string Expression { get; init; }
 }

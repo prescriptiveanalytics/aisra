@@ -1,3 +1,10 @@
-﻿namespace HEAL.HeuristicAgent.Web.Dtos;
+﻿using System.Runtime.InteropServices;
 
-public sealed record DataPointDto(string Id, float Value);
+namespace HEAL.HeuristicAgent.Web.Dtos;
+
+[StructLayout(LayoutKind.Auto)]
+public readonly record struct DataPointDto
+{
+    public required string Id { get; init; }
+    public required float Value { get; init; }
+}

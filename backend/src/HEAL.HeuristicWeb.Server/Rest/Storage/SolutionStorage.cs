@@ -4,7 +4,7 @@ using HEAL.HeuristicWeb.Server.Rest.Data;
 
 namespace HEAL.HeuristicWeb.Server.Rest.Storage;
 
-public sealed class SolutionStore
+public sealed class SolutionStorage
 {
     private readonly ConcurrentMultiTypeDictionary<Guid> solutions = new();
 
@@ -59,7 +59,7 @@ public sealed class SolutionStore
         return true;
     }
 
-    public TypedSolutionStore<TGenotype> ToTyped<TGenotype>() where TGenotype : notnull => new(this);
+    public TypedSolutionStorage<TGenotype> ToTyped<TGenotype>() where TGenotype : notnull => new(this);
 
     public sealed record StoredResult<TGenotype>
     {

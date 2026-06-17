@@ -1,5 +1,24 @@
-﻿namespace HEAL.HeuristicAgent.Web.Dtos;
+﻿using System.Runtime.InteropServices;
+using JetBrains.Annotations;
 
-public readonly record struct ModelMetricsDto(double Quality, FeatureImportanceDto[]? FeatureImportances = null);
+namespace HEAL.HeuristicAgent.Web.Dtos;
 
-public readonly record struct FeatureImportanceDto(string Feature, double Importance);
+[StructLayout(LayoutKind.Auto)]
+public readonly record struct ModelMetricsDto()
+{
+    [UsedImplicitly]
+    public required double Quality { get; init; }
+
+    [UsedImplicitly]
+    public FeatureImportanceDto[]? FeatureImportances { get; init; } = null;
+}
+
+[StructLayout(LayoutKind.Auto)]
+public readonly record struct FeatureImportanceDto
+{
+    [UsedImplicitly]
+    public required string Feature { get; init; }
+
+    [UsedImplicitly]
+    public required double Importance { get; init; }
+}

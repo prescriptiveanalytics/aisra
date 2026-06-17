@@ -11,9 +11,9 @@ namespace HEAL.HeuristicWeb.Server.Rest.Controllers;
 
 [Controller]
 [Route("benchmarks")]
-public sealed class BenchmarksController(SolutionStore store, IRng rng) : ControllerBase
+public sealed class BenchmarksController(SolutionStorage storage, IRng rng) : ControllerBase
 {
-    private readonly TypedSolutionStore<double[]> store = store.ToTyped<double[]>();
+    private readonly TypedSolutionStorage<double[]> storage = storage.ToTyped<double[]>();
 
     /// <summary>
     /// Starts a new benchmark based on the provided parameters.
@@ -26,7 +26,7 @@ public sealed class BenchmarksController(SolutionStore store, IRng rng) : Contro
         try
         {
             var id = Guid.NewGuid();
-            store.Store(id);
+            storage.Store(id);
 
             Task.Run(async () =>
             {
@@ -34,11 +34,11 @@ public sealed class BenchmarksController(SolutionStore store, IRng rng) : Contro
                 {
                     var result = await BenchmarkRunner.RunAsync(dto, rng.Next(), ct);
 
-                    store.Store(id, result, TrainingStatus.Successful);
+                    storage.Store(id, result, TrainingStatus.Successful);
                 }
                 catch (Exception)
                 {
-                    store.Store(id, status: TrainingStatus.Failed);
+                    storage.Store(id, status: TrainingStatus.Failed);
                 }
             }, ct);
 
@@ -57,7 +57,7 @@ public sealed class BenchmarksController(SolutionStore store, IRng rng) : Contro
     [HttpGet("status/{id:guid}", Name = "GetBenchmarkStatus")]
     public ActionResult<TrainingStatusDto> GetStatus(Guid id)
     {
-        if (!store.TryGet(id, out _, out var status))
+        if (!storage.TryGet(id, out _, out var status))
         {
             return NotFound();
         }
@@ -77,7 +77,7 @@ public sealed class BenchmarksController(SolutionStore store, IRng rng) : Contro
     [HttpGet("solutions/{id:guid}", Name = "GetBenchmarkSolution")]
     public ActionResult<double[]> GetSolution(Guid id)
     {
-        if (!store.TryGet(id, out var solution, out var status))
+        if (!storage.TryGet(id, out var solution, out var status))
         {
             return NotFound();
         }

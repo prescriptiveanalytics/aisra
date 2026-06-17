@@ -1,5 +1,8 @@
-﻿using HEAL.HeuristicLibContracts.Enums;
+﻿using System.Runtime.InteropServices;
+using HEAL.HeuristicLibContracts.Enums;
+using JetBrains.Annotations;
 
 namespace HEAL.HeuristicLibContracts.Dtos;
 
-public readonly record struct TrainingStatusDto(TrainingStatus Status);
+[StructLayout(LayoutKind.Auto)]
+public readonly record struct TrainingStatusDto([UsedImplicitly] TrainingStatus Status);

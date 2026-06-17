@@ -1,8 +1,10 @@
-﻿using HEAL.HeuristicLibContracts.Enums;
+﻿using System.Runtime.InteropServices;
+using HEAL.HeuristicLibContracts.Enums;
 
 namespace HEAL.HeuristicLibContracts.Dtos;
 
-public sealed record AllowedSymbolsDto
+[StructLayout(LayoutKind.Auto)]
+public readonly record struct AllowedSymbolsDto()
 {
     public SymbolType[] Symbols { get; init; } = Enum.GetValues<SymbolType>();
     public string[] Variables { get; init; } = ["*"];

@@ -1,8 +1,10 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Runtime.InteropServices;
+using System.Text.Json.Serialization;
 
 namespace HEAL.HeuristicLibContracts.Dtos;
 
-public sealed record SymbolicRegressionDatasetDto
+[StructLayout(LayoutKind.Auto)]
+public readonly record struct SymbolicRegressionDatasetDto
 {
     [JsonRequired]
     public required string[] VariableNames { get; init; }

@@ -1,12 +1,14 @@
+using System.Buffers;
 using HEAL.HeuristicLib.Genotypes.Trees;
 using HEAL.HeuristicLib.Problems.DataAnalysis;
 using HEAL.HeuristicLib.Problems.DataAnalysis.Regression;
 using HEAL.HeuristicLib.Problems.DataAnalysis.Regression.Evaluators;
 using HEAL.HeuristicLib.Problems.DataAnalysis.Symbolic;
+using HEAL.HeuristicLibContracts.Random;
 
 namespace HEAL.HeuristicAgent.Web.Services.Modeling;
 
-public sealed class ModelAnalyzer : IModelAnalyzer
+public sealed class ModelAnalyzer(IRng rng) : IModelAnalyzer
 {
     private static readonly PearsonR2Evaluator Evaluator = new();
 
@@ -70,11 +72,11 @@ public sealed class ModelAnalyzer : IModelAnalyzer
         return qualityOverTime;
     }
 
-    public void CalculatePermutationFeatureImportance(
+    public void CalculatePermutationFeatureImportances(
         Span<double> featureImportances,
         SymbolicExpressionTree tree,
         double[][] data,
-        int permutations = 5
+        int numPermutations = 5
     )
     {
         if (data.Length == 0)
@@ -82,44 +84,64 @@ public sealed class ModelAnalyzer : IModelAnalyzer
             throw new ArgumentException("Data cannot be empty.");
         }
 
-        if (permutations <= 0)
+        if (numPermutations <= 0)
         {
             throw new ArgumentException("Permutations must be greater than zero.");
         }
 
         var baselineQuality = EvaluateQuality(tree, data);
+        var dataLength = data.Length;
         var numFeatures = data[0].Length - 1;
-        var random = new Random(0);
 
-        var permutedData = new double[data.Length][];
-        for (var i = 0; i < data.Length; i++)
+        var pool = ArrayPool<double>.Shared;
+        var originalColumnArray = pool.Rent(dataLength);
+        var shuffleBufferArray = pool.Rent(dataLength);
+
+        try
         {
-            permutedData[i] = (double[])data[i].Clone();
-        }
+            var originalColumn = originalColumnArray.AsSpan(0, dataLength);
+            var shuffleBuffer = shuffleBufferArray.AsSpan(0, dataLength);
 
-        for (var f = 0; f < numFeatures; f++)
-        {
-            var featureImportanceSum = 0.0;
-
-            for (var p = 0; p < permutations; p++)
+            for (var f = 0; f < numFeatures; f++)
             {
-                for (var i = permutedData.Length - 1; i > 0; i--)
+                var featureImportanceSum = 0.0;
+
+                for (var i = 0; i < dataLength; i++)
                 {
-                    var j = random.Next(i + 1);
-                    (permutedData[i][f], permutedData[j][f]) =
-                        (permutedData[j][f], permutedData[i][f]);
+                    originalColumn[i] = data[i][f];
                 }
 
-                var permutedQuality = EvaluateQuality(tree, permutedData);
-                featureImportanceSum += baselineQuality - permutedQuality;
-
-                for (var i = 0; i < data.Length; i++)
+                for (var p = 0; p < numPermutations; p++)
                 {
-                    permutedData[i][f] = data[i][f];
+                    originalColumn.CopyTo(shuffleBuffer);
+
+                    for (var i = dataLength - 1; i > 0; i--)
+                    {
+                        var j = rng.Next(i + 1);
+                        (shuffleBuffer[i], shuffleBuffer[j]) = (shuffleBuffer[j], shuffleBuffer[i]);
+                    }
+
+                    for (var i = 0; i < dataLength; i++)
+                    {
+                        data[i][f] = shuffleBuffer[i];
+                    }
+
+                    var permutedQuality = EvaluateQuality(tree, data);
+                    featureImportanceSum += baselineQuality - permutedQuality;
                 }
+
+                for (var i = 0; i < dataLength; i++)
+                {
+                    data[i][f] = originalColumn[i];
+                }
+
+                featureImportances[f] = featureImportanceSum / numPermutations;
             }
-
-            featureImportances[f] = featureImportanceSum / permutations;
+        }
+        finally
+        {
+            pool.Return(originalColumnArray);
+            pool.Return(shuffleBufferArray);
         }
     }
 }

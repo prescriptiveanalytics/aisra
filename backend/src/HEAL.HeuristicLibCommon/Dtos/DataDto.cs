@@ -1,7 +1,8 @@
-﻿namespace HEAL.HeuristicLibContracts.Dtos;
+﻿using System.Runtime.InteropServices;
+using JetBrains.Annotations;
 
-public sealed record DataDto
-{
-    public required DateTimeOffset Timestamp { get; init; }
-    public required double[] Data { get; init; }
-}
+namespace HEAL.HeuristicLibContracts.Dtos;
+
+[StructLayout(LayoutKind.Auto)]
+public readonly record struct DataDto([UsedImplicitly] DateTimeOffset Timestamp, double[] Data);
+

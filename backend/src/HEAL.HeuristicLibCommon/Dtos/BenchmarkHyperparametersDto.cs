@@ -3,7 +3,7 @@ using HEAL.HeuristicLibContracts.Enums;
 
 namespace HEAL.HeuristicLibContracts.Dtos;
 
-public record BenchmarkHyperparametersDto
+public sealed record BenchmarkHyperparametersDto
 {
     [JsonRequired]
     public required HyperparametersDto Problem { get; init; }

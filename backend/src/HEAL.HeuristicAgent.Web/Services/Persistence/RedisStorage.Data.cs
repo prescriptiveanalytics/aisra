@@ -8,11 +8,11 @@ partial class RedisStorage
     public async Task InsertAsync(double[] data)
     {
         await db.StreamAddAsync("data-records", [
-            new NameValueEntry("data", string.Join(",", data)),
+            new NameValueEntry("data", string.Join(',', data.Select(d => d.ToString(CultureInfo.InvariantCulture)))),
         ]);
     }
 
-    public async IAsyncEnumerable<(DateTimeOffset, double[])> GetLastAsync(DateTimeOffset minTime)
+    public async IAsyncEnumerable<(DateTimeOffset, double[])> GetLastDataAsync(DateTimeOffset minTime)
     {
         var entries = await db.StreamRangeAsync(
             "data-records",
@@ -23,13 +23,13 @@ partial class RedisStorage
         foreach (var entry in entries)
         {
             yield return (
-                DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(entry.Id.ToString().Split('-')[0])),
-                entry.Values[0].Value.ToString().Split(',').Select(double.Parse).ToArray()
+                GetTimestampFromId(entry.Id),
+                ParseDoubles(entry.Values[0].Value.ToString())
             );
         }
     }
 
-    public async IAsyncEnumerable<(DateTimeOffset, double[])> GetLastAsync(int count)
+    public async IAsyncEnumerable<(DateTimeOffset, double[])> GetLastDataAsync(int count)
     {
         var entries = await db.StreamRangeAsync(
             "data-records",
@@ -40,7 +40,7 @@ partial class RedisStorage
         foreach (var entry in entries)
         {
             yield return (
-                DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(entry.Id.ToString().Split('-')[0])),
+                GetTimestampFromId(entry.Id),
                 ParseDoubles(entry.Values[0].Value.ToString())
             );
         }
@@ -58,5 +58,12 @@ partial class RedisStorage
         }
 
         return result;
+    }
+
+    private static DateTimeOffset GetTimestampFromId(RedisValue value)
+    {
+        var span = value.ToString().AsSpan();
+
+        return DateTimeOffset.FromUnixTimeMilliseconds(long.Parse(span[..span.IndexOf('-')], CultureInfo.InvariantCulture));
     }
 }

@@ -1,3 +1,9 @@
+using System.Runtime.InteropServices;
+
 namespace HEAL.HeuristicAgent.Web.Dtos;
 
-public readonly record struct ChatRequest(string Message);
+[StructLayout(LayoutKind.Auto)]
+public readonly record struct ChatRequest
+{
+    public required string Message { get; init; }
+}

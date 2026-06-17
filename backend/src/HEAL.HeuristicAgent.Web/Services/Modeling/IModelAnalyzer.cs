@@ -11,10 +11,10 @@ public interface IModelAnalyzer
     /// </summary>
     IReadOnlyList<double> EvaluateQualityOverTime(SymbolicExpressionTree model, double[][] data, int windowSize);
 
-    void CalculatePermutationFeatureImportance(
+    void CalculatePermutationFeatureImportances(
         Span<double> featureImportances,
         SymbolicExpressionTree model,
         double[][] data,
-        int permutations = 5
+        int numPermutations = 5
     );
 }
