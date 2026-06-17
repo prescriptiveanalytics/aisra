@@ -1,5 +1,5 @@
-FROM node:22-alpine AS build
-ARG PUBLIC_API_URL=http://localhost:5003
+FROM node:24-alpine AS build
+ARG PUBLIC_API_URL
 ENV PUBLIC_API_URL=$PUBLIC_API_URL
 WORKDIR /app
 RUN corepack enable
@@ -10,7 +10,7 @@ RUN pnpm install
 COPY . .
 RUN pnpm build
 
-FROM node:22-alpine AS runtime
+FROM node:24-alpine AS runtime
 WORKDIR /app
 RUN corepack enable
 

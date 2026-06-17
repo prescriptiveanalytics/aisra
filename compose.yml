@@ -52,7 +52,7 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        PUBLIC_API_URL: "https://localhost:${AGENT_PORT}"
+        PUBLIC_API_URL: "${PUBLIC_API_URL}"
     ports:
       - "${FRONTEND_PORT}:${FRONTEND_PORT}"
     depends_on:
