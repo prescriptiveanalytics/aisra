@@ -30,19 +30,23 @@
 #### Steps
 
 1. Copy the `.env.example` file in the root directory to `.env` and update the environment variables as needed (`LLM_API_KEY` is required).
-2. If you use the `Grpc` client type (default), run the `AIsra.HeuristicWeb.Server` project.
+2. Run the required services.
+```shell
+docker compose -f compose.dev.yml up -d
+```
+3. If you use the `Grpc` client type (default), run the `AIsra.HeuristicWeb.Server` project.
 ```shell
 dotnet run --project ./backend/src/AIsra.HeuristicWeb.Server/
 ```
-3. Run the web server project.
+4. Run the web server project.
 ```shell
 dotnet run --project ./backend/src/AIsra.Web/
 ```
-4. Run the SvelteKit development server.
+5. Run the SvelteKit development server.
 ```shell
 cd ./frontend/
 pnpm install
 pnpm dev
 ```
-5. Access the application at the specified port in your web browser (http://localhost:5173 by default).
-6. Supply the agent with a data stream over MQTT (e.g. with [janzenisek/dsg](https://github.com/janzenisek/dsg)).
+6. Access the application at the specified port in your web browser (http://localhost:5173 by default).
+7. Supply the agent with a data stream over MQTT (e.g. with [janzenisek/dsg](https://github.com/janzenisek/dsg)).
