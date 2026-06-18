@@ -5,8 +5,8 @@ using HEAL.HeuristicLib.Problems.DataAnalysis.Formatter;
 using AIsra.Common.Dtos;
 using AIsra.Common.Enums;
 using AIsra.Common.Random;
-using AIsra.HeuristicLibWrapper.Exceptions;
-using AIsra.HeuristicLibWrapper.Runners;
+using AIsra.HeuristicLibAdapter.Lib.Exceptions;
+using AIsra.HeuristicLibAdapter.Lib.Runners;
 using AIsra.HeuristicWeb.Server.Rest.Storage;
 using Microsoft.AspNetCore.Mvc;
 

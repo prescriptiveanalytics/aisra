@@ -12,7 +12,7 @@ using AIsra.HeuristicLibAdapter;
 using AIsra.HeuristicLibAdapter.Grpc;
 using AIsra.Common.Random;
 using AIsra.Common.Threading;
-using AIsra.HeuristicLibWrapper;
+using AIsra.HeuristicLibAdapter.Lib;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.AI;
 using ModelContextProtocol.Client;

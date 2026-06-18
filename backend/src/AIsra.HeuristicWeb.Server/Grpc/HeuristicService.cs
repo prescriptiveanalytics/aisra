@@ -4,7 +4,7 @@ using AIsra.HeuristicGrpc.Core.Proto;
 using HEAL.HeuristicLib.Problems.DataAnalysis.Formatter;
 using AIsra.Common.Random;
 using AIsra.Common.Threading;
-using AIsra.HeuristicLibWrapper.Runners;
+using AIsra.HeuristicLibAdapter.Lib.Runners;
 using AIsra.HeuristicWeb.Grpc.Core.Mapping;
 
 namespace AIsra.HeuristicWeb.Server.Grpc;

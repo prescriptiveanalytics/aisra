@@ -22,7 +22,7 @@
         <ProjectReference Include="..\AIsra.HeuristicLibAdapter.Grpc\AIsra.HeuristicLibAdapter.Grpc.csproj" />
         <ProjectReference Include="..\AIsra.HeuristicLibAdapter\AIsra.HeuristicLibAdapter.csproj" />
         <ProjectReference Include="..\AIsra.Common\AIsra.Common.csproj" />
-        <ProjectReference Include="..\AIsra.HeuristicLibWrapper\AIsra.HeuristicLibWrapper.csproj" />
+        <ProjectReference Include="..\AIsra.HeuristicLibAdapter.Lib\AIsra.HeuristicLibAdapter.Lib.csproj" />
     </ItemGroup>
 
     <ItemGroup>

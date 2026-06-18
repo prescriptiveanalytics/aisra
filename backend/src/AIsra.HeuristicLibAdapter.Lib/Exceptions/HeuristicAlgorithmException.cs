@@ -1,3 +1,3 @@
-﻿namespace AIsra.HeuristicLibWrapper.Exceptions;
+﻿namespace AIsra.HeuristicLibAdapter.Lib.Exceptions;
 
 public sealed class HeuristicAlgorithmException(string message) : Exception(message);

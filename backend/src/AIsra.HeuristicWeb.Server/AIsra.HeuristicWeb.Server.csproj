@@ -21,7 +21,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AIsra.HeuristicLibWrapper\AIsra.HeuristicLibWrapper.csproj" />
+        <ProjectReference Include="..\AIsra.HeuristicLibAdapter.Lib\AIsra.HeuristicLibAdapter.Lib.csproj" />
         <ProjectReference Include="..\AIsra.HeuristicWeb.Grpc.Core\AIsra.HeuristicWeb.Grpc.Core.csproj" />
     </ItemGroup>
 

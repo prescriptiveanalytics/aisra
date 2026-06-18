@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics;
 using AIsra.Common.Dtos;
-using AIsra.HeuristicLibWrapper.Exceptions;
-using AIsra.HeuristicLibWrapper.Heuristic;
+using AIsra.HeuristicLibAdapter.Lib.Exceptions;
+using AIsra.HeuristicLibAdapter.Lib.Heuristic;
 using HEAL.HeuristicLib.Algorithms;
 using HEAL.HeuristicLib.Algorithms.Evolutionary;
 using HEAL.HeuristicLib.Algorithms.MetaAlgorithms;
@@ -16,7 +16,7 @@ using HEAL.HeuristicLib.Random;
 using HEAL.HeuristicLib.SearchSpaces.Vectors;
 using HEAL.HeuristicLib.States;
 
-namespace AIsra.HeuristicLibWrapper.Runners;
+namespace AIsra.HeuristicLibAdapter.Lib.Runners;
 
 public static class BenchmarkRunner
 {

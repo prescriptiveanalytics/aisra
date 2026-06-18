@@ -4,7 +4,7 @@ using HEAL.HeuristicLib.Problems.TestFunctions;
 using HEAL.HeuristicLib.Problems.TestFunctions.SingleObjectives;
 using AIsra.Common.Enums;
 
-namespace AIsra.HeuristicLibWrapper.Heuristic;
+namespace AIsra.HeuristicLibAdapter.Lib.Heuristic;
 
 public sealed class TestFunction : IGradientTestFunction
 {

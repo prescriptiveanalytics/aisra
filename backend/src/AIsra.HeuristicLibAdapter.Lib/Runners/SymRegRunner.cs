@@ -20,9 +20,9 @@ using HEAL.HeuristicLib.SearchSpaces.Trees.SymbolicExpressionTree.Symbols.Math;
 using HEAL.HeuristicLib.States;
 using AIsra.Common.Dtos;
 using AIsra.Common.Enums;
-using AIsra.HeuristicLibWrapper.Exceptions;
+using AIsra.HeuristicLibAdapter.Lib.Exceptions;
 
-namespace AIsra.HeuristicLibWrapper.Runners;
+namespace AIsra.HeuristicLibAdapter.Lib.Runners;
 
 public static class SymRegRunner
 {

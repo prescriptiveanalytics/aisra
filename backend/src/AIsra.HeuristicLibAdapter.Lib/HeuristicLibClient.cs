@@ -1,11 +1,10 @@
 ﻿using System.Globalization;
 using HEAL.HeuristicLib.Problems.DataAnalysis.Formatter;
-using AIsra.HeuristicLibAdapter;
 using AIsra.Common.Dtos;
 using AIsra.Common.Random;
-using AIsra.HeuristicLibWrapper.Runners;
+using AIsra.HeuristicLibAdapter.Lib.Runners;
 
-namespace AIsra.HeuristicLibWrapper;
+namespace AIsra.HeuristicLibAdapter.Lib;
 
 public sealed class HeuristicLibClient(IRng rng) : IHeuristicLibClient
 {
