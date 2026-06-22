@@ -33,7 +33,14 @@ public sealed class ModelAnalyzer(IRng rng) : IModelAnalyzer
         var predictions = model.Predict(dataset, Enumerable.Range(0, dataset.Rows)).ToArray();
         var trueValues = data.Select(d => d.Last()).ToArray();
 
-        return Evaluator.Evaluate(predictions, trueValues);
+        try
+        {
+            return Evaluator.Evaluate(predictions, trueValues);
+        }
+        catch (InvalidOperationException)
+        {
+            return 0;
+        }
     }
 
     /// <inheritdoc/>
