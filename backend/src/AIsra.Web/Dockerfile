@@ -2,10 +2,10 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 COPY AIsra.Web/AIsra.Web.csproj ./AIsra.Web/
-COPY AIsra.HeuristicLibAdapter.Grpc/AIsra.HeuristicLibAdapter.Grpc.csproj ./AIsra.HeuristicLibAdapter.Grpc/
 COPY AIsra.HeuristicLibAdapter/AIsra.HeuristicLibAdapter.csproj ./AIsra.HeuristicLibAdapter/
+COPY AIsra.HeuristicLibAdapter.Lib/AIsra.HeuristicLibAdapter.Lib.csproj ./AIsra.HeuristicLibAdapter.Lib/
+COPY AIsra.HeuristicLibAdapter.Grpc/AIsra.HeuristicLibAdapter.Grpc.csproj ./AIsra.HeuristicLibAdapter.Grpc/
 COPY AIsra.Common/AIsra.Common.csproj ./AIsra.Common/
-COPY AIsra.HeuristicLibWrapper/AIsra.HeuristicLibWrapper.csproj ./AIsra.HeuristicLibWrapper/
 
 RUN dotnet restore AIsra.Web/AIsra.Web.csproj
 
