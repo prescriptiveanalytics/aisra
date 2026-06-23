@@ -1,7 +1,7 @@
 ﻿using Grpc.Net.Client;
 using AIsra.HeuristicGrpc.Core.Proto;
 using AIsra.Common.Dtos;
-using AIsra.HeuristicWeb.Grpc.Core.Mapping;
+using AIsra.HeuristicLibWeb.Grpc.Core.Mapping;
 
 namespace AIsra.HeuristicLibAdapter.Grpc;
 

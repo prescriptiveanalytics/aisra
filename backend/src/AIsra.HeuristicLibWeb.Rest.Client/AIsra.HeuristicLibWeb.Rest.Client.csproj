@@ -14,7 +14,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\AIsra.HeuristicWeb.Server\AIsra.HeuristicWeb.Server.csproj" Private="false"/>
+        <ProjectReference Include="..\AIsra.HeuristicLibWeb.Server\AIsra.HeuristicLibWeb.Server.csproj" Private="false" />
     </ItemGroup>
 
     <Target Name="NSwag" BeforeTargets="Compile">

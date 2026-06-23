@@ -1,8 +1,8 @@
 using System.Diagnostics.CodeAnalysis;
 using AIsra.Common.Enums;
-using AIsra.HeuristicWeb.Server.Rest.Data;
+using AIsra.HeuristicLibWeb.Server.Rest.Data;
 
-namespace AIsra.HeuristicWeb.Server.Rest.Storage;
+namespace AIsra.HeuristicLibWeb.Server.Rest.Storage;
 
 public sealed class SolutionStorage
 {

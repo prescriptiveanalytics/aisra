@@ -2,7 +2,7 @@
 using AIsra.HeuristicGrpc.Core.Proto;
 using AIsra.Common.Enums;
 
-namespace AIsra.HeuristicWeb.Grpc.Core.Mapping;
+namespace AIsra.HeuristicLibWeb.Grpc.Core.Mapping;
 
 public static class FuncProblemMapper
 {

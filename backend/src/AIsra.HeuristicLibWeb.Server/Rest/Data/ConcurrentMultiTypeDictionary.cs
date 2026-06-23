@@ -1,7 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 
-namespace AIsra.HeuristicWeb.Server.Rest.Data;
+namespace AIsra.HeuristicLibWeb.Server.Rest.Data;
 
 public sealed class ConcurrentMultiTypeDictionary<TKey> where TKey : notnull
 {

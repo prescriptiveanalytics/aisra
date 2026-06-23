@@ -2,7 +2,7 @@
     "runtime": "Net100",
     "documentGenerator": {
         "fromDocument": {
-            "url": "../AIsra.HeuristicWeb.Server/openapi.json",
+            "url": "../AIsra.HeuristicLibWeb.Server/openapi.json",
             "output": null,
             "newLineBehavior": "Auto"
         }
@@ -35,7 +35,7 @@
             "generateUpdateJsonSerializerSettingsMethod": true,
             "serializeTypeInformation": false,
             "queryNullValue": "",
-            "className": "HeuristicWebClient",
+            "className": "HeuristicLibWebClient",
             "operationGenerationMode": "MultipleClientsFromOperationId",
             "generateOptionalParameters": false,
             "generateJsonMethods": true,
@@ -46,7 +46,7 @@
             "wrapResponses": false,
             "generateResponseClasses": true,
             "responseClass": "SwaggerResponse",
-            "namespace": "AIsra.HeuristicWeb.Rest.Client",
+            "namespace": "AIsra.HeuristicLibWeb.Rest.Client",
             "requiredPropertiesMustBeDefined": true,
             "dateType": "System.DateTime",
             "dateTimeType": "System.DateTime",

@@ -15,7 +15,7 @@ services:
   heuristic-web:
     build:
       context: ./backend/src
-      dockerfile: AIsra.HeuristicWeb.Server/Dockerfile
+      dockerfile: AIsra.HeuristicLibWeb.Server/Dockerfile
     volumes:
       - ./certs/localhost.pfx:/app/cert.pfx
     env_file:

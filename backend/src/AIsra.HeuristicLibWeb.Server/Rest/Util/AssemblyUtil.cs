@@ -1,4 +1,4 @@
-﻿namespace AIsra.HeuristicWeb.Server.Rest.Util;
+﻿namespace AIsra.HeuristicLibWeb.Server.Rest.Util;
 
 public static class AssemblyUtil
 {

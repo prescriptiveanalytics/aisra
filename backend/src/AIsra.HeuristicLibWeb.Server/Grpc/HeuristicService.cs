@@ -5,9 +5,9 @@ using HEAL.HeuristicLib.Problems.DataAnalysis.Formatter;
 using AIsra.Common.Random;
 using AIsra.Common.Threading;
 using AIsra.HeuristicLibAdapter.Lib.Runners;
-using AIsra.HeuristicWeb.Grpc.Core.Mapping;
+using AIsra.HeuristicLibWeb.Grpc.Core.Mapping;
 
-namespace AIsra.HeuristicWeb.Server.Grpc;
+namespace AIsra.HeuristicLibWeb.Server.Grpc;
 
 public sealed class HeuristicService(IRng rng, ICancellationTokenProvider ctp) : GrpcHeuristicService.GrpcHeuristicServiceBase
 {

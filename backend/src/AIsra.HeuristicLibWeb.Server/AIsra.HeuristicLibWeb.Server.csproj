@@ -22,12 +22,12 @@
 
     <ItemGroup>
         <ProjectReference Include="..\AIsra.HeuristicLibAdapter.Lib\AIsra.HeuristicLibAdapter.Lib.csproj" />
-        <ProjectReference Include="..\AIsra.HeuristicWeb.Grpc.Core\AIsra.HeuristicWeb.Grpc.Core.csproj" />
+        <ProjectReference Include="..\AIsra.HeuristicLibWeb.Grpc.Core\AIsra.HeuristicLibWeb.Grpc.Core.csproj" />
     </ItemGroup>
 
     <PropertyGroup>
         <SolutionDirectory Condition=" '$(SolutionDirectory)' == '' ">$(MSBuildThisFileDirectory)..\</SolutionDirectory>
-        <ApiAssembly>$(MSBuildProjectDirectory)\bin\$(Configuration)\net10.0\AIsra.HeuristicWeb.Server.dll</ApiAssembly>
+        <ApiAssembly>$(MSBuildProjectDirectory)\bin\$(Configuration)\net10.0\AIsra.HeuristicLibWeb.Server.dll</ApiAssembly>
     </PropertyGroup>
 
     <Target Name="BuildSwaggerFile" AfterTargets="Build" Condition="'$(SKIP_SWAGGER)' == ''">

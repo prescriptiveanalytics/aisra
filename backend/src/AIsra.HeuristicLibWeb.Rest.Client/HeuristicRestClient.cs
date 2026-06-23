@@ -22,12 +22,12 @@ using AIsra.Common.Dtos;
 #pragma warning disable 8625 // Disable "CS8625 Cannot convert null literal to non-nullable reference type"
 #pragma warning disable 8765 // Disable "CS8765 Nullability of type of parameter doesn't match overridden member (possibly because of nullability attributes)."
 
-namespace AIsra.HeuristicWeb.Rest.Client
+namespace AIsra.HeuristicLibWeb.Rest.Client
 {
     using System = global::System;
 
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "14.7.1.0 (NJsonSchema v11.6.1.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial interface IHeuristicWebClient : IHeuristicRestClient
+    public partial interface IHeuristicLibWebClient : IHeuristicRestClient
     {
         /// <summary>
         /// Starts a new benchmark based on the provided parameters.
@@ -134,7 +134,7 @@ namespace AIsra.HeuristicWeb.Rest.Client
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NSwag", "14.7.1.0 (NJsonSchema v11.6.1.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class HeuristicWebClient : IHeuristicWebClient
+    public partial class HeuristicLibWebClient : IHeuristicLibWebClient
     {
         #pragma warning disable 8618
         private string _baseUrl;
@@ -144,7 +144,7 @@ namespace AIsra.HeuristicWeb.Rest.Client
         private System.Text.Json.JsonSerializerOptions _instanceSettings;
 
     #pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
-        public HeuristicWebClient(string baseUrl)
+        public HeuristicLibWebClient(string baseUrl)
     #pragma warning restore CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
         {
             BaseUrl = baseUrl;

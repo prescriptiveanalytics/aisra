@@ -34,9 +34,9 @@
 ```shell
 docker compose -f compose.dev.yml up -d
 ```
-3. If you use the `Grpc` client type (default), run the `AIsra.HeuristicWeb.Server` project.
+3. If you use the `Grpc` client type (default), run the `AIsra.HeuristicLibWeb.Server` project.
 ```shell
-dotnet run --project ./backend/src/AIsra.HeuristicWeb.Server/
+dotnet run --project ./backend/src/AIsra.HeuristicLibWeb.Server/
 ```
 4. Run the web server project.
 ```shell

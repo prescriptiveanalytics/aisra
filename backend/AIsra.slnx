@@ -3,9 +3,9 @@
     <Project Path="src/AIsra.HeuristicLibAdapter.Grpc/AIsra.HeuristicLibAdapter.Grpc.csproj" />
     <Project Path="src/AIsra.HeuristicLibAdapter.Lib/AIsra.HeuristicLibAdapter.Lib.csproj" />
     <Project Path="src/AIsra.HeuristicLibAdapter/AIsra.HeuristicLibAdapter.csproj" />
-    <Project Path="src/AIsra.HeuristicWeb.Grpc.Core/AIsra.HeuristicWeb.Grpc.Core.csproj" />
-    <Project Path="src/AIsra.HeuristicWeb.Rest.Client/AIsra.HeuristicWeb.Rest.Client.csproj" />
-    <Project Path="src/AIsra.HeuristicWeb.Server/AIsra.HeuristicWeb.Server.csproj" />
+    <Project Path="src/AIsra.HeuristicLibWeb.Grpc.Core/AIsra.HeuristicLibWeb.Grpc.Core.csproj" />
+    <Project Path="src/AIsra.HeuristicLibWeb.Rest.Client/AIsra.HeuristicLibWeb.Rest.Client.csproj" />
+    <Project Path="src/AIsra.HeuristicLibWeb.Server/AIsra.HeuristicLibWeb.Server.csproj" />
     <Project Path="src/AIsra.Web/AIsra.Web.csproj" />
 </Solution>
 

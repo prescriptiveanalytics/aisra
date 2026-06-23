@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using AIsra.Common.Enums;
 
-namespace AIsra.HeuristicWeb.Server.Rest.Storage;
+namespace AIsra.HeuristicLibWeb.Server.Rest.Storage;
 
 public sealed class TypedSolutionStorage<TGenotype>(SolutionStorage storage) where TGenotype : notnull
 {
