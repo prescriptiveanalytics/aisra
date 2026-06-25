@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 using Grpc.Core;
-using AIsra.HeuristicGrpc.Core.Proto;
+using AIsra.HeuristicLibWeb.Grpc.Core.Proto;
 using HEAL.HeuristicLib.Problems.DataAnalysis.Formatter;
 using AIsra.Common.Random;
 using AIsra.Common.Threading;

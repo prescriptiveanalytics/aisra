@@ -1,5 +1,5 @@
 ﻿using AIsra.Common.Dtos;
-using AIsra.HeuristicGrpc.Core.Proto;
+using AIsra.HeuristicLibWeb.Grpc.Core.Proto;
 using AIsra.Common.Enums;
 
 namespace AIsra.HeuristicLibWeb.Grpc.Core.Mapping;
