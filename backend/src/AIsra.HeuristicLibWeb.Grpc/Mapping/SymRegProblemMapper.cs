@@ -1,8 +1,8 @@
-﻿using AIsra.HeuristicLibWeb.Grpc.Core.Proto;
+﻿using AIsra.HeuristicLibWeb.Grpc.Proto;
 using AIsra.Common.Dtos;
 using AIsra.Common.Enums;
 
-namespace AIsra.HeuristicLibWeb.Grpc.Core.Mapping;
+namespace AIsra.HeuristicLibWeb.Grpc.Mapping;
 
 public static class SymRegProblemMapper
 {

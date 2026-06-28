@@ -1,11 +1,11 @@
 ﻿using System.Globalization;
 using Grpc.Core;
-using AIsra.HeuristicLibWeb.Grpc.Core.Proto;
+using AIsra.HeuristicLibWeb.Grpc.Proto;
 using HEAL.HeuristicLib.Problems.DataAnalysis.Formatter;
 using AIsra.Common.Random;
 using AIsra.Common.Threading;
 using AIsra.HeuristicLibAdapter.Lib.Runners;
-using AIsra.HeuristicLibWeb.Grpc.Core.Mapping;
+using AIsra.HeuristicLibWeb.Grpc.Mapping;
 
 namespace AIsra.HeuristicLibWeb.Server.Grpc;
 
