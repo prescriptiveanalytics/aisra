@@ -6,7 +6,7 @@ namespace AIsra.Web.Controllers;
 
 [ApiController]
 [Route("chat")]
-public class ChatController(ILlmClient llmClient) : ControllerBase
+public sealed class ChatController(ILlmClient llmClient) : ControllerBase
 {
     /// <summary>
     /// Sends a chat message to the AI agent.

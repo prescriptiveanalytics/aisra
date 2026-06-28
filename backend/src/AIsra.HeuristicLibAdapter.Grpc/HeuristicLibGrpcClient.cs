@@ -5,7 +5,7 @@ using AIsra.HeuristicLibWeb.Grpc.Mapping;
 
 namespace AIsra.HeuristicLibAdapter.Grpc;
 
-public class HeuristicLibGrpcClient : IHeuristicLibClient
+public sealed class HeuristicLibGrpcClient : IHeuristicLibClient
 {
     private readonly GrpcChannel channel;
     private readonly GrpcHeuristicService.GrpcHeuristicServiceClient client;
