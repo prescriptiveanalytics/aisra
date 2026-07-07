@@ -12,8 +12,8 @@
     <ItemGroup>
         <PackageReference Include="DotNetEnv" Version="3.2.0" />
         <PackageReference Include="Grpc.AspNetCore.Server" Version="2.80.0" />
-        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.8" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.1" />
+        <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.9" />
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="10.2.3" />
     </ItemGroup>
 
     <ItemGroup>
@@ -32,8 +32,7 @@
 
     <Target Name="BuildSwaggerFile" AfterTargets="Build" Condition="'$(SKIP_SWAGGER)' == ''">
         <Exec EnvironmentVariables="ASPNETCORE_ENVIRONMENT=Development" Command="dotnet tool restore" />
-        <Exec EnvironmentVariables="ASPNETCORE_ENVIRONMENT=Development"
-              Command="dotnet tool run swagger tofile --output $(ProjectDir)openapi.json $(ApiAssembly) v1" />
+        <Exec EnvironmentVariables="ASPNETCORE_ENVIRONMENT=Development" Command="dotnet tool run swagger tofile --output $(ProjectDir)openapi.json $(ApiAssembly) v1" />
     </Target>
 
 </Project>
