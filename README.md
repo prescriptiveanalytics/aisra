@@ -68,3 +68,7 @@ pnpm dev
 ```
 6. Access the application at the specified port in your web browser (http://localhost:5173 by default).
 7. Supply the agent with a data stream over MQTT (e.g. with [janzenisek/dsg](https://github.com/janzenisek/dsg)).
+
+## Documentation
+
+Click [here](docs/README.md) to view the documentation.
