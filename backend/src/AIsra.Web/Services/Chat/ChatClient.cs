@@ -18,6 +18,7 @@ public sealed class ChatClient(
         .Let(asm => asm.ReadEmbeddedTextFile($"{asm.GetName().Name}.Resources.Prompt.md"));
 
     private readonly int maxHistoryChars = int.TryParse(config["MAX_HISTORY_CHARS"], out var n) ? n : 20_000;
+    private readonly double temperature = double.TryParse(config["LLM_TEMPERATURE"], out var temp) ? temp : 0.7;
     private readonly List<ChatMessage> messageHistory = [new(ChatRole.System, SystemPrompt)];
     private int totalHistoryChars = SystemPrompt.Length;
     private List<AITool>? cachedTools;
@@ -54,6 +55,7 @@ public sealed class ChatClient(
                 {
                     Tools = await GetToolsAsync(),
                     Seed = rng.Next(),
+                    Temperature = (float)temperature,
                 },
                 cancellationToken: ctp.Token
             )
