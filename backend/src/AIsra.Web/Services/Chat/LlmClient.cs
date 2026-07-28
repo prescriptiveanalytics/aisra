@@ -17,9 +17,9 @@ public sealed class LlmClient(
     ICancellationTokenProvider ctp
 ) : ILlmClient
 {
-    private const int NumValuesToUse = 20;
+    private const int NumValuesToUse = 20; // TODO: Make this configurable
 
-    private static readonly double QualityThreshold = 90.Percent;
+    private static readonly double QualityThreshold = 70.Percent; // TODO: Make this configurable
 
     private readonly SemaphoreSlim agentGate = new(1, 1);
 
