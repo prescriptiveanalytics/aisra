@@ -17,6 +17,7 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.AI;
 using ModelContextProtocol.Client;
 using ModelContextProtocol.Protocol;
+using OllamaSharp;
 using OpenAI;
 
 var (clientToServerPipe, serverToClientPipe) = MakeTwo<Pipe>();
@@ -64,14 +65,22 @@ cfg["MODEL"] ??= "openrouter/free";
 if (!Enum.TryParse<ClientType>(cfg["CLIENT_TYPE"], true, out var clientType))
 {
     throw new InvalidOperationException(
-        "Invalid ClientType configuration. " +
-        $"ClientType must be one of: {string.Join(", ", Enum.GetNames<ClientType>())}."
+        "Invalid CLIENT_TYPE configuration. " +
+        $"CLIENT_TYPE must be one of: {string.Join(", ", Enum.GetNames<ClientType>())}."
+    );
+}
+
+if (!Enum.TryParse<LlmClientType>(cfg["LLM_CLIENT"], true, out var llmClientType))
+{
+    throw new InvalidOperationException(
+        "Invalid LLM_CLIENT configuration. " +
+        $"LLM_CLIENT must be one of: {string.Join(", ", Enum.GetNames<LlmClientType>())}."
     );
 }
 
 var apiKey = cfg["LLM_API_KEY"].NotBlankOrThrow(
     new InvalidOperationException(
-        "OpenRouter API key not set. " +
+        "API key not set. " +
         "Please set the LLM_API_KEY environment variable."
     )
 );
@@ -81,15 +90,20 @@ if (string.IsNullOrWhiteSpace(cfg["MODEL"]))
     throw new InvalidOperationException("Model not specified in configuration.");
 }
 
-var openAiChatClient = new OpenAIClient(
-    new ApiKeyCredential(apiKey),
-    new OpenAIClientOptions
-    {
-        Endpoint = new Uri(cfg["MODEL_ENDPOINT"]!),
-    }
-).GetChatClient(cfg["MODEL"]).AsIChatClient();
+var iChatClient = llmClientType switch
+{
+    LlmClientType.OpenAi => new OpenAIClient(
+        new ApiKeyCredential(apiKey),
+        new OpenAIClientOptions
+        {
+            Endpoint = new Uri(cfg["MODEL_ENDPOINT"]!),
+        }
+    ).GetChatClient(cfg["MODEL"]).AsIChatClient(),
+    LlmClientType.Ollama => new OllamaApiClient(new Uri(cfg["MODEL_ENDPOINT"]!), cfg["MODEL"]!),
+    _ => throw new UnreachableException(),
+};
 
-var chatClient = new ChatClientBuilder(openAiChatClient)
+var chatClient = new ChatClientBuilder(iChatClient)
     .UseFunctionInvocation()
     .Build();
 
@@ -148,4 +162,10 @@ internal enum ClientType
 {
     Lib,
     Grpc,
+}
+
+internal enum LlmClientType
+{
+    OpenAi,
+    Ollama,
 }
