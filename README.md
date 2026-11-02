@@ -33,8 +33,20 @@ Furthermore, there is a frontend for interacting with the agent and visualizing 
 
 1. Copy the `.env.example` file in the root directory to `.env` and update the environment variables as needed (`LLM_API_KEY` is required).
 2. Run `run-docker.sh` (on Linux/macOS) or `run-docker.ps1` (on Windows) to build and run the Docker containers.
+   Running `docker compose up` directly also works; the `cert-init` service generates the development certificate if it is missing.
 3. Access the application at the specified port in your web browser (http://localhost:3000 by default).
 4. Supply the agent with a data stream over MQTT (e.g. with [janzenisek/dsg](https://github.com/janzenisek/dsg)).
+
+#### Troubleshooting
+
+If a container exits with `Access to the path '/certs/localhost.pfx' is denied`, the host path `certs/localhost.pfx` was created as a directory (usually because `docker compose up` ran before the certificate existed). Remove it and start the containers again:
+
+```shell
+rm -rf certs/localhost.pfx
+docker compose up -d
+```
+
+The `cert-init` service regenerates the certificate on startup.
 
 ### For Development
 

@@ -1,4 +1,6 @@
 #!/bin/bash
+set -e
+
 docker compose down
 docker compose build
-./run-docker.ps1
+./run-docker.sh

@@ -1,4 +1,25 @@
 services:
+  cert-init:
+    image: mcr.microsoft.com/dotnet/sdk:10.0
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        # Docker Compose creates a directory when a single-file bind mount source
+        # is missing, so clean that up before (re)generating the certificate.
+        if [ -d /certs/localhost.pfx ]; then
+          rm -rf /certs/localhost.pfx
+        fi
+        if [ ! -s /certs/localhost.pfx ]; then
+          dotnet dev-certs https -ep /certs/localhost.pfx -p devpassword
+        fi
+        chmod 644 /certs/localhost.pfx
+    volumes:
+      - ./certs:/certs
+    restart: "no"
+    networks:
+      - aisra-net
+
   db:
     image: redis:8-alpine
     command: redis-server --save "" --appendonly no
@@ -17,9 +38,14 @@ services:
       context: ./backend/src
       dockerfile: AIsra.HeuristicLibWeb.Server/Dockerfile
     volumes:
-      - ./certs/localhost.pfx:/app/cert.pfx
+      - ./certs:/certs:ro
+    environment:
+      Kestrel__Certificates__Default__Path: /certs/localhost.pfx
     env_file:
       - .env
+    depends_on:
+      cert-init:
+        condition: service_completed_successfully
     networks:
       - aisra-net
 
@@ -30,14 +56,17 @@ services:
     ports:
       - "${AGENT_PORT}:${AGENT_PORT}"
     volumes:
-      - ./certs/localhost.pfx:/app/cert.pfx
+      - ./certs:/certs:ro
     env_file:
       - .env
     environment:
       REDIS_HOST: db
       MQTT_HOST: mqtt-broker
       HEURISTIC_LIB_SERVER_URL: "https://heuristic-web:5001"
+      Kestrel__Certificates__Default__Path: /certs/localhost.pfx
     depends_on:
+      cert-init:
+        condition: service_completed_successfully
       db:
         condition: service_started
       mqtt-broker:

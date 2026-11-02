@@ -19,7 +19,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 COPY --from=build /app .
 EXPOSE 5000 5001
-ENV Kestrel__Certificates__Default__Path=/app/cert.pfx
+ENV Kestrel__Certificates__Default__Path=/certs/localhost.pfx
 ENV Kestrel__Certificates__Default__Password=devpassword
 USER app
 ENTRYPOINT ["dotnet", "AIsra.HeuristicLibWeb.Server.dll"]
