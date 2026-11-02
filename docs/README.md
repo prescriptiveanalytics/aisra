@@ -55,6 +55,16 @@ The endpoints provided by `AIsra.Web` are listed in the table below. These endpo
 | `data-stream`    | `GET`  | Yes  | Forwards the data from the MQTT broker.                                                       |
 | `models`         | `GET`  | No   | Returns a list of all available models.                                                       |
 | `chat`           | `POST` | No   | Sends the message specified in the request body to the AI agent.                              |
+| `auth/me`        | `GET`  | No   | Returns the signed-in user (401 if not signed in, 403 if not authorized).                     |
+| `auth/login`     | `GET`  | No   | Starts the Google sign-in and redirects to the `returnUrl` query parameter afterward.         |
+| `auth/logout`    | `POST` | No   | Ends the session and redirects to the frontend.                                               |
+
+#### Authentication
+
+If `USE_AUTHENTICATION` is enabled (default), `AIsra.Web` signs users in via OpenID Connect with Google and keeps the session in an HttpOnly cookie, so no tokens are exposed to the browser.
+All endpoints except `auth/*` require a signed-in user whose verified email address matches `AUTHORIZED_USERS_REGEX`; users who don't match are rejected right after sign-in.
+The frontend calls `auth/me` on load and only renders the dashboard for authorized users; otherwise, it shows a sign-in screen that redirects to `auth/login`.
+Because the frontend and the API run on different origins, CORS only allows `FRONTEND_URL` and the cookie is sent cross-site (`SameSite=None; Secure`).
 
 #### MCP Server and Client
 

@@ -17,6 +17,7 @@
     import { type ModalComponent, type ModalProps, modals } from "svelte-modals";
     import AddChartModal from "$lib/components/AddChartModal.svelte";
     import { apiBase } from "$lib/config";
+    import { apiFetch } from "$lib/auth.svelte";
 
     ChartJS.register(Title, Tooltip, Legend, LineElement, LinearScale, PointElement, CategoryScale);
 
@@ -28,7 +29,7 @@
     let selectedCharts = $state<(number | null)[]>([null]);
 
     async function handleAddChart(): Promise<void> {
-        const res = await fetch(`${apiBase}/api/models`);
+        const res = await apiFetch("/api/models");
         if (res.ok) {
             const fetchedModels = (await res.json()) as { id: number; model: string }[];
             await modals.open(
@@ -55,7 +56,9 @@
     }
 
     $effect(() => {
-        const eventSource = new ReconnectingEventSource(`${apiBase}/api/token-stream`);
+        const eventSource = new ReconnectingEventSource(`${apiBase}/api/token-stream`, {
+            withCredentials: true,
+        });
 
         eventSource.addEventListener("tool", (event) => {
             isDone = false;
@@ -94,7 +97,7 @@
         isDone = false;
         serverEvents = [{ type: "user_message", message }, ...serverEvents];
 
-        fetch(`${apiBase}/api/chat`, {
+        apiFetch("/api/chat", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",

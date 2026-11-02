@@ -31,11 +31,24 @@ Furthermore, there is a frontend for interacting with the agent and visualizing 
 
 #### Steps
 
-1. Copy the `.env.example` file in the root directory to `.env` and update the environment variables as needed (`LLM_API_KEY` is required).
+1. Copy the `.env.example` file in the root directory to `.env` and update the environment variables as needed (`LLM_API_KEY` and, unless disabled, the [authentication](#authentication) settings are required).
 2. Run `run-docker.sh` (on Linux/macOS) or `run-docker.ps1` (on Windows) to build and run the Docker containers.
    Running `docker compose up` directly also works; the `cert-init` service generates the development certificate if it is missing.
 3. Access the application at the specified port in your web browser (http://localhost:3000 by default).
 4. Supply the agent with a data stream over MQTT (e.g. with [janzenisek/dsg](https://github.com/janzenisek/dsg)).
+
+#### Authentication
+
+By default, users have to sign in with a Google account. To set this up, create OAuth credentials in the [Google Cloud Console](https://console.cloud.google.com/):
+
+1. Create (or select) a project and configure the consent screen under *Google Auth Platform → Branding*. Choose the *External* audience and publish the app under *Audience*; while it is in *Testing*, only the listed test users can sign in.
+2. Under *Clients → Create client*, choose *Web application* and add the authorized redirect URI `${PUBLIC_API_URL}/api/signin-oidc` (e.g. `https://localhost:5003/api/signin-oidc`).
+3. Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `FRONTEND_URL` in your `.env` file.
+4. Set `AUTHORIZED_USERS_REGEX` to a RegEx matching the email addresses of users who should get access (e.g. `^[^@]+@example\.com$`). Only email addresses verified by Google are considered.
+
+Users without a Gmail or Google Workspace address can create a Google account for their existing email address at [accounts.google.com/signup](https://accounts.google.com/signup) (*Use my current email address instead*).
+
+Set `USE_AUTHENTICATION=false` to disable authentication.
 
 #### Troubleshooting
 
@@ -59,7 +72,7 @@ The `cert-init` service regenerates the certificate on startup.
 
 #### Steps
 
-1. Copy the `.env.example` file in the root directory to `.env` and update the environment variables as needed (`LLM_API_KEY` is required).
+1. Copy the `.env.example` file in the root directory to `.env` and update the environment variables as needed (`LLM_API_KEY` and, unless disabled, the [authentication](#authentication) settings are required).
 2. Run the required services.
 ```shell
 docker compose -f compose.dev.yml up -d

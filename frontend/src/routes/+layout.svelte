@@ -3,8 +3,14 @@
     import favicon from "$lib/assets/favicon.svg";
     import { themeState } from "$lib/theme.svelte";
     import { Modals } from "svelte-modals";
+    import { authState, checkAuth, logout } from "$lib/auth.svelte";
+    import LoginScreen from "$lib/components/LoginScreen.svelte";
 
     const { children } = $props();
+
+    $effect(() => {
+        void checkAuth();
+    });
 
     $effect(() => {
         const stored = localStorage.getItem("theme");
@@ -58,7 +64,19 @@
     {/snippet}
 </Modals>
 
-<div class="absolute top-4 right-4">
+<div class="absolute top-4 right-4 flex items-center gap-2">
+    {#if authState.status === "authenticated" && authState.user?.authenticationEnabled}
+        <span class="text-sm text-gray-600 dark:text-gray-300">
+            {authState.user.email ?? authState.user.name}
+        </span>
+        <button
+            type="button"
+            onclick={logout}
+            class="rounded-md border border-gray-300 bg-gray-100 p-2 text-sm text-gray-800 hover:bg-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
+        >
+            Sign out
+        </button>
+    {/if}
     <select
         bind:value={themeState.preference}
         class="rounded-md border border-gray-300 bg-gray-100 p-2 text-sm text-gray-800 hover:bg-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
@@ -70,4 +88,8 @@
     </select>
 </div>
 
-{@render children()}
+{#if authState.status === "authenticated"}
+    {@render children()}
+{:else if authState.status !== "loading"}
+    <LoginScreen />
+{/if}

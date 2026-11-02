@@ -21,7 +21,9 @@
     let series = $state<Series[]>([]);
 
     $effect(() => {
-        const eventSource = new ReconnectingEventSource(`${apiBase}/api/data-stream`);
+        const eventSource = new ReconnectingEventSource(`${apiBase}/api/data-stream`, {
+            withCredentials: true,
+        });
 
         eventSource.onmessage = (event: MessageEvent): void => {
             const dataPoint = JSON.parse(event.data as string) as DataPoint;

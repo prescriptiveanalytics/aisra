@@ -122,6 +122,7 @@
     $effect(() => {
         const eventSource = new ReconnectingEventSource(
             `${apiBase}/api/metrics-stream${modelId != null ? `?modelId=${modelId}` : ""}`,
+            { withCredentials: true },
         );
 
         eventSource.onmessage = (event: MessageEvent): void => {
@@ -169,7 +170,9 @@
             return;
         }
 
-        const eventSource = new ReconnectingEventSource(`${apiBase}/api/current-model`);
+        const eventSource = new ReconnectingEventSource(`${apiBase}/api/current-model`, {
+            withCredentials: true,
+        });
 
         eventSource.onmessage = (event: MessageEvent): void => {
             const data = event.data as string;

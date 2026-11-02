@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO.Pipelines;
 using DotNetEnv;
 using AIsra.Web.Services;
+using AIsra.Web.Services.Auth;
 using AIsra.Web.Services.Chat;
 using AIsra.Web.Services.Data;
 using AIsra.Web.Services.Mcp.Client;
@@ -49,13 +50,27 @@ builder.WebHost.ConfigureKestrel(options =>
 
 services.AddControllers();
 
+var authSettings = AuthSettings.FromConfiguration(cfg);
+
+services.AddAisraAuthentication(authSettings);
+
 services.AddCors(options =>
 {
-    options.AddDefaultPolicy(policy
-        => policy.AllowAnyOrigin()
-            .AllowAnyHeader()
+    options.AddDefaultPolicy(policy =>
+    {
+        if (authSettings.FrontendUrl is not null)
+        {
+            policy.WithOrigins(authSettings.FrontendUrl.GetLeftPart(UriPartial.Authority));
+        }
+        else
+        {
+            policy.SetIsOriginAllowed(_ => true);
+        }
+
+        policy.AllowAnyHeader()
             .AllowAnyMethod()
-    );
+            .AllowCredentials();
+    });
 });
 
 cfg["CLIENT_TYPE"] ??= "Grpc";
@@ -152,6 +167,13 @@ var app = builder.Build();
 
 app.UsePathBase("/api");
 app.UseCors();
+
+if (authSettings.Enabled)
+{
+    app.UseAuthentication();
+}
+
+app.UseAuthorization();
 app.MapControllers();
 
 await app.RunAsync();
