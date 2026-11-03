@@ -14,6 +14,7 @@ public sealed class AuthSettings
 
     public Uri? FrontendUrl { get; init; }
 
+    public Uri? PublicApiUrl { get; init; }
     public string? ClientId { get; init; }
 
     public string? ClientSecret { get; init; }
@@ -56,6 +57,9 @@ public sealed class AuthSettings
         return new AuthSettings
         {
             Enabled = true,
+            PublicApiUrl = string.IsNullOrWhiteSpace(cfg["PUBLIC_API_URL"])
+                ? null
+                : new Uri(cfg["PUBLIC_API_URL"]!, UriKind.Absolute),
             AuthorizedUsers = new Regex(
                 authorizedUsersRegex,
                 RegexOptions.IgnoreCase | RegexOptions.CultureInvariant,

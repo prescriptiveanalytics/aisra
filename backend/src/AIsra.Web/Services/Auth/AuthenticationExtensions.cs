@@ -69,6 +69,14 @@ public static class AuthenticationExtensions
                 options.Events.OnRedirectToIdentityProvider = context =>
                 {
                     context.ProtocolMessage.Prompt = "select_account";
+
+                    if (settings.PublicApiUrl is not null)
+                    {
+                        context.ProtocolMessage.RedirectUri = settings.PublicApiUrl.AbsoluteUri.TrimEnd('/')
+                                                              + context.Request.PathBase
+                                                              + context.Options.CallbackPath;
+                    }
+
                     return Task.CompletedTask;
                 };
 
