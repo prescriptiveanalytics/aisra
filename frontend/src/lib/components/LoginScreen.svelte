@@ -1,5 +1,6 @@
 <script lang="ts">
     import { authState, login } from "$lib/auth.svelte";
+    import googleLogo from "$lib/assets/google-logo.svg";
 
     const authError = new URLSearchParams(window.location.search).get("authError");
 
@@ -34,8 +35,9 @@
         <button
             type="button"
             onclick={login}
-            class="w-full rounded-md bg-blue-600 px-4 py-2 font-medium text-white hover:bg-blue-700"
+            class="flex w-full cursor-pointer items-center justify-center gap-3 rounded-md border border-[#747775] bg-white px-4 py-2 font-medium text-[#1F1F1F] hover:bg-gray-50 dark:border-[#8E918F] dark:bg-[#131314] dark:text-[#E3E3E3] dark:hover:bg-[#1F1F1F]"
         >
+            <img src={googleLogo} alt="" class="size-5" />
             Sign in with Google
         </button>
     </div>
