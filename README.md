@@ -53,8 +53,6 @@ By default, users have to sign in with a Google account. To set this up, create 
 3. Set `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, and `FRONTEND_URL` in your `.env` file.
 4. Set `AUTHORIZED_USERS_REGEX` to a RegEx matching the email addresses of users who should get access (e.g. `^[^@]+@example\.com$`). Only email addresses verified by Google are considered.
 
-Users without a Gmail or Google Workspace address can create a Google account for their existing email address at [accounts.google.com/signup](https://accounts.google.com/signup) (*Use my current email address instead*).
-
 Set `USE_AUTHENTICATION=false` to disable authentication.
 
 #### Troubleshooting
