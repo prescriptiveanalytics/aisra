@@ -1,5 +1,13 @@
 # `AIsra`
 
+[![Release](https://github.com/prescriptiveanalytics/aisra/actions/workflows/release.yml/badge.svg?branch=main)](https://github.com/prescriptiveanalytics/aisra/actions/workflows/release.yml)
+[![Version](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fprescriptiveanalytics%2Faisra%2Fmain%2Fversion.json&query=%24.version&label=version&color=blue)](version.json)
+[![GHCR](https://img.shields.io/badge/ghcr.io-aisra-2496ED?logo=docker&logoColor=white)](https://github.com/orgs/prescriptiveanalytics/packages?repo_name=aisra)
+[![.NET](https://img.shields.io/badge/.NET-10.0-512BD4?logo=dotnet&logoColor=white)](https://dotnet.microsoft.com/)
+[![SvelteKit](https://img.shields.io/badge/SvelteKit-Svelte%205-FF3E00?logo=svelte&logoColor=white)](https://svelte.dev/)
+[![Last commit](https://img.shields.io/github/last-commit/prescriptiveanalytics/aisra/main)](https://github.com/prescriptiveanalytics/aisra/commits/main)
+[![License](https://img.shields.io/github/license/prescriptiveanalytics/aisra)](LICENSE)
+
 <p align="center"><i><strong>AIsra</strong> – <strong>A</strong>gent for <strong>I</strong>nterpretable <strong>S</strong>ymbolic <strong>R</strong>egression and <strong>A</strong>nalysis</i></p>
 
 ## What is AIsra?

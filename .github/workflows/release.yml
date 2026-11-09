@@ -1,0 +1,154 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+
+# Run builds one after another so an older commit can never overwrite `dev` or `latest` of a newer one,
+# or be deployed after a newer one.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: self-hosted
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      tag: ${{ steps.version.outputs.SimpleVersion }}-${{ steps.version.outputs.GitCommitIdShort }}
+
+    env:
+      IMAGE_PREFIX: ghcr.io/${{ github.repository }}
+      # Kept between runs, so its build cache is too.
+      BUILDER: aisra
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v6
+        env:
+          DOTNET_INSTALL_DIR: ${{ runner.tool_cache }}/dotnet
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Determine version
+        id: version
+        uses: dotnet/nbgv@v0.5.2
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # Only the final stages run emulated for arm64; the build stages run natively.
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+
+      - name: Set up Docker Buildx
+        run: |
+          docker buildx inspect "$BUILDER" > /dev/null 2>&1 \
+            || docker buildx create --name "$BUILDER" --driver docker-container
+          docker buildx inspect "$BUILDER" --bootstrap
+
+      # A build is a release when the version from version.json has not been published yet,
+      # i.e. major, minor or patch were changed since the last published image.
+      # It is also a release when the version was published from this very commit, so a re-run
+      # after a partially failed push still pushes all release tags.
+      # Images are tagged like dsg-web: always `dev` and `<version>-<commit>`; releases also
+      # `latest`, `<major>.<minor>.<patch>`, `<major>.<minor>` and `<major>`.
+      - name: Build and push images
+        env:
+          VERSION: ${{ steps.version.outputs.SimpleVersion }}
+          MAJOR_MINOR: ${{ steps.version.outputs.MajorMinorVersion }}
+          MAJOR: ${{ steps.version.outputs.VersionMajor }}
+          COMMIT_TAG: ${{ steps.version.outputs.SimpleVersion }}-${{ steps.version.outputs.GitCommitIdShort }}
+        run: |
+          set -euo pipefail
+
+          digest() {
+            docker buildx imagetools inspect "$1" --format '{{.Manifest.Digest}}' 2> /dev/null
+          }
+
+          # name, build context, Dockerfile, whether it is deployed on this runner (see compose.prod.yml)
+          images=(
+            "frontend frontend frontend/Dockerfile true"
+            "web backend/src backend/src/AIsra.Web/Dockerfile true"
+            "heuristic-lib-web backend/src backend/src/AIsra.HeuristicLibWeb.Server/Dockerfile false"
+          )
+
+          for entry in "${images[@]}"; do
+            read -r name context dockerfile deployed <<< "$entry"
+            image="$IMAGE_PREFIX/$name"
+            echo "::group::$image"
+
+            version_digest=$(digest "$image:$VERSION" || true)
+            if [ -z "$version_digest" ]; then
+              echo "Version $VERSION is new, publishing a release."
+              is_release=true
+            elif [ "$version_digest" = "$(digest "$image:$COMMIT_TAG" || true)" ]; then
+              echo "Version $VERSION was published from this commit, publishing the release again."
+              is_release=true
+            else
+              echo "Version $VERSION is already published."
+              is_release=false
+            fi
+
+            tags=(--tag "$image:dev" --tag "$image:$COMMIT_TAG")
+            if [ "$is_release" = true ]; then
+              tags+=(--tag "$image:latest" --tag "$image:$VERSION" --tag "$image:$MAJOR_MINOR" --tag "$image:$MAJOR")
+            fi
+
+            build=(
+              docker buildx build "$context"
+              --builder "$BUILDER"
+              --file "$dockerfile"
+              --label "org.opencontainers.image.title=aisra-$name"
+              --label "org.opencontainers.image.version=$VERSION"
+              --label "org.opencontainers.image.revision=$GITHUB_SHA"
+              --label "org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"
+            )
+
+            # GitHub reads these from the multi-platform index (labels are only on the per-platform images)
+            # to link the package to this repository and show its description.
+            annotations=()
+            for key_value in               "org.opencontainers.image.source=$GITHUB_SERVER_URL/$GITHUB_REPOSITORY"               "org.opencontainers.image.description=AIsra $name"               "org.opencontainers.image.licenses=MIT"; do
+              annotations+=(--annotation "index:$key_value" --annotation "manifest:$key_value")
+            done
+
+            "${build[@]}" --platform linux/amd64,linux/arm64 "${tags[@]}" "${annotations[@]}" --push
+
+            # Load the runner's own platform into the local image store for the deployment.
+            # Everything is cached from the build above, so this only exports the image.
+            if [ "$deployed" = true ]; then
+              "${build[@]}" --tag "$image:$COMMIT_TAG" --load
+            fi
+
+            echo "::endgroup::"
+          done
+
+      - name: Clean up build cache
+        if: always()
+        run: |
+          # The builder does not exist yet if the job failed before it was created.
+          if docker buildx inspect "$BUILDER" > /dev/null 2>&1; then
+            docker buildx prune --builder "$BUILDER" --force --filter until=168h
+          fi
+
+  deploy:
+    needs: build
+    uses: ./.github/workflows/deploy.yml
+    permissions:
+      contents: read
+      packages: read
+    with:
+      tag: ${{ needs.build.outputs.tag }}
+      pull-dependencies: true
+    secrets: inherit

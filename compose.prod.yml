@@ -1,0 +1,82 @@
+services:
+  cert-init:
+    image: mcr.microsoft.com/dotnet/sdk:10.0
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        set -e
+        if [ ! -s /certs/localhost.pfx ]; then
+          dotnet dev-certs https -ep /certs/localhost.pfx -p devpassword
+        fi
+        chmod 644 /certs/localhost.pfx
+    volumes:
+      - certs:/certs
+    restart: "no"
+
+  db:
+    image: redis:8-alpine
+    command: redis-server --save "" --appendonly no
+    restart: unless-stopped
+    networks:
+      - aisra-net
+
+  mqtt-broker:
+    image: eclipse-mosquitto:2.1-alpine
+    ports:
+      - "${MQTT_PORT:-1883}:1883"
+    restart: unless-stopped
+    networks:
+      - aisra-net
+
+  dsg-web:
+    image: ghcr.io/prescriptiveanalytics/dsg-web:latest
+    depends_on:
+      - mqtt-broker
+    restart: unless-stopped
+    networks:
+      - aisra-net
+
+  aisra-web:
+    image: ghcr.io/prescriptiveanalytics/aisra/web:${AISRA_TAG:-latest}
+    ports:
+      - "${AGENT_PORT}:${AGENT_PORT}"
+    volumes:
+      - certs:/certs:ro
+    env_file:
+      - .env
+    environment:
+      REDIS_HOST: db
+      MQTT_HOST: mqtt-broker
+      DSG_URL: "http://dsg-web:8080"
+      DSG_BROKER_HOST: mqtt-broker
+      Kestrel__Certificates__Default__Path: /certs/localhost.pfx
+    depends_on:
+      cert-init:
+        condition: service_completed_successfully
+      db:
+        condition: service_started
+      mqtt-broker:
+        condition: service_started
+      dsg-web:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - aisra-net
+
+  frontend:
+    image: ghcr.io/prescriptiveanalytics/aisra/frontend:${AISRA_TAG:-latest}
+    environment:
+      PUBLIC_API_URL: "${PUBLIC_API_URL}"
+      PORT: "${FRONTEND_PORT}"
+    ports:
+      - "${FRONTEND_PORT}:${FRONTEND_PORT}"
+    depends_on:
+      - aisra-web
+    restart: unless-stopped
+
+volumes:
+  certs:
+
+networks:
+  aisra-net:
+    driver: bridge

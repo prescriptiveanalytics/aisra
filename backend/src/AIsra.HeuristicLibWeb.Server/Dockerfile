@@ -1,4 +1,7 @@
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+# syntax=docker/dockerfile:1
+
+# The build stage always runs natively; the framework-dependent output runs on every target platform.
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 COPY AIsra.HeuristicLibWeb.Server/AIsra.HeuristicLibWeb.Server.csproj ./AIsra.HeuristicLibWeb.Server/
@@ -13,7 +16,7 @@ RUN dotnet restore AIsra.HeuristicLibWeb.Server/AIsra.HeuristicLibWeb.Server.csp
 COPY . .
 
 ENV SKIP_SWAGGER=true
-RUN dotnet publish AIsra.HeuristicLibWeb.Server/AIsra.HeuristicLibWeb.Server.csproj -c Release -o /app
+RUN dotnet publish AIsra.HeuristicLibWeb.Server/AIsra.HeuristicLibWeb.Server.csproj -c Release -o /app /p:UseAppHost=false
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app

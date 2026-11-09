@@ -1,4 +1,7 @@
-FROM mcr.microsoft.com/dotnet/sdk:10.0 AS build
+# syntax=docker/dockerfile:1
+
+# The build stage always runs natively; the framework-dependent output runs on every target platform.
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:10.0 AS build
 WORKDIR /src
 
 COPY AIsra.Web/AIsra.Web.csproj ./AIsra.Web/
@@ -11,7 +14,7 @@ RUN dotnet restore AIsra.Web/AIsra.Web.csproj
 
 COPY . .
 
-RUN dotnet publish AIsra.Web/AIsra.Web.csproj -c Release -o /app
+RUN dotnet publish AIsra.Web/AIsra.Web.csproj -c Release -o /app /p:UseAppHost=false
 
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app

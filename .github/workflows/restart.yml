@@ -1,0 +1,14 @@
+name: Restart
+
+on:
+  workflow_dispatch:
+
+jobs:
+  restart:
+    uses: ./.github/workflows/deploy.yml
+    permissions:
+      contents: read
+      packages: read
+    with:
+      force-recreate: true
+    secrets: inherit

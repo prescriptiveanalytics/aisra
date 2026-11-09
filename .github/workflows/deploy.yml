@@ -1,0 +1,121 @@
+name: Deploy
+
+on:
+  workflow_call:
+    inputs:
+      tag:
+        description: Image tag of the application to deploy. Empty to keep the currently deployed one.
+        type: string
+        default: ""
+      pull-dependencies:
+        description: Pull newer versions of the third-party images (dsg-web, Redis, Mosquitto).
+        type: boolean
+        default: false
+      force-recreate:
+        description: Recreate all containers, even if their configuration did not change.
+        type: boolean
+        default: false
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    # Holds the deployment's configuration as variables and secrets (see "Write configuration").
+    environment: production
+    permissions:
+      contents: read
+      packages: read
+
+    # Shared by all callers, so a release and a restart never run at the same time.
+    concurrency:
+      group: deploy-production
+      cancel-in-progress: false
+
+    env:
+      COMPOSE: docker compose --project-name aisra --file compose.prod.yml
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      # Values are single-quoted so Docker Compose takes them literally (e.g. `$` in the regex).
+      # Empty values are left out, so the application's defaults apply.
+      - name: Write configuration
+        env:
+          MQTT_PORT: ${{ vars.MQTT_PORT || '1883' }}
+          AGENT_PORT: ${{ vars.AGENT_PORT || '5003' }}
+          FRONTEND_PORT: ${{ vars.FRONTEND_PORT || '3000' }}
+          CLIENT_TYPE: ${{ vars.CLIENT_TYPE || 'Lib' }}
+          HEURISTIC_LIB_SERVER_URL: ${{ vars.HEURISTIC_LIB_SERVER_URL }}
+          LLM_CLIENT: ${{ vars.LLM_CLIENT || 'OpenAi' }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          LLM_TEMPERATURE: ${{ vars.LLM_TEMPERATURE }}
+          MODEL: ${{ vars.MODEL }}
+          MODEL_ENDPOINT: ${{ vars.MODEL_ENDPOINT }}
+          MAX_HISTORY_CHARS: ${{ vars.MAX_HISTORY_CHARS }}
+          MQTT_TOPIC_FILTER: ${{ vars.MQTT_TOPIC_FILTER }}
+          USE_AUTHENTICATION: ${{ vars.USE_AUTHENTICATION || 'true' }}
+          AUTHORIZED_USERS_REGEX: ${{ vars.AUTHORIZED_USERS_REGEX }}
+          GOOGLE_CLIENT_ID: ${{ vars.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          FRONTEND_URL: ${{ vars.FRONTEND_URL }}
+          PUBLIC_API_URL: ${{ vars.PUBLIC_API_URL }}
+        run: |
+          names=(
+            MQTT_PORT AGENT_PORT FRONTEND_PORT CLIENT_TYPE HEURISTIC_LIB_SERVER_URL LLM_CLIENT LLM_API_KEY LLM_TEMPERATURE MODEL
+            MODEL_ENDPOINT MAX_HISTORY_CHARS MQTT_TOPIC_FILTER USE_AUTHENTICATION AUTHORIZED_USERS_REGEX
+            GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET FRONTEND_URL PUBLIC_API_URL
+          )
+          umask 077
+          : > .env
+          for name in "${names[@]}"; do
+            value=${!name}
+            [ -z "$value" ] && continue
+            if [[ $value == *"'"* ]]; then
+              echo "::error::$name must not contain single quotes."
+              exit 1
+            fi
+            echo "$name='$value'" >> .env
+          done
+
+      # Needs the configuration, as Docker Compose resolves the ports in compose.prod.yml.
+      - name: Determine tag
+        id: tag
+        env:
+          TAG: ${{ inputs.tag }}
+        run: |
+          if [ -z "$TAG" ]; then
+            container=$($COMPOSE ps --all --quiet aisra-web)
+            if [ -z "$container" ]; then
+              echo "::error::The application is not deployed yet. Run the Release workflow first."
+              exit 1
+            fi
+            image=$(docker inspect --format '{{.Config.Image}}' "$container")
+            TAG=${image##*:}
+          fi
+          echo "Deploying $TAG."
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Pull third-party images
+        if: inputs.pull-dependencies
+        run: $COMPOSE pull cert-init db mqtt-broker dsg-web
+
+      - name: Start application
+        env:
+          AISRA_TAG: ${{ steps.tag.outputs.tag }}
+          FORCE_RECREATE: ${{ inputs.force-recreate }}
+        run: |
+          args=(--detach --no-build --remove-orphans)
+          if [ "$FORCE_RECREATE" = true ]; then
+            args+=(--force-recreate)
+          fi
+          $COMPOSE up "${args[@]}"
+
+      - name: Clean up images
+        run: docker image prune --all --force --filter until=168h

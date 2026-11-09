@@ -92,8 +92,9 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-      args:
-        PUBLIC_API_URL: "${PUBLIC_API_URL}"
+    environment:
+      PUBLIC_API_URL: "${PUBLIC_API_URL}"
+      PORT: "${FRONTEND_PORT}"
     ports:
       - "${FRONTEND_PORT}:${FRONTEND_PORT}"
     depends_on:
