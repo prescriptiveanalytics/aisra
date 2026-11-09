@@ -33,6 +33,14 @@ services:
     networks:
       - aisra-net
 
+  dsg-web:
+    image: ghcr.io/prescriptiveanalytics/dsg-web:latest
+    depends_on:
+      mqtt-broker:
+        condition: service_started
+    networks:
+      - aisra-net
+
   heuristic-web:
     build:
       context: ./backend/src
@@ -62,6 +70,8 @@ services:
     environment:
       REDIS_HOST: db
       MQTT_HOST: mqtt-broker
+      DSG_URL: "http://dsg-web:8080"
+      DSG_BROKER_HOST: mqtt-broker
       HEURISTIC_LIB_SERVER_URL: "https://heuristic-web:5001"
       Kestrel__Certificates__Default__Path: /certs/localhost.pfx
     depends_on:
@@ -70,6 +80,8 @@ services:
       db:
         condition: service_started
       mqtt-broker:
+        condition: service_started
+      dsg-web:
         condition: service_started
       heuristic-web:
         condition: service_started

@@ -11,6 +11,7 @@
     } from "chart.js";
     import ChatPanel from "$lib/components/ChatPanel.svelte";
     import DataStreamCharts from "$lib/components/DataStreamCharts.svelte";
+    import DataGeneratorControls from "$lib/components/DataGeneratorControls.svelte";
     import ModelSection from "../lib/components/ModelSection.svelte";
     import type { ServerEvent } from "$lib/types/serverEvents";
     import ReconnectingEventSource from "reconnecting-eventsource";
@@ -118,6 +119,7 @@
         <div class="flex-1">
             <div class="mb-4 flex items-center justify-between">
                 <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-200">Data Stream</h2>
+                <DataGeneratorControls />
             </div>
 
             <DataStreamCharts />

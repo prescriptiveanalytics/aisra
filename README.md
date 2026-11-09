@@ -35,7 +35,6 @@ Furthermore, there is a frontend for interacting with the agent and visualizing 
 2. Run `run-docker.sh` (on Linux/macOS) or `run-docker.ps1` (on Windows) to build and run the Docker containers.
    Running `docker compose up` directly also works; the `cert-init` service generates the development certificate if it is missing.
 3. Access the application at the specified port in your web browser (http://localhost:3000 by default).
-4. Supply the agent with a data stream over MQTT (e.g. with [janzenisek/dsg](https://github.com/janzenisek/dsg)).
 
 #### Authentication
 
@@ -92,7 +91,6 @@ pnpm install
 pnpm dev
 ```
 6. Access the application at the specified port in your web browser (http://localhost:5173 by default).
-7. Supply the agent with a data stream over MQTT (e.g. with [janzenisek/dsg](https://github.com/janzenisek/dsg)).
 
 ## Documentation
 

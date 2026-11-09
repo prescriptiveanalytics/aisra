@@ -6,6 +6,8 @@ using AIsra.Web.Services;
 using AIsra.Web.Services.Auth;
 using AIsra.Web.Services.Chat;
 using AIsra.Web.Services.Data;
+using AIsra.Web.Services.DataGeneration;
+using DsgWeb.Client;
 using AIsra.Web.Services.Mcp.Client;
 using AIsra.Web.Services.Modeling;
 using AIsra.Web.Services.Persistence;
@@ -48,7 +50,12 @@ builder.WebHost.ConfigureKestrel(options =>
     });
 });
 
-services.AddControllers();
+services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // The frontend may send the "seriesType" discriminator of a series configuration in any position.
+        options.JsonSerializerOptions.AllowOutOfOrderMetadataProperties = true;
+    });
 
 var authSettings = AuthSettings.FromConfiguration(cfg);
 
@@ -162,6 +169,12 @@ services
     .AddSingleton<IModelService, ModelService>()
     .AddSingleton<IModelAnalyzer, ModelAnalyzer>()
     .AddSingleton<Settings>();
+
+services.AddHttpClient<IDsgWebClient, DsgWebClient>(client =>
+{
+    client.BaseAddress = new Uri(cfg["DSG_URL"] ?? "http://localhost:8080");
+});
+services.AddTransient<DataGeneratorService>();
 
 var app = builder.Build();
 
