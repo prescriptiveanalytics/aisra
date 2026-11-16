@@ -17,11 +17,16 @@
             "qualitydrop",
             "bg-red-100 border-red-500 text-red-700 dark:bg-red-900/40 dark:border-red-400 dark:text-red-300",
         ],
+        [
+            "interrupted",
+            "bg-amber-100 border-amber-500 text-amber-700 dark:bg-amber-900/40 dark:border-amber-400 dark:text-amber-300",
+        ],
     ]);
 
     const labelMap: Partial<Record<ServerEventType, string>> = {
         tool: "Tool",
         qualitydrop: "Quality Drop",
+        interrupted: "Interrupted",
     };
 
     const label = $derived(labelMap[event.type] ?? "");

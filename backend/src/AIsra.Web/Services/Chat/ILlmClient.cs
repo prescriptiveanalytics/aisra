@@ -4,5 +4,12 @@ public interface ILlmClient : IHostedService
 {
     bool AgentIsBusy { get; }
 
-    Task ChatAsync(string message, CancellationToken ct);
+    Task ChatAsync(string message);
+
+    /// <summary>
+    /// Interrupts the agent if it is currently responding, and starts a cooldown during which a quality drop does
+    /// not prompt the agent.
+    /// </summary>
+    /// <returns><see langword="true"/> if a running response was interrupted.</returns>
+    bool Interrupt();
 }

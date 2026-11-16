@@ -14,14 +14,24 @@ public sealed class LlmClient(
     ApplicationEventStream responseStream,
     IModelService modelService,
     IModelAnalyzer modelAnalyzer,
-    ICancellationTokenProvider ctp
+    Settings settings,
+    ICancellationTokenProvider ctp,
+    ILogger<LlmClient> logger
 ) : ILlmClient
 {
     private const int NumValuesToUse = 20; // TODO: Make this configurable
 
     private static readonly double QualityThreshold = 70.Percent; // TODO: Make this configurable
 
+    /// <summary>
+    /// The time after an interruption during which a quality drop does not prompt the agent.
+    /// </summary>
+    private static readonly TimeSpan InterruptCooldown = TimeSpan.FromSeconds(10);
+
     private readonly SemaphoreSlim agentGate = new(1, 1);
+    private readonly Lock runLock = new();
+    private CancellationTokenSource? currentRun;
+    private DateTimeOffset cooldownUntil = DateTimeOffset.MinValue;
 
     public bool AgentIsBusy => agentGate.CurrentCount == 0;
 
@@ -29,86 +39,129 @@ public sealed class LlmClient(
     {
         dataClient.DataReceived += async (_, _) =>
         {
-            var data = await dataStorage
-                .GetLastDataAsync(NumValuesToUse)
-                .Select(c => c.Item2)
-                .ToArrayAsync(ct);
-
-            if (data.Length < NumValuesToUse)
-            {
-                return;
-            }
-
-            var combinedModel = await modelService.GetCombinedModelAsync(null, ctp.Token);
-
-            if (combinedModel is null)
-            {
-                return;
-            }
-
-            var quality = modelAnalyzer.EvaluateQuality(combinedModel, data);
-
-            if (quality > QualityThreshold)
-            {
-                return;
-            }
-
-            if (!await agentGate.WaitAsync(0, ct))
-            {
-                return;
-            }
-
             try
             {
-                responseStream.Broadcast(EventType.QualityDrop);
-
-                await foreach (
-                    var s in chatClient.GetStreamingResponseAsync([
-                        new ChatMessage(
-                            ChatRole.User,
-                            $"[{DateTimeOffset.UtcNow}] [SYSTEM]" +
-                            $" The model quality fell below the threshold of {QualityThreshold} (quality: {quality:F2})."
-                        ),
-                    ]).WithCancellation(ct)
-                )
-                {
-                    responseStream.Broadcast(EventType.Fragment, s);
-                }
-
-                responseStream.Broadcast(EventType.Done);
+                await HandleDataReceivedAsync(ct);
             }
-            finally
+            catch (OperationCanceledException)
             {
-                agentGate.Release();
+            }
+            catch (Exception e)
+            {
+                logger.LogError(e, "Failed to check the model quality.");
             }
         };
 
         return Task.CompletedTask;
     }
 
-    public async Task ChatAsync(string message, CancellationToken ct)
+    private async Task HandleDataReceivedAsync(CancellationToken ct)
     {
-        if (!await agentGate.WaitAsync(0, ct))
+        if (!settings.MonitorModelQuality || DateTimeOffset.UtcNow < cooldownUntil || AgentIsBusy)
         {
             return;
         }
 
+        var data = await dataStorage
+            .GetLastDataAsync(NumValuesToUse)
+            .Select(c => c.Item2)
+            .ToArrayAsync(ct);
+
+        if (data.Length < NumValuesToUse)
+        {
+            return;
+        }
+
+        var combinedModel = await modelService.GetCombinedModelAsync(null, ctp.Token);
+
+        if (combinedModel is null)
+        {
+            return;
+        }
+
+        var quality = modelAnalyzer.EvaluateQuality(combinedModel, data);
+
+        if (quality > QualityThreshold || !settings.MonitorModelQuality || DateTimeOffset.UtcNow < cooldownUntil)
+        {
+            return;
+        }
+
+        await RunAgentAsync(
+            new ChatMessage(
+                ChatRole.User,
+                $"[{DateTimeOffset.UtcNow}] [SYSTEM]" +
+                $" The model quality fell below the threshold of {QualityThreshold} (quality: {quality:F2})."
+            ),
+            () => responseStream.Broadcast(EventType.QualityDrop)
+        );
+    }
+
+    public Task ChatAsync(string message)
+        => RunAgentAsync(new ChatMessage(ChatRole.User, message));
+
+    public bool Interrupt()
+    {
+        lock (runLock)
+        {
+            cooldownUntil = DateTimeOffset.UtcNow + InterruptCooldown;
+
+            if (currentRun is null)
+            {
+                return false;
+            }
+
+            currentRun.Cancel();
+            return true;
+        }
+    }
+
+    /// <summary>
+    /// Prompts the agent with the given message unless it is already busy, and streams its response to the frontend.
+    /// </summary>
+    /// <param name="message">The message to send to the agent.</param>
+    /// <param name="onStart">Called once the agent has been acquired, before it is prompted.</param>
+    private async Task RunAgentAsync(ChatMessage message, Action? onStart = null)
+    {
+        if (!await agentGate.WaitAsync(0))
+        {
+            return;
+        }
+
+        using var run = CancellationTokenSource.CreateLinkedTokenSource(ctp.Token);
+
+        lock (runLock)
+        {
+            currentRun = run;
+        }
+
+        var finalEvent = EventType.Done;
+
         try
         {
-            await foreach (
-                var s in chatClient.GetStreamingResponseAsync([
-                    new ChatMessage(ChatRole.User, message),
-                ]).WithCancellation(ct)
-            )
+            onStart?.Invoke();
+
+            await foreach (var s in chatClient.GetStreamingResponseAsync([message], run.Token))
             {
                 responseStream.Broadcast(EventType.Fragment, s);
             }
-
-            responseStream.Broadcast(EventType.Done);
+        }
+        catch (OperationCanceledException) when (run.IsCancellationRequested)
+        {
+            finalEvent = EventType.Interrupted;
+        }
+        catch (Exception e)
+        {
+            logger.LogError(e, "The agent failed to respond.");
         }
         finally
         {
+            lock (runLock)
+            {
+                currentRun = null;
+            }
+
             agentGate.Release();
+            responseStream.Broadcast(finalEvent);
         }
     }
 

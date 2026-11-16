@@ -26,6 +26,42 @@
 
     let serverEvents = $state<ServerEvent[]>([]);
     let isDone = $state(true);
+    let isStopping = $state(false);
+    let monitorModelQuality = $state<boolean | null>(null);
+
+    type AgentSettings = { monitorModelQuality: boolean };
+
+    async function loadAgentSettings(): Promise<void> {
+        const res = await apiFetch("/api/chat/settings");
+        if (res.ok) {
+            monitorModelQuality = ((await res.json()) as AgentSettings).monitorModelQuality;
+        }
+    }
+
+    async function handleMonitorModelQualityChange(enabled: boolean): Promise<void> {
+        const previous = monitorModelQuality;
+        monitorModelQuality = enabled;
+
+        try {
+            const res = await apiFetch("/api/chat/settings", {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ monitorModelQuality: enabled } satisfies AgentSettings),
+            });
+            if (!res.ok) {
+                throw new Error(`Failed to update the agent settings: ${res.status}`);
+            }
+            monitorModelQuality = ((await res.json()) as AgentSettings).monitorModelQuality;
+        } catch {
+            monitorModelQuality = previous;
+        }
+    }
+
+    $effect(() => {
+        void loadAgentSettings();
+    });
 
     let selectedCharts = $state<(number | null)[]>([null]);
 
@@ -87,6 +123,16 @@
 
         eventSource.addEventListener("done", () => {
             isDone = true;
+            isStopping = false;
+        });
+
+        eventSource.addEventListener("interrupted", () => {
+            isDone = true;
+            isStopping = false;
+            serverEvents = [
+                { type: "interrupted", message: "The agent was stopped." },
+                ...serverEvents,
+            ];
         });
 
         return () => {
@@ -104,9 +150,32 @@
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({ message }),
-        }).catch(() => {
-            isDone = true;
-        });
+        })
+            .then((res) => {
+                if (!res.ok) {
+                    isDone = true;
+                }
+            })
+            .catch(() => {
+                isDone = true;
+            });
+    }
+
+    async function handleStop(): Promise<void> {
+        isStopping = true;
+
+        try {
+            const res = await apiFetch("/api/chat/stop", { method: "POST" });
+            if (!res.ok) {
+                isStopping = false;
+            } else if (!((await res.json()) as boolean)) {
+                // Nothing was running, so no "interrupted" event will follow.
+                isDone = true;
+                isStopping = false;
+            }
+        } catch {
+            isStopping = false;
+        }
     }
 </script>
 
@@ -114,7 +183,15 @@
     <h1 class="mb-6 text-3xl font-bold text-gray-800 dark:text-gray-100">Dashboard</h1>
 
     <div class="flex flex-col gap-8 lg:flex-row">
-        <ChatPanel {serverEvents} {isDone} onSendMessage={handleSendMessage} />
+        <ChatPanel
+            {serverEvents}
+            {isDone}
+            {isStopping}
+            {monitorModelQuality}
+            onSendMessage={handleSendMessage}
+            onStop={handleStop}
+            onMonitorModelQualityChange={handleMonitorModelQualityChange}
+        />
 
         <div class="flex-1">
             <div class="mb-4 flex items-center justify-between">

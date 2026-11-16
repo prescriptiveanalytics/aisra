@@ -1,4 +1,5 @@
 ﻿using System.Reflection;
+using System.Runtime.CompilerServices;
 using AIsra.Web.Services.Mcp.Client;
 using AIsra.Common.Random;
 using AIsra.Common.Threading;
@@ -33,10 +34,13 @@ public sealed class ChatClient(
         var ct = ctp.Token;
         var tools = await (await mcpClientProvider.GetClientAsync()).ListToolsAsync(cancellationToken: ct);
 
-        return cachedTools = tools.Cast<AITool>().ToList();
+        return cachedTools = [.. tools];
     }
 
-    public async IAsyncEnumerable<string> GetStreamingResponseAsync(ICollection<ChatMessage> messages)
+    public async IAsyncEnumerable<string> GetStreamingResponseAsync(
+        ICollection<ChatMessage> messages,
+        [EnumeratorCancellation] CancellationToken ct = default
+    )
     {
         foreach (var msg in messages)
         {
@@ -46,33 +50,45 @@ public sealed class ChatClient(
 
         TrimHistory();
 
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ctp.Token, ct);
+
         var text = "";
 
-        await foreach (
-            var update in chatClient.GetStreamingResponseAsync(
-                messageHistory,
-                new ChatOptions
-                {
-                    Tools = await GetToolsAsync(),
-                    Seed = rng.Next(),
-                    Temperature = (float)temperature,
-                },
-                cancellationToken: ctp.Token
-            )
-        )
+        try
         {
-            if (string.IsNullOrEmpty(update.Text))
+            await foreach (
+                var update in chatClient.GetStreamingResponseAsync(
+                    messageHistory,
+                    new ChatOptions
+                    {
+                        Tools = await GetToolsAsync(),
+                        Seed = rng.Next(),
+                        Temperature = (float)temperature,
+                    },
+                    cancellationToken: linkedCts.Token
+                )
+            )
             {
-                continue;
+                if (string.IsNullOrEmpty(update.Text))
+                {
+                    continue;
+                }
+
+                yield return update.Text;
+                text += update.Text;
+            }
+        }
+        finally
+        {
+            if (linkedCts.IsCancellationRequested)
+            {
+                text += "\n\n[Response interrupted by the user.]";
             }
 
-            yield return update.Text;
-            text += update.Text;
+            messageHistory.Add(new ChatMessage(ChatRole.Assistant, text));
+            totalHistoryChars += text.Length;
+            TrimHistory();
         }
-
-        messageHistory.Add(new ChatMessage(ChatRole.Assistant, text));
-        totalHistoryChars += text.Length;
-        TrimHistory();
     }
 
     private void TrimHistory()

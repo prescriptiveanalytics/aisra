@@ -24,4 +24,9 @@ public enum EventType
     /// The LLM is done responding.
     /// </summary>
     Done,
+
+    /// <summary>
+    /// The LLM response was interrupted by the user.
+    /// </summary>
+    Interrupted,
 }
