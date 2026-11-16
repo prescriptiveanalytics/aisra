@@ -103,6 +103,11 @@
             withCredentials: true,
         });
 
+        // Sent when the agent starts responding, and on (re)connecting while it is busy.
+        eventSource.addEventListener("started", () => {
+            isDone = false;
+        });
+
         eventSource.addEventListener("tool", (event) => {
             isDone = false;
             serverEvents = [
@@ -161,7 +166,8 @@
             body: JSON.stringify({ message }),
         })
             .then((res) => {
-                if (!res.ok) {
+                // On 409, the agent is already busy, so it can still be stopped.
+                if (!res.ok && res.status !== 409) {
                     isDone = true;
                 }
             })

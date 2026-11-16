@@ -15,6 +15,7 @@ namespace AIsra.Web.Controllers;
 [Route("")]
 public sealed class StreamController(
     ApplicationEventStream llmStream,
+    ILlmClient llmClient,
     IDataClient dataClient,
     IDataAggregator dataAggregator,
     IDataStorage dataStorage,
@@ -40,6 +41,8 @@ public sealed class StreamController(
         var channel = Channel.CreateUnbounded<string>();
 
         llmStream.OnMessage += Handler;
+
+        Handler(llmClient.AgentIsBusy ? EventType.Started : EventType.Done, null);
 
         try
         {

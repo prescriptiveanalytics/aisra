@@ -1,4 +1,5 @@
 ﻿export type ServerEventType =
+    | "started"
     | "tool"
     | "fragment"
     | "qualitydrop"

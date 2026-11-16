@@ -6,6 +6,12 @@
 public enum EventType
 {
     /// <summary>
+    /// The agent has started responding and can be interrupted.
+    /// Also sent when a client connects while the agent is busy.
+    /// </summary>
+    Started,
+
+    /// <summary>
     /// A tool has been called.
     /// </summary>
     Tool,
@@ -22,6 +28,7 @@ public enum EventType
 
     /// <summary>
     /// The LLM is done responding.
+    /// Also sent when a client connects while the agent is idle.
     /// </summary>
     Done,
 

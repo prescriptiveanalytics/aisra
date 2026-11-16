@@ -17,7 +17,7 @@ public sealed class ChatController(ILlmClient llmClient, Settings settings) : Co
     {
         if (llmClient.AgentIsBusy)
         {
-            return BadRequest("Agent is currently busy. Please try again later.");
+            return Conflict("Agent is currently busy. Please try again later.");
         }
 
         llmClient.ChatAsync(request.Message).Forget();

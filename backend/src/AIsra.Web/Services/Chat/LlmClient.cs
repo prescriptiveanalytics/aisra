@@ -161,6 +161,7 @@ public sealed class LlmClient(
 
         try
         {
+            responseStream.Broadcast(EventType.Started);
             onStart?.Invoke();
 
             await foreach (var s in chatClient.GetStreamingResponseAsync([message], run.Token))
