@@ -4,6 +4,7 @@
     | "qualitydrop"
     | "done"
     | "interrupted"
+    | "reset"
     | "user_message";
 
 export type ServerEvent = {

@@ -11,6 +11,7 @@ using DsgWeb.Client;
 using AIsra.Web.Services.Mcp.Client;
 using AIsra.Web.Services.Modeling;
 using AIsra.Web.Services.Persistence;
+using AIsra.Web.Services.Reset;
 using AIsra.HeuristicLibAdapter;
 using AIsra.HeuristicLibAdapter.Grpc;
 using AIsra.Common.Random;
@@ -143,7 +144,8 @@ services
     .AddSingleton(chatClient)
     .AddSingleton<IClientTransport>(clientTransport)
     .AddSingleton<McpClientProvider>()
-    .AddSingleton<IHeuristicChatClient, ChatClient>()
+    .AddSingleton<ChatClient>()
+    .AddSingleton<IHeuristicChatClient>(sp => sp.GetRequiredService<ChatClient>())
     .AddSingleton<IHeuristicLibClient>(
         clientType switch
         {
@@ -160,15 +162,32 @@ services
     .AddSingleton<ICancellationTokenProvider>(cs)
     .AddSingleton<IRng>(rng)
     .AddSingleton<IDataClient, MqttDataClient>()
-    .AddSingleton<IDataAggregator, IntervalDataAggregator>()
+    .AddSingleton<IntervalDataAggregator>()
+    .AddSingleton<IDataAggregator>(sp => sp.GetRequiredService<IntervalDataAggregator>())
     .AddSingleton<ApplicationEventStream>()
-    .AddSingleton<ILlmClient, LlmClient>()
+    .AddSingleton<LlmClient>()
+    .AddSingleton<ILlmClient>(sp => sp.GetRequiredService<LlmClient>())
     .AddHostedService(sp => sp.GetRequiredService<ILlmClient>())
+    .AddSingleton(redisStore)
     .AddSingleton<IDataStorage>(redisStore)
     .AddSingleton<IModelStorage>(redisStore)
-    .AddSingleton<IModelService, ModelService>()
+    .AddSingleton<ModelService>()
+    .AddSingleton<IModelService>(sp => sp.GetRequiredService<ModelService>())
     .AddSingleton<IModelAnalyzer, ModelAnalyzer>()
-    .AddSingleton<Settings>();
+    .AddSingleton<Settings>()
+    .AddSingleton<ApplicationResetService>();
+
+// Everything that holds state must be reset, so that a reset is equivalent to restarting the application.
+// The data stream is stopped first so that no new data arrives, and the data aggregator is reset before the storage
+// so that it does not store old values again.
+services
+    .AddResettable<DataGeneratorService>()
+    .AddResettable<LlmClient>()
+    .AddResettable<ChatClient>()
+    .AddResettable<IntervalDataAggregator>()
+    .AddResettable<RedisStorage>()
+    .AddResettable<ModelService>()
+    .AddResettable<Settings>();
 
 services.AddHttpClient<IDsgWebClient, DsgWebClient>(client =>
 {

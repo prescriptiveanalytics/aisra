@@ -12,4 +12,10 @@ public interface ILlmClient : IHostedService
     /// </summary>
     /// <returns><see langword="true"/> if a running response was interrupted.</returns>
     bool Interrupt();
+
+    /// <summary>
+    /// Interrupts the agent if it is currently responding, waits until it has stopped, and keeps it from being
+    /// prompted until the returned handle is disposed.
+    /// </summary>
+    Task<IAsyncDisposable> SuspendAsync(CancellationToken ct);
 }

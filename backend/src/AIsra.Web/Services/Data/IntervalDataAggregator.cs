@@ -1,10 +1,11 @@
 ﻿using AIsra.Web.Dtos;
 using AIsra.Web.Services.Persistence;
 using AIsra.Common.Threading;
+using AIsra.Web.Services.Reset;
 
 namespace AIsra.Web.Services.Data;
 
-public sealed class IntervalDataAggregator : IDataAggregator
+public sealed class IntervalDataAggregator : IDataAggregator, IResettable
 {
     private readonly SortedDictionary<string, double> latestValues = new();
     private readonly Lock locker = new();
@@ -49,6 +50,16 @@ public sealed class IntervalDataAggregator : IDataAggregator
         {
             latestValues[dataPoint.Id] = dataPoint.Value;
         }
+    }
+
+    public Task ResetAsync(CancellationToken ct)
+    {
+        lock (locker)
+        {
+            latestValues.Clear();
+        }
+
+        return Task.CompletedTask;
     }
 
     public event EventHandler<double[]>? DataAggregated;

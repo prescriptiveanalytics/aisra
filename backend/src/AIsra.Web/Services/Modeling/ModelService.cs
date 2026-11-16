@@ -1,14 +1,17 @@
 using AIsra.Web.Services.Persistence;
+using AIsra.Web.Services.Reset;
 using HEAL.HeuristicLib.Genotypes.Trees;
 using HEAL.HeuristicLib.Problems.DataAnalysis.Formatter;
 
 namespace AIsra.Web.Services.Modeling;
 
-public sealed class ModelService(IModelStorage modelStorage) : IModelService
+public sealed class ModelService(IModelStorage modelStorage) : IModelService, IResettable
 {
+    private const int DefaultActiveModelId = 1;
+
     private static readonly InfixExpressionParser Parser = new();
 
-    private int activeModelId = 1;
+    private int activeModelId = DefaultActiveModelId;
 
     public int ActiveModelId => activeModelId;
 
@@ -44,6 +47,13 @@ public sealed class ModelService(IModelStorage modelStorage) : IModelService
         }
 
         return Parser.Parse($"({baseString}) + ({residualString})");
+    }
+
+    public Task ResetAsync(CancellationToken ct)
+    {
+        activeModelId = DefaultActiveModelId;
+
+        return Task.CompletedTask;
     }
 
     public async Task<SymbolicExpressionTree> GetResidualModelAsync(int? modelId, CancellationToken ct)

@@ -2,6 +2,7 @@
 using AIsra.Web.Services.Data;
 using AIsra.Web.Services.Modeling;
 using AIsra.Web.Services.Persistence;
+using AIsra.Web.Services.Reset;
 using AIsra.Common.Threading;
 using Microsoft.Extensions.AI;
 
@@ -17,7 +18,7 @@ public sealed class LlmClient(
     Settings settings,
     ICancellationTokenProvider ctp,
     ILogger<LlmClient> logger
-) : ILlmClient
+) : ILlmClient, IResettable
 {
     private const int NumValuesToUse = 20; // TODO: Make this configurable
 
@@ -115,6 +116,28 @@ public sealed class LlmClient(
         }
     }
 
+    public async Task<IAsyncDisposable> SuspendAsync(CancellationToken ct)
+    {
+        lock (runLock)
+        {
+            currentRun?.Cancel();
+        }
+
+        await agentGate.WaitAsync(ct);
+
+        return new Suspension(agentGate);
+    }
+
+    public Task ResetAsync(CancellationToken ct)
+    {
+        lock (runLock)
+        {
+            cooldownUntil = DateTimeOffset.MinValue;
+        }
+
+        return Task.CompletedTask;
+    }
+
     /// <summary>
     /// Prompts the agent with the given message unless it is already busy, and streams its response to the frontend.
     /// </summary>
@@ -167,4 +190,19 @@ public sealed class LlmClient(
 
     public Task StopAsync(CancellationToken ct)
         => Task.CompletedTask;
+
+    private sealed class Suspension(SemaphoreSlim agentGate) : IAsyncDisposable
+    {
+        private int disposed;
+
+        public ValueTask DisposeAsync()
+        {
+            if (Interlocked.Exchange(ref disposed, 1) == 0)
+            {
+                agentGate.Release();
+            }
+
+            return ValueTask.CompletedTask;
+        }
+    }
 }

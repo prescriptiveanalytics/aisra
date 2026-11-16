@@ -29,4 +29,9 @@ public enum EventType
     /// The LLM response was interrupted by the user.
     /// </summary>
     Interrupted,
+
+    /// <summary>
+    /// The application was reset, so all state shown in the frontend is outdated.
+    /// </summary>
+    Reset,
 }

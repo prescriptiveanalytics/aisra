@@ -7,7 +7,7 @@ partial class RedisStorage
 {
     public async Task InsertAsync(double[] data)
     {
-        await db.StreamAddAsync("data-records", [
+        await db.StreamAddAsync(DataRecordsKey, [
             new NameValueEntry("data", string.Join(',', data.Select(d => d.ToString(CultureInfo.InvariantCulture)))),
         ]);
     }
@@ -15,7 +15,7 @@ partial class RedisStorage
     public async IAsyncEnumerable<(DateTimeOffset, double[])> GetLastDataAsync(DateTimeOffset minTime)
     {
         var entries = await db.StreamRangeAsync(
-            "data-records",
+            DataRecordsKey,
             messageOrder: Order.Descending,
             minId: $"{Math.Max(minTime.ToUnixTimeMilliseconds(), 0)}-0"
         );
@@ -32,7 +32,7 @@ partial class RedisStorage
     public async IAsyncEnumerable<(DateTimeOffset, double[])> GetLastDataAsync(int count)
     {
         var entries = await db.StreamRangeAsync(
-            "data-records",
+            DataRecordsKey,
             count: count,
             messageOrder: Order.Descending
         );

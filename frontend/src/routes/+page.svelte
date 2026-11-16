@@ -17,8 +17,10 @@
     import ReconnectingEventSource from "reconnecting-eventsource";
     import { type ModalComponent, type ModalProps, modals } from "svelte-modals";
     import AddChartModal from "$lib/components/AddChartModal.svelte";
+    import ResetModal from "$lib/components/ResetModal.svelte";
     import { apiBase } from "$lib/config";
     import { apiFetch } from "$lib/auth.svelte";
+    import { reloadPage } from "$lib/reload";
 
     ChartJS.register(Title, Tooltip, Legend, LineElement, LinearScale, PointElement, CategoryScale);
 
@@ -84,6 +86,10 @@
         }
     }
 
+    async function handleReset(): Promise<void> {
+        await modals.open(ResetModal as unknown as ModalComponent<ModalProps<unknown>, object, "">);
+    }
+
     function removeChart(modelIdToRemove: number | null): void {
         selectedCharts = selectedCharts.filter((id) => id !== modelIdToRemove);
     }
@@ -135,6 +141,9 @@
             ];
         });
 
+        // The application was reset (possibly from another client), so all state shown here is outdated.
+        eventSource.addEventListener("reset", reloadPage);
+
         return () => {
             eventSource.close();
         };
@@ -180,7 +189,17 @@
 </script>
 
 <div class="mx-auto max-w-500 p-8 font-sans">
-    <h1 class="mb-6 text-3xl font-bold text-gray-800 dark:text-gray-100">Dashboard</h1>
+    <div class="mb-6 flex items-center gap-4">
+        <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100">Dashboard</h1>
+        <button
+            type="button"
+            onclick={handleReset}
+            class="cursor-pointer rounded-lg border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/40"
+            title="Reset the entire application"
+        >
+            Reset
+        </button>
+    </div>
 
     <div class="flex flex-col gap-8 lg:flex-row">
         <ChatPanel

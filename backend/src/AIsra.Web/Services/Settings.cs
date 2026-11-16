@@ -1,11 +1,24 @@
-﻿namespace AIsra.Web.Services;
+﻿using AIsra.Web.Services.Reset;
 
-public sealed class Settings
+namespace AIsra.Web.Services;
+
+public sealed class Settings : IResettable
 {
-    public bool FeatureImportance { get; set; }
+    private const bool DefaultFeatureImportance = false;
+    private const bool DefaultMonitorModelQuality = true;
+
+    public bool FeatureImportance { get; set; } = DefaultFeatureImportance;
 
     /// <summary>
     /// Whether the agent is prompted when the model quality falls below the threshold.
     /// </summary>
-    public bool MonitorModelQuality { get; set; } = true;
+    public bool MonitorModelQuality { get; set; } = DefaultMonitorModelQuality;
+
+    public Task ResetAsync(CancellationToken ct)
+    {
+        FeatureImportance = DefaultFeatureImportance;
+        MonitorModelQuality = DefaultMonitorModelQuality;
+
+        return Task.CompletedTask;
+    }
 }

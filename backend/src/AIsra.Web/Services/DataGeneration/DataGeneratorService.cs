@@ -1,22 +1,25 @@
 using System.Text.Json;
+using AIsra.Web.Services.Reset;
 using DsgWeb.Client;
 
 namespace AIsra.Web.Services.DataGeneration;
 
 /// <summary>
-/// Functionality on top of the dsg-web API: the default configuration and restarting the stream.
+/// Functionality on top of the dsg-web API: the default configuration, and restarting and stopping the stream.
 /// </summary>
-public sealed class DataGeneratorService
+public sealed class DataGeneratorService : IResettable
 {
     private static readonly TimeSpan StopTimeout = TimeSpan.FromSeconds(15);
     private static readonly TimeSpan StopPollInterval = TimeSpan.FromMilliseconds(250);
 
     private readonly IDsgWebClient client;
+    private readonly ILogger<DataGeneratorService> logger;
     private readonly string defaultConfigurationJson;
 
-    public DataGeneratorService(IDsgWebClient client, IConfiguration config)
+    public DataGeneratorService(IDsgWebClient client, IConfiguration config, ILogger<DataGeneratorService> logger)
     {
         this.client = client;
+        this.logger = logger;
 
         var defaultConfig = Deserialize(
             typeof(DataGeneratorService).Assembly
@@ -48,6 +51,35 @@ public sealed class DataGeneratorService
     /// <exception cref="TimeoutException">The stream did not stop in time.</exception>
     public async Task<StartStreamResponse> RestartAsync(CancellationToken ct = default)
     {
+        await StopAndWaitAsync(ct);
+
+        return await client.StartStreamAsync(ct);
+    }
+
+    /// <summary>
+    /// Stops the stream so that no data arrives after the reset.
+    /// </summary>
+    /// <remarks>
+    /// The reset continues if the generator is unavailable, since the rest of the application can still be reset.
+    /// </remarks>
+    public async Task ResetAsync(CancellationToken ct)
+    {
+        try
+        {
+            await StopAndWaitAsync(ct);
+        }
+        catch (Exception e) when (e is ApiException or HttpRequestException or TimeoutException)
+        {
+            logger.LogWarning(e, "The data stream could not be stopped while resetting the application.");
+        }
+    }
+
+    /// <summary>
+    /// Stops the stream if it is running and waits until it has stopped.
+    /// </summary>
+    /// <exception cref="TimeoutException">The stream did not stop in time.</exception>
+    private async Task StopAndWaitAsync(CancellationToken ct)
+    {
         if (await IsRunningAsync(ct))
         {
             try
@@ -75,8 +107,6 @@ public sealed class DataGeneratorService
                 throw new TimeoutException("The data stream did not stop in time.");
             }
         }
-
-        return await client.StartStreamAsync(ct);
     }
 
     private async Task<bool> IsRunningAsync(CancellationToken ct)

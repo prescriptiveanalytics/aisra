@@ -6,15 +6,15 @@ partial class RedisStorage
 {
     public async Task<int> SaveModelAsync(string model)
     {
-        var id = await db.StringIncrementAsync("model-id");
-        await db.StringSetAsync($"model:{id}", model);
+        var id = await db.StringIncrementAsync(ModelIdKey);
+        await db.StringSetAsync($"{ModelKeyPrefix}{id}", model);
 
         return (int)id;
     }
 
     public async Task<string?> GetResidualModelAsync(int id)
     {
-        var model = await db.StringGetAsync($"model:{id}");
+        var model = await db.StringGetAsync($"{ModelKeyPrefix}{id}");
         return model.IsNullOrEmpty ? null : model.ToString();
     }
 
@@ -22,9 +22,9 @@ partial class RedisStorage
     {
         var server = connection.GetServer(connection.GetEndPoints()[0]);
 
-        await foreach (var key in server.KeysAsync(pattern: "model:*"))
+        await foreach (var key in server.KeysAsync(pattern: ModelKeyPrefix + "*"))
         {
-            var idStr = key.ToString()["model:".Length..];
+            var idStr = key.ToString()[ModelKeyPrefix.Length..];
 
             if (!int.TryParse(idStr, out var id))
             {
@@ -46,13 +46,13 @@ partial class RedisStorage
 
     public async Task SaveBaseModelAsync(string model)
     {
-        await db.StringSetAsync("base-model", model);
-        await db.StringSetAsync("model:0", "0");
+        await db.StringSetAsync(BaseModelKey, model);
+        await db.StringSetAsync($"{ModelKeyPrefix}0", "0");
     }
 
     public async Task<string?> GetBaseModelAsync()
     {
-        var model = await db.StringGetAsync("base-model");
+        var model = await db.StringGetAsync(BaseModelKey);
         return model.IsNullOrEmpty ? null : model.ToString();
     }
 }

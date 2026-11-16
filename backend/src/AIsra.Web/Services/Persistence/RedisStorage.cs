@@ -1,10 +1,16 @@
-﻿using StackExchange.Redis;
+﻿using AIsra.Web.Services.Reset;
+using StackExchange.Redis;
 
 namespace AIsra.Web.Services.Persistence;
 
 /// <inheritdoc cref="IDataStorage" />
-public sealed partial class RedisStorage : IDataStorage, IModelStorage, IDisposable, IAsyncDisposable
+public sealed partial class RedisStorage : IDataStorage, IModelStorage, IResettable, IDisposable, IAsyncDisposable
 {
+    private const string DataRecordsKey = "data-records";
+    private const string ModelIdKey = "model-id";
+    private const string BaseModelKey = "base-model";
+    private const string ModelKeyPrefix = "model:";
+
     private readonly ConnectionMultiplexer connection;
     private readonly IDatabase db;
 
@@ -12,6 +18,22 @@ public sealed partial class RedisStorage : IDataStorage, IModelStorage, IDisposa
     {
         connection = ConnectionMultiplexer.Connect(host);
         db = connection.GetDatabase();
+    }
+
+    /// <summary>
+    /// Deletes all data and models.
+    /// </summary>
+    public async Task ResetAsync(CancellationToken ct)
+    {
+        await db.KeyDeleteAsync([DataRecordsKey, ModelIdKey, BaseModelKey]);
+
+        var server = connection.GetServer(connection.GetEndPoints()[0]);
+        var modelKeys = await server.KeysAsync(pattern: ModelKeyPrefix + "*").ToArrayAsync(ct);
+
+        if (modelKeys.Length > 0)
+        {
+            await db.KeyDeleteAsync(modelKeys);
+        }
     }
 
     ~RedisStorage()

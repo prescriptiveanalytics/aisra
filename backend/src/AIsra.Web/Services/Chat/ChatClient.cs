@@ -1,6 +1,7 @@
 ﻿using System.Reflection;
 using System.Runtime.CompilerServices;
 using AIsra.Web.Services.Mcp.Client;
+using AIsra.Web.Services.Reset;
 using AIsra.Common.Random;
 using AIsra.Common.Threading;
 using Microsoft.Extensions.AI;
@@ -13,7 +14,7 @@ public sealed class ChatClient(
     McpClientProvider mcpClientProvider,
     IRng rng,
     ICancellationTokenProvider ctp
-) : IHeuristicChatClient
+) : IHeuristicChatClient, IResettable
 {
     private static readonly string SystemPrompt = Assembly.GetExecutingAssembly()
         .Let(asm => asm.ReadEmbeddedTextFile($"{asm.GetName().Name}.Resources.Prompt.md"));
@@ -89,6 +90,14 @@ public sealed class ChatClient(
             totalHistoryChars += text.Length;
             TrimHistory();
         }
+    }
+
+    public Task ResetAsync(CancellationToken ct)
+    {
+        messageHistory.RemoveRange(1, messageHistory.Count - 1);
+        totalHistoryChars = SystemPrompt.Length;
+
+        return Task.CompletedTask;
     }
 
     private void TrimHistory()
