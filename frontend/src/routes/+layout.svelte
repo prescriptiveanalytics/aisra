@@ -3,8 +3,9 @@
     import favicon from "$lib/assets/favicon.svg";
     import { themeState } from "$lib/theme.svelte";
     import { Modals } from "svelte-modals";
-    import { authState, checkAuth, logout } from "$lib/auth.svelte";
+    import { authState, checkAuth } from "$lib/auth.svelte";
     import LoginScreen from "$lib/components/LoginScreen.svelte";
+    import UserControls from "$lib/components/UserControls.svelte";
 
     const { children } = $props();
 
@@ -64,32 +65,15 @@
     {/snippet}
 </Modals>
 
-<div class="absolute top-4 right-4 flex items-center gap-2">
-    {#if authState.status === "authenticated" && authState.user?.authenticationEnabled}
-        <span class="text-sm text-gray-600 dark:text-gray-300">
-            {authState.user.email ?? authState.user.name}
-        </span>
-        <button
-            type="button"
-            onclick={logout}
-            class="rounded-md border border-gray-300 bg-gray-100 p-2 text-sm text-gray-800 hover:bg-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
-        >
-            Sign out
-        </button>
-    {/if}
-    <select
-        bind:value={themeState.preference}
-        class="rounded-md border border-gray-300 bg-gray-100 p-2 text-sm text-gray-800 hover:bg-gray-200 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
-        aria-label="Theme Preference"
-    >
-        <option value="system">Automatic</option>
-        <option value="light">Light</option>
-        <option value="dark">Dark</option>
-    </select>
-</div>
-
 {#if authState.status === "authenticated"}
+    <!-- The dashboard shows the user controls in its own header. -->
     {@render children()}
-{:else if authState.status !== "loading"}
-    <LoginScreen />
+{:else}
+    <div class="absolute top-4 right-4">
+        <UserControls />
+    </div>
+
+    {#if authState.status !== "loading"}
+        <LoginScreen />
+    {/if}
 {/if}

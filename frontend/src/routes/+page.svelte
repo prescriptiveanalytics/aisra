@@ -13,6 +13,8 @@
     import DataStreamCharts from "$lib/components/DataStreamCharts.svelte";
     import DataGeneratorControls from "$lib/components/DataGeneratorControls.svelte";
     import ModelSection from "../lib/components/ModelSection.svelte";
+    import MonitorModelQualityToggle from "$lib/components/MonitorModelQualityToggle.svelte";
+    import UserControls from "$lib/components/UserControls.svelte";
     import type { ServerEvent } from "$lib/types/serverEvents";
     import ReconnectingEventSource from "reconnecting-eventsource";
     import { type ModalComponent, type ModalProps, modals } from "svelte-modals";
@@ -194,43 +196,78 @@
     }
 </script>
 
-<div class="mx-auto max-w-500 p-8 font-sans">
-    <div class="mb-6 flex items-center gap-4">
-        <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100">Dashboard</h1>
+<!--
+    From 2xl up, the page fills the viewport: the header rows and the chat stay in place and only the
+    chart columns scroll. Below that, the sections are placed into one or two columns and the page
+    scrolls as a whole.
+-->
+<div
+    class="mx-auto grid max-w-640 grid-cols-1 gap-x-8 p-8 font-sans lg:grid-cols-[28rem_minmax(0,1fr)] 2xl:h-dvh 2xl:grid-cols-[28rem_minmax(0,1fr)_minmax(0,1fr)] 2xl:grid-rows-[auto_auto_minmax(0,1fr)]"
+>
+    <div class="col-span-full mb-6 flex items-center justify-between gap-4">
+        <div class="flex items-center gap-4">
+            <h1 class="text-3xl font-bold text-gray-800 dark:text-gray-100">Dashboard</h1>
+            <button
+                type="button"
+                onclick={handleReset}
+                class="cursor-pointer rounded-lg border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/40"
+                title="Reset the entire application"
+            >
+                Reset
+            </button>
+        </div>
+
+        <UserControls />
+    </div>
+
+    <div class="row-start-2 mb-4 flex max-w-lg items-center justify-between gap-4 lg:col-start-1">
+        <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-200">Agent</h2>
+        <MonitorModelQualityToggle
+            enabled={monitorModelQuality}
+            onChange={handleMonitorModelQualityChange}
+        />
+    </div>
+
+    <div
+        class="row-start-4 mb-4 flex items-center justify-between gap-4 lg:col-start-2 lg:row-start-2"
+    >
+        <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-200">Data Stream</h2>
+        <DataGeneratorControls />
+    </div>
+
+    <div
+        class="row-start-6 mb-4 flex items-center justify-between gap-4 lg:col-start-2 lg:row-start-4 2xl:col-start-3 2xl:row-start-2"
+    >
+        <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-200">Models</h2>
         <button
-            type="button"
-            onclick={handleReset}
-            class="cursor-pointer rounded-lg border border-red-300 px-4 py-2 text-sm font-medium text-red-700 hover:bg-red-50 dark:border-red-800 dark:text-red-300 dark:hover:bg-red-900/40"
-            title="Reset the entire application"
+            onclick={handleAddChart}
+            class="cursor-pointer rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700"
         >
-            Reset
+            Add Chart
         </button>
     </div>
 
-    <div class="flex flex-col gap-8 lg:flex-row">
+    <div
+        class="row-start-3 mb-8 flex min-h-0 flex-col lg:col-start-1 lg:row-span-3 lg:mb-0 2xl:row-span-1"
+    >
         <ChatPanel
             {serverEvents}
             {isDone}
             {isStopping}
-            {monitorModelQuality}
             onSendMessage={handleSendMessage}
             onStop={handleStop}
-            onMonitorModelQualityChange={handleMonitorModelQualityChange}
         />
+    </div>
 
-        <div class="flex-1">
-            <div class="mb-4 flex items-center justify-between">
-                <h2 class="text-xl font-semibold text-gray-700 dark:text-gray-200">Data Stream</h2>
-                <DataGeneratorControls />
-            </div>
+    <div
+        class="row-start-5 mb-8 lg:col-start-2 lg:row-start-3 2xl:mb-0 2xl:min-h-0 2xl:overflow-y-auto"
+    >
+        <DataStreamCharts />
+    </div>
 
-            <DataStreamCharts />
-
-            <ModelSection
-                {selectedCharts}
-                onAddChart={handleAddChart}
-                onRemoveChart={removeChart}
-            />
-        </div>
+    <div
+        class="row-start-7 lg:col-start-2 lg:row-start-5 2xl:col-start-3 2xl:row-start-3 2xl:min-h-0 2xl:overflow-y-auto"
+    >
+        <ModelSection {selectedCharts} onRemoveChart={removeChart} />
     </div>
 </div>

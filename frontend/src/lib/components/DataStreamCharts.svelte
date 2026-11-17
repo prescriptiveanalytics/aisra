@@ -125,7 +125,7 @@
 </script>
 
 {#if series.length > 0}
-    <div class="grid grid-cols-1 gap-4 2xl:grid-cols-2">
+    <div class="grid grid-cols-1 gap-4 3xl:grid-cols-2">
         {#each series as s, _index (s.id)}
             <div
                 class="mb-4 h-64 min-w-0 flex-1 rounded-xl border border-gray-200 bg-white p-4 shadow-sm dark:border-gray-700 dark:bg-gray-900"
